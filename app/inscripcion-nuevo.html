@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Ingreso | Liceo Nacional</title>
+    <style>
+        /* CSS BASE */
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding: 50px 0; color: #333; }
+        .main-container { width: 100%; max-width: 750px; background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); box-sizing: border-box; }
+        .header-area { text-align: center; margin-bottom: 30px; }
+        .logo { max-width: 80px; height: auto; margin-bottom: 10px; }
+        .header-area h1 { font-size: 28px; font-weight: bold; color: #2c3e50; margin: 0; }
+        .header-area p { font-size: 16px; color: #777; margin: 5px 0 0 0; }
+        
+        /* ÚNICA SECCIÓN PRINCIPAL (sin bordes de sección) */
+        .form-content { 
+            padding: 10px 0;
+            margin-bottom: 25px;
+        }
+
+        /* DISEÑO DE COLUMNAS PARA MEZCLAR TEXTO Y ARCHIVOS */
+        .form-fields { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* Dos columnas */
+            gap: 20px; 
+        }
+        .full-width { 
+            grid-column: 1 / 3; 
+        }
+
+        /* ESTILOS GENERALES DE INPUTS */
+        .input-group {
+            margin-bottom: 10px; /* Reducimos el margen para hacerlo más corrido */
+        }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #34495e; font-size: 14px; }
+        .input-group input:not([type="file"]), .input-group select, .input-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); outline: none; }
+        .input-group textarea { resize: vertical; }
+
+        /* Estilos de Carga de Archivos */
+        .file-upload-group { 
+            background-color: #fafafa; /* Fondo para diferenciar los archivos */
+            border: 1px solid #ddd;
+            padding: 15px; 
+            border-radius: 4px; 
+        }
+        .file-upload-group label { color: #2c3e50; font-weight: 700; }
+        .file-upload-group p { font-size: 12px; color: #777; margin-top: 5px; }
+        
+        /* Título para Documentos */
+        .section-title {
+            grid-column: 1 / 3;
+            font-size: 18px;
+            color: #007bff;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        /* BOTONES FINALES */
+        .submit-button { background-color: #27ae60; color: #fff; border: none; padding: 15px 30px; border-radius: 5px; font-size: 18px; cursor: pointer; width: 100%; margin-top: 20px; transition: background-color 0.3s ease; font-weight: bold; }
+        .submit-button:hover { background-color: #2ecc71; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none; }
+
+    </style>
+</head>
+<body>
+    
+    <div class="main-container">
+        
+        <div class="header-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo"> 
+            <h1>Inscripción: Primer Año (Nuevo Ingreso)</h1>
+            <p>Complete todos los campos de datos y adjunte los documentos obligatorios.</p>
+        </div>
+        
+        <form id="enrollmentForm" method="POST" action="tu_endpoint_nuevo_ingreso" enctype="multipart/form-data">
+
+            <div class="form-content">
+                <div class="form-fields">
+                    
+                    <h2 class="section-title full-width">1. Datos del Estudiante y Representante</h2>
+
+                    <div class="input-group full-width">
+                        <label for="student_name">Nombre Completo del Estudiante:</label>
+                        <input type="text" id="student_name" name="student_name" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="rep_name">Nombre Completo del Representante:</label>
+                        <input type="text" id="rep_name" name="rep_name" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="rep_phone">Teléfono del Representante:</label>
+                        <input type="tel" id="rep_phone" name="rep_phone" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="rep_email">Correo Electrónico del Representante:</label>
+                        <input type="email" id="rep_email" name="rep_email" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="rep_ci">Cédula de Identidad del Representante (C.I.):</label>
+                        <input type="text" id="rep_ci" name="rep_ci" required>
+                    </div>
+
+                    <div class="input-group full-width">
+                        <label for="address">Dirección de Habitación:</label>
+                        <textarea id="address" name="address" rows="2" required></textarea>
+                    </div>
+
+
+                    <h2 class="section-title full-width" style="margin-top: 20px;">2. Carga de Documentos Obligatorios</h2>
+
+                    <div class="input-group file-upload-group">
+                        <label for="foto_estudiante">Foto del Estudiante (Tipo Carnet):</label>
+                        <input type="file" id="foto_estudiante" name="foto_estudiante" accept="image/*" required>
+                    </div>
+                    
+                    <div class="input-group file-upload-group">
+                        <label for="foto_representante">Foto del Representante (Tipo Carnet):</label>
+                        <input type="file" id="foto_representante" name="foto_representante" accept="image/*" required>
+                    </div>
+
+                    <div class="input-group file-upload-group">
+                        <label for="certificado_6to">Certificado de Promoción de 6to Grado:</label>
+                        <input type="file" id="certificado_6to" name="certificado_6to" accept=".pdf,image/*" required>
+                        <p>Solo archivo PDF o imagen.</p>
+                    </div>
+                    
+                    <div class="input-group file-upload-group">
+                        <label for="partida_nacimiento">Partida de Nacimiento (Original):</label>
+                        <input type="file" id="partida_nacimiento" name="partida_nacimiento" accept=".pdf,image/*" required>
+                        <p>Solo archivo PDF o imagen.</p>
+                    </div>
+                    
+                    <div class="input-group file-upload-group">
+                        <label for="copia_ci_rep">Copia C.I. del Representante:</label>
+                        <input type="file" id="copia_ci_rep" name="copia_ci_rep" accept=".pdf,image/*" required>
+                    </div>
+                    
+                    <div class="input-group file-upload-group">
+                        <label for="copia_ci_est">Copia C.I. del Estudiante:</label>
+                        <input type="file" id="copia_ci_est" name="copia_ci_est" accept=".pdf,image/*" required>
+                    </div>
+
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">Registrar e Inscribir Alumno</button>
+        </form>
+        
+        <a href="inscripcion-selector.html" class="back-link">← Volver al Menú de Inscripción</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('enrollmentForm');
+            form.addEventListener('submit', function(event) {
+                // Validación de que el formulario se va al backend
+                alert('Formulario de Nuevo Ingreso enviado al servidor. Procesando archivos y datos...');
+            });
+        });
+    </script>
+</body>
+</html>

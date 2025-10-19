@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Horario | Liceo Nacional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alineación superior */
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 50px; 
+            color: #333;
+        }
+
+        /* ---------------------------------- */
+        /* BOTÓN SALIR (Parte superior derecha) */
+        /* ---------------------------------- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .exit-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .exit-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* ---------------------------------- */
+        /* CONTENEDOR PRINCIPAL (MÁS ANCHO para la tabla) */
+        /* ---------------------------------- */
+        .main-content {
+            width: 100%;
+            max-width: 1200px; /* Muy ancho para la tabla de edición */
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        
+        /* ---------------------------------- */
+        /* LOGO Y TÍTULO */
+        /* ---------------------------------- */
+        .header-area {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .logo {
+            max-width: 50px;
+            height: auto;
+            margin-right: 15px;
+        }
+        .title-group h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        .title-group p {
+            font-size: 14px;
+            color: #777;
+            margin: 2px 0 0 0;
+        }
+
+        /* ---------------------------------- */
+        /* FORMULARIO DE CONTROL (AÑO/SECCIÓN) */
+        /* ---------------------------------- */
+        .controls-form {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .input-group {
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 14px;
+        }
+        .input-group select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            min-width: 180px;
+        }
+        
+        /* ---------------------------------- */
+        /* BOTÓN DE GUARDAR */
+        /* ---------------------------------- */
+        .save-button {
+            background-color: #27ae60; /* Verde para guardar */
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .save-button:hover {
+            background-color: #2ecc71;
+        }
+
+        /* ---------------------------------- */
+        /* TABLA DE EDICIÓN (Cuerpo del Horario) */
+        /* ---------------------------------- */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Mantiene el ancho de las columnas */
+            margin-top: 20px;
+        }
+        .schedule-table th, .schedule-table td {
+            border: 1px solid #ddd;
+            padding: 0; /* Quitamos padding aquí para controlarlo en el input */
+            text-align: center;
+            height: 60px; /* Altura fija para las celdas */
+        }
+        .schedule-table th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .schedule-table td:first-child {
+            background-color: #f8f8f8;
+            font-weight: bold;
+            color: #555;
+            padding: 8px; /* Padding para la columna de la hora */
+        }
+        
+        /* Input de edición dentro de la celda */
+        .schedule-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            text-align: center;
+            font-size: 14px;
+            box-sizing: border-box;
+            padding: 5px;
+            transition: background-color 0.1s;
+        }
+        .schedule-input:focus {
+            outline: 2px solid #007bff;
+            background-color: #e6f7ff; /* Fondo azul claro al enfocar */
+        }
+        
+        /* Estilos de Botones de Control de Horas */
+        .hour-controls {
+            margin-top: 20px;
+            text-align: right;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .hour-controls button {
+            background-color: #7f8c8d; /* Gris para añadir/remover */
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+            margin-left: 10px;
+        }
+        .hour-controls button:hover {
+            background-color: #95a5a6;
+        }
+
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="#" id="exitBtn" class="exit-button">Salir</a>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="header-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo"> 
+            <div class="title-group">
+                <h1>Administración de Horarios</h1>
+                <p>Edite las materias para cada sección y año.</p>
+            </div>
+        </div>
+        
+        <form id="controlsForm" class="controls-form">
+            <div class="input-group">
+                <label for="admin_year">Seleccionar Año:</label>
+                <select id="admin_year" name="admin_year" required>
+                    <option value="">Seleccionar</option>
+                    <option value="1">1er Año</option>
+                    <option value="2">2do Año</option>
+                    <option value="3">3er Año</option>
+                    <option value="4">4to Año</option>
+                    <option value="5">5to Año</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="admin_section">Seleccionar Sección:</label>
+                <select id="admin_section" name="admin_section" required>
+                    <option value="">Seleccionar</option>
+                    <option value="A">Sección A</option>
+                    <option value="B">Sección B</option>
+                    <option value="C">Sección C</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="saveBtn" class="save-button">Guardar Horario</button>
+        </form>
+        
+        <div id="scheduleEditor">
+            <h2>Horario de Edición (Seleccione Año/Sección arriba)</h2>
+            <table class="schedule-table" id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Hora</th>
+                        <th style="width: 18%;">Lunes</th>
+                        <th style="width: 18%;">Martes</th>
+                        <th style="width: 18%;">Miércoles</th>
+                        <th style="width: 18%;">Jueves</th>
+                        <th style="width: 18%;">Viernes</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    <tr>
+                        <td><input type="text" value="7:00 - 8:30" class="schedule-input" style="background-color: #f8f8f8;" disabled></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" value="8:35 - 10:05" class="schedule-input" style="background-color: #f8f8f8;" disabled></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                        <td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="hour-controls">
+                <button type="button" id="addRowBtn">➕ Añadir Fila de Clase</button>
+                <button type="button" id="removeRowBtn">➖ Eliminar Última Fila</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Lógica de JavaScript para la interactividad
+        document.addEventListener('DOMContentLoaded', function() {
+            const exitBtn = document.getElementById('exitBtn');
+            const controlsForm = document.getElementById('controlsForm');
+            const scheduleBody = document.getElementById('scheduleBody');
+            const addRowBtn = document.getElementById('addRowBtn');
+            const removeRowBtn = document.getElementById('removeRowBtn');
+            
+            // --- 1. Lógica de Botones Estáticos ---
+            exitBtn.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                alert('Saliendo de la Administración de Horarios...');
+            });
+
+            controlsForm.addEventListener('submit', function(event) {
+                event.preventDefault(); 
+                const year = document.getElementById('admin_year').value;
+                const section = document.getElementById('admin_section').value;
+                
+                if (year && section) {
+                    // Aquí se enviaría el JSON con todos los datos de la tabla al backend
+                    alert(`Guardando horario para ${year}, Sección ${section}... (Listo para el Backend)`);
+                    // Ejemplo de cómo obtener los datos:
+                    // const scheduleData = getScheduleData(); 
+                    // console.log(scheduleData); 
+                } else {
+                    alert('Por favor, seleccione el Año y la Sección antes de guardar.');
+                }
+            });
+            
+            // --- 2. Lógica Dinámica de la Tabla ---
+
+            // Función para crear una nueva fila (hora de clase)
+            function createNewRow(time = '') {
+                const newRow = document.createElement('tr');
+                let rowHTML = `
+                    <td><input type="text" value="${time}" placeholder="HH:MM - HH:MM" class="schedule-input" style="background-color: #f8f8f8;" ${time ? 'disabled' : ''}></td>
+                `;
+                // Añadir 5 celdas para Lunes a Viernes
+                for (let i = 0; i < 5; i++) {
+                    rowHTML += `<td><input type="text" placeholder="Materia / Profesor" class="schedule-input"></td>`;
+                }
+                newRow.innerHTML = rowHTML;
+                scheduleBody.appendChild(newRow);
+            }
+
+            // Manejador para añadir fila
+            addRowBtn.addEventListener('click', function() {
+                createNewRow(''); // Crear una fila vacía para que el usuario ingrese la hora
+            });
+
+            // Manejador para eliminar la última fila
+            removeRowBtn.addEventListener('click', function() {
+                if (scheduleBody.rows.length > 0) {
+                    scheduleBody.deleteRow(scheduleBody.rows.length - 1);
+                }
+            });
+
+            // Ejemplo: Función para obtener todos los datos de la tabla (para el Backend)
+            // function getScheduleData() {
+            //     const data = [];
+            //     const rows = scheduleBody.getElementsByTagName('tr');
+            //     for (let i = 0; i < rows.length; i++) {
+            //         const rowData = {};
+            //         const inputs = rows[i].getElementsByTagName('input');
+            //         
+            //         rowData.hora = inputs[0].value;
+            //         rowData.lunes = inputs[1].value;
+            //         rowData.martes = inputs[2].value;
+            //         rowData.miercoles = inputs[3].value;
+            //         rowData.jueves = inputs[4].value;
+            //         rowData.viernes = inputs[5].value;
+            //         
+            //         data.push(rowData);
+            //     }
+            //     return data;
+            // }
+
+            // Llenar la tabla inicialmente con las dos filas de ejemplo
+            // Para la integración real, esta tabla se llenaría con los datos existentes al seleccionar Año/Sección
+            // createNewRow("7:00 - 8:30"); 
+            // createNewRow("8:35 - 10:05");
+        });
+    </script>
+</body>
+</html>

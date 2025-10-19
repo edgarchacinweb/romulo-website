@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargar Boletín | Liceo Nacional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* ---------------------------------- */
+        /* BOTÓN SALIR */
+        /* ---------------------------------- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .exit-button {
+            background-color: #007bff; /* Azul consistente */
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .exit-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* ---------------------------------- */
+        /* CONTENEDOR PRINCIPAL */
+        /* ---------------------------------- */
+        .main-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .logo-area {
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        p {
+            font-size: 16px;
+            color: #777;
+            margin: 5px 0 0 0;
+        }
+        
+        /* ---------------------------------- */
+        /* FORMULARIO Y ENTRADAS */
+        /* ---------------------------------- */
+        .form-group {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 15px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+            outline: none;
+        }
+
+        /* Etiqueta de Información del Documento - AHORA AZUL */
+        .boletin-info {
+            background-color: #e6f7ff; /* Fondo azul claro */
+            color: #007bff; /* Texto azul principal */
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* ---------------------------------- */
+        /* BOTÓN PRINCIPAL DE DESCARGA (AZUL) */
+        /* ---------------------------------- */
+        .download-button {
+            background-color: #007bff; /* Azul */
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+        }
+        .download-button:hover {
+            background-color: #0056b3; /* Azul más oscuro */
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="#" id="exitBtn" class="exit-button">Salir</a>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="logo-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo"> 
+            <h1>Descargar Boletín de Notas</h1>
+            <p>Seleccione el Período y su Cédula para generar el reporte.</p>
+        </div>
+        
+        <form id="downloadForm">
+
+            <div class="boletin-info">
+                El documento descargado contendrá las notas del período seleccionado.
+            </div>
+
+            <div class="form-group">
+                <label for="periodo_escolar">Período Escolar:</label>
+                <select id="periodo_escolar" name="periodo_escolar" required>
+                    <option value="">Seleccione el Período</option>
+                    <option value="1er-corte">1er Corte (Lapso)</option>
+                    <option value="2do-corte">2do Corte (Lapso)</option>
+                    <option value="final">Boletín Final de Año</option>
+                    </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ci_student">Cédula de Identidad del Estudiante:</label>
+                <input type="text" id="ci_student" name="ci_student" placeholder="V-XX.XXX.XXX" required>
+            </div>
+            
+            <button type="submit" id="downloadBtn" class="download-button">
+                Generar y Descargar Boletín
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const downloadForm = document.getElementById('downloadForm');
+            const exitBtn = document.getElementById('exitBtn');
+
+            // --- Lógica del Botón Salir ---
+            exitBtn.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                alert('Saliendo de la Interfaz de Descarga de Boletines.');
+            });
+
+            // --- Lógica de Descarga ---
+            downloadForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Previene el envío por defecto
+                
+                const ci = document.getElementById('ci_student').value;
+                const periodo = document.getElementById('periodo_escolar').value;
+
+                if (ci && periodo) {
+                    alert(`Solicitud enviada para generar el Boletín de ${periodo.toUpperCase()} para C.I. ${ci}. (El Backend debe generar y enviar el PDF).`);
+                    // Aquí iría la llamada AJAX o fetch al backend para obtener los datos
+                    // y generar el archivo descargable del boletín (PDF, XLS, etc.).
+                } else {
+                    alert('Por favor, ingrese la Cédula de Identidad y seleccione el Período Escolar.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

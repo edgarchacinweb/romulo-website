@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscripciones | Liceo Nacional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* ---------------------------------- */
+        /* BOTÓN SALIR (Parte superior derecha) */
+        /* ---------------------------------- */
+        .top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .exit-button {
+            background-color: #007bff; /* Color azul */
+            color: #fff;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .exit-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* ---------------------------------- */
+        /* CONTENEDOR PRINCIPAL */
+        /* ---------------------------------- */
+        .main-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        .logo-area {
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-width: 100px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+        p {
+            font-size: 16px;
+            color: #777;
+            margin: 5px 0 30px 0;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .action-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+        }
+        .action-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="#" id="exitBtn" class="exit-button">Salir</a>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="logo-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo"> 
+            <h1>Proceso de Inscripción</h1>
+            <p>Seleccione la opción que corresponda.</p>
+        </div>
+        
+        <div class="options">
+            <a href="inscripcion-nuevo.html" class="action-button">
+                Nuevo Ingreso (1er Año)
+            </a>
+
+            <a href="inscripcion-reingreso.html" class="action-button">
+                Reinscripción (2do a 5to Año)
+            </a>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exitBtn = document.getElementById('exitBtn');
+
+            exitBtn.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                alert('Saliendo del Proceso de Inscripción (Listo para el Backend).');
+                // Aquí deberías colocar la redirección a la página principal o al login.
+                // Ejemplo: window.location.href = '/home';
+            });
+        });
+    </script>
+</body>
+</html>

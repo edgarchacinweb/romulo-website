@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reinscripción | Liceo Nacional</title>
+    <style>
+        /* CSS BASE */
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; color: #333; }
+        .main-container { width: 100%; max-width: 550px; background-color: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); box-sizing: border-box; text-align: center; }
+        .header-area { margin-bottom: 30px; }
+        .logo { max-width: 80px; height: auto; margin-bottom: 10px; }
+        .header-area h1 { font-size: 24px; font-weight: bold; color: #2c3e50; margin: 0; }
+        .header-area p { font-size: 16px; color: #777; margin: 5px 0 0 0; }
+        
+        /* Contenido del Formulario (Todo Corrido) */
+        .form-content { 
+            padding: 10px 0;
+            text-align: left;
+        }
+
+        /* ESTILOS DE INPUTS */
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #34495e; font-size: 14px; }
+        .input-group input:not([type="file"]), .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 16px; }
+        .input-group input:focus, .input-group select:focus { border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2); outline: none; }
+
+        /* Estilos de Carga de Archivos */
+        .file-upload-group { 
+            background-color: #fafafa;
+            border: 1px solid #ddd;
+            padding: 25px; 
+            border-radius: 4px; 
+            margin-top: 30px; /* Separación visual de los datos de identificación */
+        }
+        .file-upload-group label { color: #007bff; font-weight: 700; font-size: 16px; }
+        .file-upload-group p { font-size: 13px; color: #555; margin-top: 10px; }
+        .file-upload-group input[type="file"] { margin-top: 10px; }
+        
+        /* BOTONES FINALES */
+        .submit-button { background-color: #007bff; color: #fff; border: none; padding: 15px 30px; border-radius: 5px; font-size: 18px; cursor: pointer; width: 100%; margin-top: 30px; transition: background-color 0.3s ease; font-weight: bold; }
+        .submit-button:hover { background-color: #0056b3; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none; }
+
+    </style>
+</head>
+<body>
+    
+    <div class="main-container">
+        
+        <div class="header-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo"> 
+            <h1>Proceso de Reinscripción</h1>
+            <p>De 2do a 5to Año.</p>
+        </div>
+        
+        <form id="reEnrollmentForm" method="POST" action="tu_endpoint_reinscripcion" enctype="multipart/form-data">
+
+            <div class="form-content">
+                
+                <h2>Identificación del Estudiante</h2>
+                <div class="input-group">
+                    <label for="student_ci">Cédula de Identidad del Estudiante (C.I.):</label>
+                    <input type="text" id="student_ci" name="student_ci" required>
+                </div>
+                <div class="input-group">
+                    <label for="current_year">Año que va a Cursar (Ej. 3er Año):</label>
+                    <select id="current_year" name="current_year" required>
+                        <option value="">Seleccione el Año</option>
+                        <option value="2">2do Año</option>
+                        <option value="3">3er Año</option>
+                        <option value="4">4to Año</option>
+                        <option value="5">5to Año</option>
+                    </select>
+                </div>
+
+                <div class="file-upload-group">
+                    <label for="boletin">Cargar Boletín de Fin de Año</label>
+                    <p>
+                        **REQUISITO ÚNICO:** El boletín debe indicar que el estudiante aprobó todas las asignaturas para cursar el siguiente año.
+                    </p>
+                    <input type="file" id="boletin" name="boletin" accept=".pdf,image/*" required>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-button">Confirmar Reinscripción</button>
+        </form>
+        
+        <a href="inscripcion-selector.html" class="back-link">← Volver al Menú de Inscripción</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('reEnrollmentForm');
+            form.addEventListener('submit', function(event) {
+                // Validación simple de los campos
+                const ci = document.getElementById('student_ci').value;
+                const year = document.getElementById('current_year').value;
+                
+                if (ci && year) {
+                     alert(`Reinscripción para C.I. ${ci} al ${year} (Listo para el Backend).`);
+                } else {
+                    event.preventDefault();
+                    alert('Por favor, complete los datos de identificación y cargue el boletín.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

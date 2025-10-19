@@ -3,9 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión</title>
+    <title>Iniciar Sesión | Liceo Nacional</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6eef5; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            padding: 20px;
+            width: 100%;
+            max-width: 380px; /* Ancho de la caja de login sin cambios */
+        }
+
+        .login-box {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center; 
+        }
+
+        .logo-area {
+            margin-bottom: 20px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        .logo {
+            /* 🎯 AJUSTE FINAL: 180px es un buen tamaño para ser visible y no dominar */
+            max-width: 180px; 
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .login-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .login-button:hover {
+            background-color: #0056b3;
+        }
+
+        .forgot-password {
+            display: block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .forgot-password:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-    <h1>Login</h1>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo-area">
+                <img src="../src/assets/images/Liceo.png" alt="Logo Liceo Nacional" class="logo">
+                
+</div>
+            
+            <h2>Iniciar Sesión</h2>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Usuario:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="login-button">Iniciar Sesión</button>
+                
+                <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+
+            loginForm.addEventListener('submit', function(event) {
+                event.preventDefault(); 
+
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+
+                console.log('Intento de inicio de sesión - Usuario:', username);
+
+                // Autenticación básica de prueba
+                if (username === 'liceo' && password === 'romulo') { 
+                    alert('¡Inicio de sesión exitoso! Bienvenido.');
+                } else {
+                    alert('Credenciales incorrectas. Por favor, intenta de nuevo.');
+                }
+            });
+            
+            const forgotPasswordLink = document.querySelector('.forgot-password');
+            forgotPasswordLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                alert('Función de recuperación de contraseña (simulación).');
+            });
+        });
+    </script>
 </body>
 </html>

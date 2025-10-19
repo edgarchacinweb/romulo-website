@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Asistencia | Liceo Nacional</title>
+    <style>
+        /* Estilos Base y Salir */
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding-top: 50px; color: #333; }
+        .top-bar { position: absolute; top: 20px; right: 20px; }
+        .exit-button { background-color: #007bff; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: background-color 0.3s ease; text-decoration: none; font-weight: 600; }
+        .exit-button:hover { background-color: #0056b3; }
+
+        /* Contenedor Principal y Encabezado */
+        .main-content {
+            width: 100%;
+            max-width: 900px;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        .header-area { text-align: center; margin-bottom: 25px; }
+        .logo { max-width: 80px; height: auto; margin-bottom: 10px; }
+        .header-area h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+        .header-area p { font-size: 14px; color: #777; margin: 0 0 20px 0; }
+
+        /* Controles de Filtro */
+        .filter-controls {
+            display: grid;
+            /* 6 columnas para Año, Sección, Materia, Lapso, Fecha, Botón */
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border: 1px solid #d0e8ff;
+        }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #34495e; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .load-button-group { grid-column: span 1; align-self: end; }
+        .load-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .load-button:hover { background-color: #0056b3; }
+
+        /* Lista de Estudiantes */
+        #studentsListContainer { display: none; margin-top: 20px; }
+        .student-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .student-table th, .student-table td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
+        .student-table th { background-color: #007bff; color: #fff; font-weight: bold; text-align: center; }
+        .student-table .name-col { text-align: left; }
+
+        /* Botones de Asistencia */
+        .attendance-buttons { display: flex; justify-content: space-around; }
+        .attendance-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.2s ease;
+        }
+        .present-btn { background-color: #2ecc71; color: #fff; } /* Verde */
+        .present-btn:hover { background-color: #27ae60; }
+        .absent-btn { background-color: #e74c3c; color: #fff; } /* Rojo */
+        .absent-btn:hover { background-color: #c0392b; }
+        .attendance-status { font-weight: bold; }
+        .status-present { color: #2ecc71; }
+        .status-absent { color: #e74c3c; }
+        
+        /* Observación */
+        .student-table textarea { 
+            width: 95%; 
+            padding: 5px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            resize: vertical; 
+            font-size: 13px;
+        }
+
+        /* Botón Guardar Final */
+        .save-button {
+            background-color: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 25px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .save-button:hover { background-color: #2ecc71; }
+
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="asistencia-gestion.html" id="exitBtn" class="exit-button">Salir</a>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="header-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo">
+            <h1>Registro de Asistencia</h1>
+            <p>Seleccione el filtro para cargar la lista de estudiantes y marcar su asistencia.</p>
+        </div>
+        
+        <div class="filter-controls">
+            <div class="form-group">
+                <label for="grade">Año (1-5):</label>
+                <select id="grade" required>
+                    <option value="">Seleccione Año</option>
+                    <option value="1">1er Año</option>
+                    <option value="2">2do Año</option>
+                    <option value="3">3er Año</option>
+                    <option value="4">4to Año</option>
+                    <option value="5">5to Año</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="section">Sección (A-B):</label>
+                <select id="section" required>
+                    <option value="">Sección</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option> </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="materia">Materia:</label>
+                <select id="materia" required> 
+                    <option value="">Seleccione Materia</option>
+                     <option value="Castellano">Castellano</option>
+                    <option value="Ingles">Ingles</option>
+                    <option value="Matematica">Matematica</option>
+                    <option value="Biologia">Biologia</option>
+                    <option value="Educacion Fisica">Educacion Fisica</option>
+                    <option value="Arte y Patrimonio">Arte y Patrimonio</option>
+                    <option value="Oreintacion y Convivencia">Oreintacion y Convivencia</option>
+                    <option value="Quimica">Quimica</option>
+                    <option value="Fisica">Fisica</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="lapso">Lapso:</label>
+                <select id="lapso" required>
+                    <option value="">Lapso</option>
+                    <option value="1">1er Lapso</option>
+                    <option value="2">2do Lapso</option>
+                    <option value="3">3er Lapso</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="date">Fecha:</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <div class="load-button-group">
+                <button type="button" id="loadStudentsBtn" class="load-button">
+                    Cargar Lista
+                </button>
+            </div>
+        </div>
+
+        <div id="studentsListContainer">
+            <h2 style="font-size: 20px; color: #2c3e50;">Lista de Estudiantes (Tomar Asistencia)</h2>
+            <form id="attendanceForm">
+                <table class="student-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 35%;" class="name-col">Nombre del Estudiante</th>
+                            <th style="width: 25%;">Asistencia</th>
+                            <th style="width: 35%;">Observación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                    </tbody>
+                </table>
+                
+                <button type="submit" class="save-button">Guardar Asistencia del Día</button>
+            </form>
+        </div>
+        
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // LÓGICA DE CARGA DINÁMICA DE MATERIAS
+        // ----------------------------------------------------
+        // ✅ MATERIAS DE LICEOS VENEZOLANOS POR AÑO (Referencial)
+        const materias = {
+            '1': [
+                "Castellano", "Inglés", "Matemática", "Biología", "Historia de Venezuela", 
+                "Geografía General", "Educación Física", "Arte y Patrimonio", 
+                "Orientación y Convivencia", "Formación para la Soberanía Nacional", "Grupo Estable"
+            ],
+            '2': [
+                "Castellano", "Inglés", "Matemática", "Biología", "Historia de Venezuela", 
+                "Geografía de Venezuela", "Educación Física", "Arte y Patrimonio", 
+                "Orientación y Convivencia", "Formación para la Soberanía Nacional", "Grupo Estable"
+            ],
+            '3': [
+                "Castellano", "Inglés", "Matemática", "Física", "Química", "Biología",
+                "Historia Universal", "Geografía Económica", "Educación Física", 
+                "Orientación y Convivencia", "Formación para la Soberanía Nacional", "Grupo Estable"
+            ],
+            '4': [ // Depende de Mención, pero se listan las comunes
+                "Castellano", "Inglés", "Matemática", "Física", "Química", 
+                "Biología", "Ciencias de la Tierra", "Historia Contemporánea de Venezuela",
+                "Educación Física", "Orientación y Convivencia", "Filosofía"
+            ],
+            '5': [ // Depende de Mención, pero se listan las comunes
+                "Castellano", "Inglés", "Matemática", "Física", "Química", 
+                "Biología", "Ciencias de la Tierra", "Instrucción Premilitar (Soberanía)",
+                "Educación Física", "Orientación y Convivencia", "Filosofía", "Geografía de Venezuela"
+            ]
+        };
+
+        function actualizarMaterias() {
+            const anioSelect = document.getElementById('grade');
+            const materiaSelect = document.getElementById('materia');
+            const anioSeleccionado = anioSelect.value;
+            let opciones = [];
+
+            // Limpia el menú
+            materiaSelect.innerHTML = '<option value="">Seleccione Materia</option>';
+            // Deshabilita por defecto y se habilita solo si hay opciones
+            materiaSelect.disabled = true;
+
+            // ✅ LÓGICA CORREGIDA Y MEJORADA: Obtiene las materias por el valor exacto del año
+            if (anioSeleccionado && materias[anioSeleccionado]) { 
+                opciones = materias[anioSeleccionado];
+                
+                opciones.sort().forEach(materia => { // Opcional: ordenar alfabéticamente
+                    const option = document.createElement('option');
+                    option.value = materia;
+                    option.textContent = materia;
+                    materiaSelect.appendChild(option);
+                });
+                
+                if (opciones.length > 0) {
+                   materiaSelect.disabled = false; // Habilita si se cargaron opciones
+                }
+            }
+        }
+        
+        // ----------------------------------------------------
+        // LÓGICA DE CARGA DE ESTUDIANTES Y GUARDADO
+        // ----------------------------------------------------
+        document.addEventListener('DOMContentLoaded', function() {
+            const gradeSelect = document.getElementById('grade');
+            const loadStudentsBtn = document.getElementById('loadStudentsBtn');
+            const studentsListContainer = document.getElementById('studentsListContainer');
+            const studentsTableBody = document.getElementById('studentsTableBody');
+            const attendanceForm = document.getElementById('attendanceForm');
+            const exitBtn = document.getElementById('exitBtn');
+
+            // 1. Vinculación del control de Año con la función de Materias
+            gradeSelect.addEventListener('change', actualizarMaterias);
+            // Ya no es necesario llamar a actualizarMaterias() al inicio si queremos que el select empiece en "Seleccione Año"
+            // y se cargue al cambiar.
+
+            // --- 2. Botón Salir ---
+            exitBtn.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                alert('Saliendo del Registro de Asistencia.');
+                // window.location.href = this.href; // Descomentar para salir realmente
+            });
+
+            // --- 3. Cargar Estudiantes (Simulación) ---
+            loadStudentsBtn.addEventListener('click', function() {
+                const grade = document.getElementById('grade').value;
+                const section = document.getElementById('section').value;
+                const materia = document.getElementById('materia').value; 
+                const lapso = document.getElementById('lapso').value;
+                const date = document.getElementById('date').value;
+
+                // Validación final de filtros
+                if (!grade || !section || !materia || !lapso || !date) {
+                    alert('🚨 Por favor, complete todos los campos (Año, Sección, Materia, Lapso y Fecha).');
+                    return;
+                }
+
+                // SIMULACIÓN DE DATOS DE ESTUDIANTES
+                const students = [
+                    { id: 1, name: 'Ana García', ci: 'V-31.123.456', status: '', obs: '' },
+                    { id: 2, name: 'Carlos Rodríguez', ci: 'V-32.234.567', status: '', obs: '' },
+                    { id: 3, name: 'Elena Martínez', ci: 'V-33.345.678', status: 'presente', obs: '' }, 
+                    { id: 4, name: 'Juan Pérez', ci: 'V-34.456.789', status: 'ausente', obs: 'Reposo médico' }, 
+                    { id: 5, name: 'Lucía Fernández', ci: 'V-35.567.890', status: '', obs: '' },
+                    { id: 6, name: 'Miguel Torres', ci: 'V-36.678.901', status: '', obs: '' },
+                    { id: 7, name: 'Sofía Herrera', ci: 'V-37.789.012', status: '', obs: '' },
+                ];
+                
+                studentsTableBody.innerHTML = '';
+                students.forEach((student, index) => {
+                    const row = studentsTableBody.insertRow();
+                    row.id = `row_${student.id}`;
+                    
+                    // Inicializa el atributo data-status con el estado actual (o 'no_marcado')
+                    row.setAttribute('data-status', student.status || 'no_marcado'); 
+                    
+                    const statusText = student.status === 'presente' ? `<span class="status-present">PRESENTE</span>` :
+                                             student.status === 'ausente' ? `<span class="status-absent">AUSENTE</span>` :
+                                             '--';
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td class="name-col">${student.name} (${student.ci})</td>
+                        <td id="status_cell_${student.id}">
+                            <div class="attendance-buttons">
+                                <button type="button" class="attendance-btn present-btn" onclick="markAttendance(${student.id}, 'presente')">✔</button>
+                                <button type="button" class="attendance-btn absent-btn" onclick="markAttendance(${student.id}, 'ausente')">✖</button>
+                            </div>
+                            <div style="margin-top: 5px;" class="attendance-status-display">Estado: ${statusText}</div>
+                        </td>
+                        <td>
+                            <textarea name="obs_${student.id}" placeholder="Ej: Reposo médico, Retardo">${student.obs}</textarea>
+                        </td>
+                    `;
+                });
+
+                studentsListContainer.style.display = 'block';
+                alert(`✅ Lista de estudiantes de ${grade}° ${section}, Materia: ${materia} para la fecha ${date} cargada.`);
+            });
+            
+            // --- 4. Marcar Asistencia Individual (Función Global) ---
+            window.markAttendance = function(studentId, status) {
+                const row = document.getElementById(`row_${studentId}`);
+                const statusCell = document.getElementById(`status_cell_${studentId}`);
+                
+                const statusText = status === 'presente' ? `<span class="status-present">PRESENTE</span>` : `<span class="status-absent">AUSENTE</span>`;
+                
+                // Actualiza el texto de estado en la tabla
+                const statusDiv = statusCell.querySelector('.attendance-status-display');
+                if (statusDiv) {
+                    statusDiv.innerHTML = `Estado: ${statusText}`;
+                }
+
+                // Actualiza el atributo data-status en la fila para el guardado final
+                row.setAttribute('data-status', status); 
+            };
+
+            // --- 5. Guardar Asistencia Completa ---
+            attendanceForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const attendanceRecords = [];
+                const rows = studentsTableBody.querySelectorAll('tr');
+
+                if (rows.length === 0) {
+                    alert('No hay estudiantes en la lista para guardar.');
+                    return;
+                }
+
+                rows.forEach(row => {
+                    const studentId = row.id.split('_')[1];
+                    const status = row.getAttribute('data-status') || 'no_marcado'; 
+                    const observation = row.querySelector(`textarea[name="obs_${studentId}"]`).value;
+                    
+                    attendanceRecords.push({
+                        student_id: studentId,
+                        status: status,
+                        observation: observation.trim()
+                    });
+                });
+
+                if (attendanceRecords.some(r => r.status === 'no_marcado')) {
+                    const confirmSave = confirm('⚠️ No todos los estudiantes han sido marcados. ¿Desea guardar el registro incompleto?');
+                    if (!confirmSave) return;
+                }
+                
+                console.log('Datos de asistencia a enviar:', attendanceRecords);
+
+                alert(`🎉 Asistencia del día guardada con éxito para ${rows.length} estudiantes.`);
+                // Aquí iría la llamada AJAX/Fetch al backend para guardar los datos.
+            });
+        });
+    </script>
+</body>
+</html>

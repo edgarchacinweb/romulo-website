@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga de Notas | Liceo Nacional</title>
+    <style>
+        /* Estilos Base y Salir */
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; margin: 0; padding-top: 50px; color: #333; }
+        .top-bar { position: absolute; top: 20px; right: 20px; }
+        .exit-button { background-color: #007bff; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; font-size: 14px; cursor: pointer; transition: background-color 0.3s ease; text-decoration: none; font-weight: 600; }
+        .exit-button:hover { background-color: #0056b3; }
+
+        /* Contenedor Principal y Encabezado */
+        .main-content {
+            width: 100%;
+            max-width: 1200px; /* Más ancho para la tabla de matriz */
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+        .header-area { text-align: center; margin-bottom: 25px; }
+        .logo { max-width: 80px; height: auto; margin-bottom: 10px; } /* Logo ligeramente más grande y centrado */
+        .header-area h1 {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 0 5px 0;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+        .header-area p { font-size: 14px; color: #777; margin: 0 0 20px 0; }
+
+        /* Controles de Búsqueda (Filtros) */
+        .search-controls {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 6 columnas para filtros */
+            gap: 20px;
+            padding: 15px;
+            background-color: #f0f8ff;
+            border-radius: 5px;
+            margin-bottom: 25px;
+            border: 1px solid #d0e8ff;
+        }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #34495e; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        .search-button-group { grid-column: span 1; align-self: end; }
+        .search-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        .search-button:hover { background-color: #0056b3; }
+
+        /* Detalles del Estudiante y Tabla */
+        #studentDetailsContainer {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .details-header { text-align: left; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .details-header h2 { font-size: 20px; color: #2c3e50; margin: 0; }
+        .details-header p { margin: 5px 0 0 0; font-size: 14px; }
+        .student-name-ci { color: #007bff; font-weight: bold; }
+
+        /* Tabla de Matriz de Notas */
+        .notes-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .notes-table th, .notes-table td {
+            border: 1px solid #ddd;
+            padding: 8px 5px;
+            text-align: center;
+            font-size: 13px;
+        }
+        .notes-table th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+        .notes-table .subject-col { 
+            text-align: left; 
+            font-weight: 600; 
+            background-color: #f8f8f8;
+            width: 35%; /* Ancho fijo para la columna de la materia */
+        }
+        
+        .notes-table input[type="number"] {
+            width: 95%; 
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            text-align: center;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .notes-table .note-display {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        /* Botón Final Guardar */
+        .save-notes-button {
+            background-color: #27ae60;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 25px;
+            transition: background-color 0.3s ease;
+            font-weight: bold;
+        }
+        .save-notes-button:hover { background-color: #2ecc71; }
+        
+        /* Ocultar inicialmente */
+        #studentDetailsContainer { display: none; }
+
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <a href="#" id="exitBtn" class="exit-button">Salir</a>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="header-area">
+            <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo">
+            <h1>Carga y Gestión de Boletas de Notas</h1>
+            <p>Busque al estudiante para ingresar o actualizar sus notas por materia y lapso.</p>
+        </div>
+        
+        <div class="search-controls">
+            <div class="form-group">
+                <label for="grade">Año (1-5):</label>
+                <select id="grade" required>
+                    <option value="">Año</option>
+                    <option value="1">1er Año</option>
+                    <option value="2">2do Año</option>
+                    <option value="3">3er Año</option>
+                    <option value="4">4to Año</option>
+                    <option value="5">5to Año</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="section">Sección (A-B):</label>
+                <select id="section" required>
+                    <option value="">Sección</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="ci_search">Cédula (C.I.):</label>
+                <input type="text" id="ci_search" placeholder="V-XX.XXX.XXX">
+            </div>
+
+            <div class="form-group">
+                <label for="name_search">Nombre:</label>
+                <input type="text" id="name_search" placeholder="Nombre">
+            </div>
+            
+            <div class="form-group">
+                <label for="lastname_search">Apellido:</label>
+                <input type="text" id="lastname_search" placeholder="Apellido">
+            </div>
+
+            <div class="search-button-group">
+                <button type="button" id="searchStudentBtn" class="search-button">
+                    Buscar Notas
+                </button>
+            </div>
+        </div>
+
+        <div id="studentDetailsContainer">
+            <div class="details-header">
+                <h2>Carga de Notas para <span id="studentFullName" class="student-name-ci">[Nombre del Estudiante]</span></h2>
+                <p>
+                    **C.I.:** <span id="studentCI" class="student-name-ci"></span> | **Curso:** <span id="studentCourse"></span>
+                </p>
+            </div>
+
+            <form id="notesForm">
+                
+                <table class="notes-table">
+                    <thead>
+                        <tr>
+                            <th class="subject-col">Asignatura</th>
+                            <th>1er Lapso</th>
+                            <th>2do Lapso</th>
+                            <th>Nota Final</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notesTableBody">
+                        </tbody>
+                </table>
+                
+                <button type="submit" class="save-notes-button">Guardar TODAS las Notas Ingresadas</button>
+            </form>
+        </div>
+        
+    </div>
+
+    <script>
+        // Definición de las asignaturas según el grado
+        const ASSIGNMENTS_1_2 = [
+            'Castellano', 'Inglés', 'Matemática', 'Grupo Estable', 
+            'Arte y Patrimonio', 'Biología', 'Educación Física', 'Orientación y Convivencia'
+        ];
+        const ASSIGNMENTS_3_5 = [
+            'Castellano', 'Inglés', 'Matemática', 'Grupo Estable', 
+            'Biología', 'Educación Física', 'Orientación y Convivencia',
+            'Química', 'Física'
+        ];
+
+        function getAssignments(grade) {
+            const g = parseInt(grade);
+            if (g === 1 || g === 2) {
+                return ASSIGNMENTS_1_2;
+            } else if (g >= 3 && g <= 5) {
+                return ASSIGNMENTS_3_5;
+            }
+            return [];
+        }
+
+        // Función simulada para generar los inputs/notas
+        function generateNoteCell(subject, lapso, currentNote) {
+            const isFinal = lapso === 'Final';
+            const noteValue = currentNote > 0 ? currentNote : '';
+            const displayValue = currentNote > 0 ? `<span class="note-display">${currentNote}</span>` : 'PENDIENTE';
+            
+            // Usamos el ID del estudiante, el nombre de la materia y el lapso como identificadores únicos
+            const inputName = `note_${subject.replace(/\s+/g, '_')}_${lapso}`;
+            
+            // Decidimos si el campo es editable o solo muestra la nota actual
+            // En este ejemplo, mostramos la nota anterior y dejamos un input para la nueva nota (o actualización)
+            return `
+                <td>
+                    ${displayValue}
+                    <input type="number" 
+                           name="${inputName}" 
+                           min="1" max="20" 
+                           placeholder="${noteValue || '1-20'}"
+                           value=""
+                           data-lapso="${lapso}"
+                           data-subject="${subject}">
+                </td>
+            `;
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const exitBtn = document.getElementById('exitBtn');
+            const searchStudentBtn = document.getElementById('searchStudentBtn');
+            const studentDetailsContainer = document.getElementById('studentDetailsContainer');
+            const notesTableBody = document.getElementById('notesTableBody');
+            const notesForm = document.getElementById('notesForm');
+
+            // Elementos de detalle del estudiante
+            const studentFullName = document.getElementById('studentFullName');
+            const studentCI = document.getElementById('studentCI');
+            const studentCourse = document.getElementById('studentCourse');
+            
+            // --- 1. Botón Salir ---
+            exitBtn.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                alert('Saliendo de la Interfaz de Carga de Notas.');
+            });
+            
+            // --- 2. Buscar Estudiante y Notas (Simulación) ---
+            searchStudentBtn.addEventListener('click', function() {
+                const grade = document.getElementById('grade').value;
+                const section = document.getElementById('section').value;
+                const ci_search = document.getElementById('ci_search').value;
+                const name_search = document.getElementById('name_search').value;
+                const lastname_search = document.getElementById('lastname_search').value;
+
+                if (!grade || !section) {
+                    alert('Debe seleccionar Año y Sección.');
+                    return;
+                }
+                if (!ci_search && (!name_search || !lastname_search)) {
+                     alert('Por favor, ingrese la Cédula o el Nombre y Apellido completos del estudiante.');
+                    return;
+                }
+
+                const assignments = getAssignments(grade);
+                if (assignments.length === 0) {
+                     alert('Grado no válido o sin asignaturas definidas.');
+                     return;
+                }
+
+
+                // SIMULACIÓN: Datos del estudiante y sus notas guardadas (El backend proveería esto)
+                const simulatedStudentData = {
+                    id: 12345,
+                    fullName: `${name_search || 'Javier'} ${lastname_search || 'Gómez'}`,
+                    ci: ci_search || 'V-30.123.456',
+                    course: `${grade}° Año - Sección ${section}`,
+                    // Formato de notas simuladas: [Materia]: { '1er Lapso': nota, '2do Lapso': nota, 'Final': nota }
+                    grades: {
+                        'Matemática': { '1er Lapso': 16, '2do Lapso': 0, 'Final': 0 },
+                        'Castellano': { '1er Lapso': 18, '2do Lapso': 17, 'Final': 0 },
+                        'Biología': { '1er Lapso': 0, '2do Lapso': 0, 'Final': 0 },
+                        // Otras materias se llenarían aquí
+                    }
+                };
+
+                // 1. Actualizar encabezados
+                studentFullName.textContent = simulatedStudentData.fullName;
+                studentCI.textContent = simulatedStudentData.ci;
+                studentCourse.textContent = simulatedStudentData.course;
+
+                // 2. Generar Filas de la Tabla (Matriz)
+                notesTableBody.innerHTML = '';
+                const lapsos = ['1er Lapso', '2do Lapso', 'Final'];
+
+                assignments.forEach(subject => {
+                    const row = notesTableBody.insertRow();
+                    row.insertCell().innerHTML = subject; // Columna de Asignatura
+                    row.cells[0].classList.add('subject-col');
+
+                    lapsos.forEach(lapso => {
+                        // Obtener la nota actual del objeto de datos simulados (si existe)
+                        const currentNote = (simulatedStudentData.grades[subject] && simulatedStudentData.grades[subject][lapso]) || 0;
+                        
+                        // Insertar la celda con el campo de nota editable
+                        row.innerHTML += generateNoteCell(subject, lapso, currentNote);
+                    });
+                });
+
+                // 3. Mostrar la sección de notas
+                studentDetailsContainer.style.display = 'block';
+                alert(`Boleta de notas de ${simulatedStudentData.fullName} cargada para ${simulatedStudentData.course}.`);
+            });
+            
+            // --- 3. Guardar TODAS las Notas (Simulación del Botón Verde) ---
+            notesForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const studentId = 12345; // ID simulado del estudiante
+                const notesToSave = [];
+                const noteInputs = notesForm.querySelectorAll('input[type="number"]');
+
+                noteInputs.forEach(input => {
+                    if (input.value && input.value >= 1 && input.value <= 20) {
+                        notesToSave.push({
+                            student_id: studentId,
+                            lapso: input.getAttribute('data-lapso'),
+                            subject: input.getAttribute('data-subject'),
+                            note: input.value
+                        });
+                    }
+                });
+                
+                if (notesToSave.length === 0) {
+                    alert('No se ingresó ninguna nota válida para guardar.');
+                    return;
+                }
+
+                console.log('Notas a guardar/actualizar:', notesToSave);
+                alert(`¡Éxito! ${notesToSave.length} notas guardadas/actualizadas para ${studentFullName.textContent}. (Backend action required)`);
+                // Aquí iría la llamada AJAX/Fetch para el guardado masivo de todo el conjunto de notas.
+            });
+        });
+    </script>
+</body>
+</html>

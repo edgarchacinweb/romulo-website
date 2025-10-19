@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación | Liceo Nacional</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e6eef5; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* ANCHO MANTENIDO */
+        .container {
+            padding: 10px; /* Reducido */
+            width: 100%;
+            max-width: 420px; 
+        }
+
+        .box {
+            background-color: #fff;
+            padding: 25px 30px; /* Reducido para compactar altura y ancho */
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .logo-area {
+            /* Margen superior reducido */
+            margin-bottom: 15px; 
+            display: flex;
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        .logo {
+            /* LOGO GRANDE Y NOTORIO */
+            max-width: 180px; 
+            height: auto;
+            margin-bottom: 8px; /* Reducido */
+        }
+
+        /* Estilos de Texto y Espaciado (REDUCIDOS AL MÍNIMO) */
+        .main-title {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 20px; 
+            font-weight: 700; 
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            color: #555;
+            /* Margen muy reducido */
+            margin-bottom: 15px; 
+            font-size: 14px;
+            line-height: 1.2;
+        }
+
+        h2 { /* Título "Código de Verificación" */
+            color: #333;
+            /* Margen muy reducido */
+            margin-bottom: 10px;
+            font-size: 22px; /* Ligeramente más pequeño para ahorrar espacio */
+            font-weight: 700; 
+        }
+
+        p { /* Texto descriptivo */
+            color: #333; 
+            /* Margen muy reducido */
+            margin-bottom: 15px; 
+            font-size: 15px; /* Ligeramente más pequeño */
+            line-height: 1.4; /* Espacio entre líneas */
+            font-weight: 500; 
+        }
+
+        .input-group {
+            /* Margen muy reducido */
+            margin-bottom: 15px; 
+            text-align: center; 
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px; /* Muy reducido */
+            color: #333; 
+            font-weight: bold;
+            font-size: 15px; /* Ligeramente más pequeño */
+        }
+
+        .input-group input {
+            width: 60%; 
+            max-width: 180px; 
+            padding: 10px; /* Padding del input ligeramente reducido */
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px; 
+            text-align: center;
+        }
+        
+        .input-group input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+            outline: none;
+        }
+
+        .verify-button {
+            /* COLOR AZUL ORIGINAL */
+            background-color: #007bff; 
+            color: #fff;
+            border: none;
+            padding: 10px 20px; /* Padding del botón reducido */
+            border-radius: 6px;
+            font-size: 17px; /* Ligeramente más pequeño */
+            cursor: pointer;
+            width: 100%; 
+            margin-top: 10px; /* Margen muy reducido */
+            transition: background-color 0.3s ease;
+        }
+
+        .verify-button:hover {
+            background-color: #0056b3;
+        }
+
+        .resend-link {
+            display: block;
+            margin-top: 10px; /* Margen muy reducido */
+            color: #007bff; 
+            text-decoration: none;
+            font-size: 13px; /* Más pequeño */
+            transition: color 0.3s ease;
+        }
+
+        .resend-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box">
+            <div class="logo-area">
+                <img src="../src/assets/images/Liceo.png" alt="Logo Liceo Nacional" class="logo">
+                <h1 class="main-title">Liceo Nacional</h1>
+                <p class="sub-title">Verificación de acceso</p>
+            </div>
+            
+            <h2>Código de Verificación</h2>
+            
+            <p>Hemos enviado un código de verificación a su correo electrónico.<br>Por favor, introdúzcalo a continuación.</p>
+            
+            <form id="verificationForm">
+                <div class="input-group">
+                    <label for="code">Introduce el código:</label>
+                    <input type="text" id="code" name="code" required maxlength="6">
+                </div>
+                
+                <button type="submit" class="verify-button">Verificar</button>
+                
+                <a href="#" class="resend-link">Reenviar código</a>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const verificationForm = document.getElementById('verificationForm');
+
+            verificationForm.addEventListener('submit', function(event) {
+                event.preventDefault(); 
+
+                const code = document.getElementById('code').value;
+                console.log('Código introducido:', code);
+
+                // Lógica de verificación simulada (ejemplo)
+                if (code === '123456') { 
+                    alert('¡Verificación exitosa!');
+                    // Aquí podrías redirigir al usuario a la página principal
+                } else {
+                    alert('Código incorrecto. Intente de nuevo.');
+                }
+            });
+            
+            const resendLink = document.querySelector('.resend-link');
+            resendLink.addEventListener('click', function(event) {
+                event.preventDefault();
+                alert('Código reenviado (simulación).');
+            });
+        });
+    </script>
+</body>
+</html>

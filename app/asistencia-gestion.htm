@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Asistencia | Liceo Nacional</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            
+            /* Usamos Flexbox para centrar el main-container en la pantalla */
+            display: flex;
+            justify-content: center; 
+            align-items: center;    
+            
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+            position: relative; /* CLAVE: Para que el botón de Salir posicione absoluto respecto al body */
+        }
+
+        /* ---------------------------------- */
+        /* BOTÓN DE SALIR (FUERA DEL CUADRO) */
+        /* ---------------------------------- */
+        .exit-btn-top {
+            /* CLAVE: Posicionamiento absoluto respecto al body */
+            position: absolute; 
+            top: 20px;      /* Distancia desde arriba */
+            right: 20px;    /* Distancia desde la derecha */
+
+            /* Estilo del botón */
+            background-color: #007bff; /* Azul */
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 100; /* Asegura que esté por encima de otros elementos */
+        }
+        .exit-btn-top:hover {
+            background-color: #0056b3;
+        }
+
+        /* ---------------------------------- */
+        /* CONTENEDOR PRINCIPAL (CUADRO BLANCO) */
+        /* ---------------------------------- */
+        .main-container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px; 
+            text-align: center; 
+            box-sizing: border-box;
+            /* Se ha eliminado position: relative; */
+        }
+        .logo { max-width: 80px; height: auto; margin-bottom: 20px; }
+        h1 {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+        }
+        p {
+            font-size: 16px;
+            color: #777;
+            margin-bottom: 30px; 
+        }
+
+        /* ---------------------------------- */
+        /* BOTONES DE OPCIÓN (CENTRADOS) */
+        /* ---------------------------------- */
+        
+        .option-button {
+            /* Usamos Flexbox para centrar el grupo completo (icono + texto) */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            
+            width: 100%;
+            padding: 12px 15px; 
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px; 
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            color: #fff;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        /* Contenido interno para un centrado más preciso */
+        .btn-content {
+            display: flex;
+            align-items: center;
+            /* Ajuste de padding/margen para el centrado visual final */
+            padding-left: 2px;
+        }
+        
+        /* Pequeño margen para separar visualmente el icono del texto */
+        .btn-content span:first-child { 
+            margin-right: 5px; 
+        }
+
+        /* Colores de Botones de Función */
+        .register-btn { background-color: #2ecc71; } /* Verde */
+        .register-btn:hover { background-color: #27ae60; transform: translateY(-1px); }
+        .report-btn { background-color: #007bff; } /* Azul */
+        .report-btn:hover { background-color: #0056b3; transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+    
+    <a href="index.html" class="exit-btn-top">
+        🚪 Salir
+    </a>
+
+    <div class="main-container">
+        
+        <img src="../src/assets/images/romulo.png" alt="Logo Liceo Nacional" class="logo">
+        <h1>Gestión de Asistencia</h1>
+        <p>Seleccione la acción que desea realizar:</p>
+        
+        <div class="options-group">
+            <a href="asistencia-registrar.html" class="option-button register-btn">
+                <span class="btn-content">
+                    <span>📝</span>
+                    <span>Registrar Asistencia del Día</span>
+                </span>
+            </a>
+
+            <a href="asistencia-reporte.html" class="option-button report-btn">
+                <span class="btn-content">
+                    <span>📊</span>
+                    <span>Ver Reporte Acumulado</span>
+                </span>
+            </a>
+        </div>
+        
+    </div>
+
+</body>
+</html>

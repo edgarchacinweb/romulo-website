@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Asistencia | Liceo Nacional</title>
+    <style>
+        /* Paleta de Colores: Primario Azul (#2196F3), Secundario Verde (#4CAF50) */
+        
+        /* ESTILOS BASE Y CONTENEDOR */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f8f9fa; /* Fondo gris muy claro */
+            display: flex; 
+            justify-content: center; 
+            align-items: flex-start; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding-top: 60px; 
+            color: #212529; 
+        }
+        .main-content {
+            width: 100%;
+            max-width: 1150px; 
+            background-color: #ffffff;
+            padding: 40px; 
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); 
+            box-sizing: border-box;
+        }
+        
+        /* BOTÓN SALIR */
+        .top-bar { position: absolute; top: 25px; right: 25px; z-index: 10; } 
+        .exit-button { 
+            background-color: #64b5f6; /* Azul claro */
+            color: #fff; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            font-size: 15px; 
+            cursor: pointer; 
+            transition: background-color 0.3s ease; 
+            font-weight: 700; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
+        }
+        .exit-button:hover { background-color: #42a5f5; }
+
+        /* ENCABEZADO */
+        .header-area { text-align: center; margin-bottom: 30px; }
+        .logo { max-width: 90px; margin-bottom: 15px; }
+        .header-area h1 {
+            font-size: 30px;
+            color: #2196F3; 
+            margin: 0 0 8px 0;
+            border-bottom: 3px solid #2196F3;
+            padding-bottom: 10px;
+            display: inline-block;
+        }
+        .header-area p { font-size: 16px; color: #6c757d; margin: 0 0 20px 0; }
+        #reportContainer h2 { margin-bottom: 15px; font-size: 24px; color: #2196F3; } 
+
+        /* CONTROLES DE FILTRO */
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 25px; 
+            padding: 20px;
+            background-color: #e3f2fd; 
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #bbdefb; 
+        }
+        .form-group label { margin-bottom: 8px; font-weight: 600; color: #343a40; font-size: 15px; }
+        .form-group select { 
+            padding: 12px; 
+            border: 1px solid #ced4da; 
+            border-radius: 6px; 
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #fff;
+        }
+        .form-group select:focus { border-color: #2196F3; outline: none; box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25); }
+        
+        .load-button {
+            background-color: #2196F3; 
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 5px rgba(33, 150, 243, 0.3); 
+        }
+        .load-button:hover { background-color: #1976D2; }
+
+        /* TABLA DE REPORTE */
+        #reportContainer { margin-top: 20px; display: none; }
+        .table-responsive { overflow-x: auto; }
+        .report-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 15px; 
+            display: block;
+            border: 1px solid #e0e0e0; 
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); 
+        }
+        .report-table th, .report-table td { 
+            padding: 14px 10px; 
+            border: 1px solid #e0e0e0; 
+            font-size: 15px; 
+            text-align: center;
+            white-space: nowrap;
+        }
+        
+        /* Colores de Encabezados */
+        .report-table th { background-color: #343a40; color: #f8f9fa; font-weight: bold; } 
+        .lapso-header { background-color: #78909c !important; color: #fff; } 
+        .main-header { background-color: #2196F3 !important; color: #fff; } 
+        
+        /* Estilos para celdas de datos vacías (para cuando no hay reporte) */
+        .no-data-row {
+            text-align: center;
+            color: #f44336;
+            font-style: italic;
+            padding: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    
+    <div class="top-bar">
+        <button type="button" id="exitBtn" class="exit-button">SALIR</button>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="header-area">
+            <img src="../src/assets/images/romulo.png" alt="Escudo o Logo del Liceo Nacional" class="logo">
+            <h1>Reporte Acumulado de Asistencia</h1>
+            <p>Resumen de asistencia por lapsos y porcentaje final.</p>
+        </div>
+        
+        <form class="filter-controls" id="filterForm">
+            <div class="form-group">
+                <label for="grade">Año (1-5):</label>
+                <select id="grade" required>
+                    <option value="" disabled selected>Seleccione el Año</option>
+                    <option value="1">1er Año</option>
+                    <option value="2">2do Año</option>
+                    <option value="3">3er Año</option>
+                    <option value="4">4to Año</option>
+                    <option value="5">5to Año</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="section">Sección (A-D):</label>
+                <select id="section" required>
+                    <option value="" disabled selected>Seleccione Sección</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option> 
+                    <option value="D">D</option>
+                </select>
+            </div>
+            
+            <div class="load-button-group">
+                <button type="button" id="generateReportBtn" class="load-button">
+                    Generar Reporte
+                </button>
+            </div>
+        </form>
+
+        <div id="reportContainer">
+            <h2 style="font-size: 22px; color: #2196F3;">
+                Resumen de Asistencia: <span id="reportTitle"></span>
+            </h2>
+            
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="width: 5%;">#</th>
+                            <th rowspan="2" style="width: 25%;" class="name-col">Nombre del Estudiante</th>
+                            
+                            <th colspan="2" class="lapso-header">1er Lapso</th>
+                            <th colspan="2" class="lapso-header">2do Lapso</th>
+                            <th colspan="2" class="lapso-header">3er Lapso</th>
+                            
+                            <th colspan="2" class="main-header">Acumulado Total</th>
+                            <th rowspan="2" style="width: 10%;" class="main-header">Porcentaje Final (%)</th>
+                        </tr>
+                        <tr>
+                            <th class="lapso-header">Asist.</th>
+                            <th class="lapso-header">Faltas</th>
+                            <th class="lapso-header">Asist.</th>
+                            <th class="lapso-header">Faltas</th>
+                            <th class="lapso-header">Asist.</th>
+                            <th class="lapso-header">Faltas</th>
+
+                            <th class="main-header">Total Clases</th>
+                            <th class="main-header">Total Asist.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr><td colspan="11" class="no-data-row">Seleccione un año y sección y haga click en "Generar Reporte".</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gradeSelect = document.getElementById('grade');
+            const sectionSelect = document.getElementById('section');
+            const generateReportBtn = document.getElementById('generateReportBtn');
+            const reportContainer = document.getElementById('reportContainer');
+            const reportTableBody = document.getElementById('reportTableBody');
+            const reportTitle = document.getElementById('reportTitle');
+            const exitBtn = document.getElementById('exitBtn');
+
+            // --- ESTOS VALORES SERÁN CALCULADOS POR LA BASE DE DATOS REAL ---
+            // Solo se mantienen como referencia para el formato de la tabla
+            const TOTAL_CLASSES = 60; 
+
+            // --- SIMULACIÓN DE DATOS ELIMINADA (getReportData) ---
+            // En una aplicación real, aquí iría la función que hace la llamada FETCH/AJAX a la API
+
+            // Función para renderizar una fila vacía cuando no hay datos
+            function renderNoDataRow(grade, section) {
+                 reportTableBody.innerHTML = `<tr><td colspan="11" class="no-data-row">No se encontraron datos de asistencia para ${grade}° Año, Sección ${section}.</td></tr>`;
+            }
+            
+            // --- Lógica de color de porcentaje (Mantenida para el front-end) ---
+            function calculatePercentageColor(percentage) {
+                if (percentage >= 90) return 'high';
+                if (percentage >= 75) return 'medium'; 
+                return 'low'; 
+            }
+
+            // --- LÓGICA PRINCIPAL PARA GENERAR EL REPORTE ---
+            generateReportBtn.addEventListener('click', function() {
+                const grade = gradeSelect.value;
+                const section = sectionSelect.value;
+
+                if (!grade || !section) {
+                    alert('⚠️ Por favor, seleccione el Año y la Sección para generar el reporte.');
+                    reportContainer.style.display = 'none';
+                    return;
+                }
+                
+                reportTitle.textContent = `${grade}° Año, Sección ${section}`;
+                reportTableBody.innerHTML = ''; // Limpia la tabla
+                
+                // 1. Aquí debería ir tu llamada a la API (Ejemplo de pseudo-código):
+                /*
+                fetch('/api/reporte', { method: 'POST', body: JSON.stringify({ grade, section }) })
+                    .then(response => response.json())
+                    .then(students => {
+                        if (students.length === 0) {
+                            renderNoDataRow(grade, section);
+                        } else {
+                            students.forEach((student, index) => {
+                                // ... Lógica de cálculo y renderizado de filas
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener datos:', error);
+                        renderNoDataRow(grade, section);
+                    });
+                */
+
+                // 2. Dado que eliminaste los datos de simulación, forzamos el mensaje de "No Data":
+                
+                // SIMULACIÓN DE DATOS VACÍOS (Esto es lo que ocurrirá sin una base de datos conectada)
+                renderNoDataRow(grade, section);
+                
+                // Muestra el contenedor
+                reportContainer.style.display = 'block';
+            });
+            
+            // --- Botón Salir ---
+            exitBtn.addEventListener('click', function(event) {
+                event.preventDefault(); 
+                console.log('Saliendo del Reporte de Asistencia. (Acción simulada)');
+                // window.location.href = '/dashboard'; // Descomentar en aplicación real
+            });
+
+            // Muestra el contenedor inicial vacío para que se vea el placeholder
+            reportContainer.style.display = 'block'; 
+            
+        });
+    </script>
+</body>
+</html>
