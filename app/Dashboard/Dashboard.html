@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - Liceo Rómulo Gallegos</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", sans-serif; }
+    body { display: flex; background-color: #f5f6fa; color: #222; }
+
+    /* SIDEBAR */
+    .sidebar { width: 250px; background-color: #ffffff; height: 100vh; border-right: 1px solid #ddd; display: flex; flex-direction: column; justify-content: space-between; position: fixed; }
+    .sidebar .logo { padding: 20px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; }
+    .sidebar .logo img { width: 35px; }
+    .sidebar .logo h2 { font-size: 16px; font-weight: bold; color: #003366; }
+    .sidebar ul { list-style: none; padding: 20px 0; }
+    .sidebar ul li { margin-bottom: 10px; }
+    .sidebar ul li a { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #333; padding: 10px 20px; border-radius: 8px; transition: background 0.3s, color 0.3s; }
+    .sidebar ul li a:hover, .sidebar ul li a.active { background-color: #003366; color: white; }
+    .sidebar .user { padding: 20px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; background: #fafafa; }
+    .user .avatar { background-color: #003366; color: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .user-info { font-size: 13px; }
+    .user-info span { display: block; color: #666; }
+
+    /* MAIN CONTENT */
+    .main { margin-left: 250px; flex: 1; padding: 30px 40px; }
+    .main header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .main header h1 { font-size: 20px; font-weight: bold; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); }
+    .card h3 { font-size: 14px; color: #555; display: flex; align-items: center; justify-content: space-between; }
+    .card .value { font-size: 28px; font-weight: bold; margin-top: 10px; }
+    .card small { color: #0a8754; font-weight: 600; }
+
+    .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); }
+    .panel h3 { font-size: 16px; margin-bottom: 15px; }
+    .activity-item { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .activity-item p { margin-bottom: 3px; }
+    .activity-item small { color: #777; }
+
+    .quick-actions .action { background: #f9f9f9; border-radius: 8px; padding: 15px; margin-bottom: 10px; border: 1px solid #eee; cursor: pointer; transition: background 0.3s; }
+    .quick-actions .action:hover { background: #e6f0ff; }
+    .quick-actions .action strong { display: block; color: #003366; }
+
+    @media (max-width: 900px) {
+      .content-grid { grid-template-columns: 1fr; }
+      .sidebar { width: 200px; }
+      .main { margin-left: 200px; }
+      header { margin-bottom: 0; }
+      .welcome h2 { margin-top: 2px; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div>
+      <div class="logo">
+        <img src="../../src/assets/images/romulo.png" alt="Logo" />
+        <h2>Liceo Romulo Gallegos</h2>
+      </div>
+      <ul>
+        <li><a href="#" class="active">🏠 Inicio</a></li>
+        <li><a href="#">🎓 Estudiantes</a></li>
+        <li><a href="#">👨‍🏫 Docentes</a></li>
+        <li><a href="#">📝 Inscripciones</a></li>
+        <li><a href="#">📅 Horarios</a></li>
+        <li><a href="#">🧾 Auditorías</a></li>
+        <li><a href="#">💾 Respaldos</a></li>
+      </ul>
+    </div>
+    <div class="user">
+      <div class="avatar">AD</div>
+      <div class="user-info">
+        <strong>Administrador</strong>
+        <span>admin@liceo.edu.ve</span>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header>
+      <h1>Sistema de Gestión Administrativa</h1>
+    </header>
+
+    <section class="welcome">
+      <h2>Bienvenido al Sistema Administrativo</h2>
+    </section>
+
+    <!-- TARJETAS CON IDS -->
+    <section class="cards">
+      <div class="card">
+        <h3>Total Estudiantes <span>🎓</span></h3>
+        <div class="value" id="total-students">—</div>
+        <small id="delta-students"></small>
+      </div>
+      <div class="card">
+        <h3>Total Docentes <span>👨‍🏫</span></h3>
+        <div class="value" id="total-teachers">—</div>
+        <small id="delta-teachers"></small>
+      </div>
+      <div class="card">
+        <h3>Inscripciones Activas <span>🧾</span></h3>
+        <div class="value" id="active-enrollments">—</div>
+        <small id="delta-enrollments"></small>
+      </div>
+      <div class="card">
+        <h3>Secciones Activas <span>📅</span></h3>
+        <div class="value" id="active-sections">—</div>
+        <small id="delta-sections"></small>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <div class="panel">
+        <h3>Actividad Reciente</h3>
+
+        <!-- Contenedor dinámico -->
+        <div id="recent-activity"></div>
+
+        <!-- Error oculto por defecto -->
+        <div id="dashboard-error" class="activity-item" style="display:none; color:#b00020;">
+          <strong>No se pudo cargar el tablero.</strong><br>
+          <small>Verifica que el servidor mock esté corriendo.</small>
+        </div>
+      </div>
+
+      <div class="panel quick-actions">
+        <h3>Accesos Rápidos</h3>
+        <div class="action">
+          <strong>🧾 Nueva Inscripción</strong>
+          Registrar nuevo estudiante
+        </div>
+        <div class="action">
+          <strong>🎓 Ver Estudiantes</strong>
+          Consultar matrícula
+        </div>
+        <div class="action">
+          <strong>📅 Gestionar Horarios</strong>
+          Configurar secciones
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- SCRIPT: CONEXIÓN AL ENDPOINT -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_BASE = 'http://localhost:4000';           // puerto de json-server
+      const ENDPOINT = `${API_BASE}/dashboard_summary`;   // coincide con tu db.json
+
+      const $ = id => document.getElementById(id);
+      const el = {
+        totalStudents:     $('total-students'),
+        totalTeachers:     $('total-teachers'),
+        activeEnrollments: $('active-enrollments'),
+        activeSections:    $('active-sections'),
+        deltaStudents:     $('delta-students'),
+        deltaTeachers:     $('delta-teachers'),
+        deltaEnrollments:  $('delta-enrollments'),
+        deltaSections:     $('delta-sections'),
+        activityList:      $('recent-activity'),
+        error:             $('dashboard-error')
+      };
+
+      async function loadDashboard() {
+        // Estados de carga
+        [el.totalStudents, el.totalTeachers, el.activeEnrollments, el.activeSections].forEach(n => n && (n.textContent = '…'));
+        [el.deltaStudents, el.deltaTeachers, el.deltaEnrollments, el.deltaSections].forEach(s => s && (s.textContent = ' '));
+        if (el.activityList) el.activityList.innerHTML = '<div class="activity-item"><small>Cargando…</small></div>';
+        if (el.error) el.error.style.display = 'none';
+
+        try {
+          const res = await fetch(ENDPOINT, { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+
+          // Métricas
+          el.totalStudents     && (el.totalStudents.textContent     = (data.totalStudents ?? 0).toLocaleString('es-VE'));
+          el.totalTeachers     && (el.totalTeachers.textContent     = (data.totalTeachers ?? 0).toLocaleString('es-VE'));
+          el.activeEnrollments && (el.activeEnrollments.textContent = (data.activeEnrollments ?? 0).toLocaleString('es-VE'));
+          el.activeSections    && (el.activeSections.textContent    = (data.activeSections ?? 0).toLocaleString('es-VE'));
+
+          el.deltaStudents     && (el.deltaStudents.textContent     = data.deltaStudents ?? '+0 vs mes anterior');
+          el.deltaTeachers     && (el.deltaTeachers.textContent     = data.deltaTeachers ?? '+0 vs mes anterior');
+          el.deltaEnrollments  && (el.deltaEnrollments.textContent  = data.deltaEnrollments ?? '+0 vs mes anterior');
+          el.deltaSections     && (el.deltaSections.textContent     = data.deltaSections ?? '0 vs mes anterior');
+
+          // Actividad
+          if (el.activityList) {
+            const list = data.recentActivity ?? [];
+            el.activityList.innerHTML = '';
+            if (list.length === 0) {
+              el.activityList.innerHTML = '<div class="activity-item"><small>No hay actividad reciente.</small></div>';
+            } else {
+              list.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'activity-item';
+                div.innerHTML = `
+                  <p><strong>${item.label ?? 'Actividad'}</strong> – ${item.title}</p>
+                  <small>${item.ago}</small>
+                `;
+                el.activityList.appendChild(div);
+              });
+            }
+          }
+        } catch (e) {
+          console.error('Error cargando dashboard:', e);
+          el.error && (el.error.style.display = 'block');
+        }
+      }
+
+      loadDashboard();
+      // setInterval(loadDashboard, 60000); // si quieres refrescar cada 60s
+    });
+  </script>
+</body>
+</html>
