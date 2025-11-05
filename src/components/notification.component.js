@@ -72,13 +72,22 @@ class NotificationComponent extends HTMLElement {
     `;
 
     const notification = this.shadowRoot.querySelector(".notification");
-    notification.addEventListener("click", () => {
-      if (!notification.classList.contains("notification--destroy")) {
-        notification.classList.add("notification--destroy");
 
-        setTimeout(() => notification.remove(), 540);
+    const removeElement = (element) => {
+      if (!element.classList.contains("notification--destroy")) {
+        element.classList.add("notification--destroy");
+
+        setTimeout(() => this.remove(), 540);
       }
+    };
+
+    notification.addEventListener("click", () => {
+      removeElement(notification);
     });
+
+    setTimeout(() => {
+      removeElement(notification);
+    }, 3500);
   }
 }
 
