@@ -14,6 +14,9 @@
       src="../src/components/notification.component.js"
       type="module"
     ></script>
+    <script src="../src/components/loader.component.js" type="module"></script>
+
+    <script src="../src/scripts/config.js"></script>
 
     <style>
       body {
@@ -126,20 +129,8 @@
     </style>
   </head>
   <body>
-    <section class="notifications">
-      <notification-component
-        text="Error al iniciar sesion"
-        type="error"
-      ></notification-component>
-      <notification-component
-        text="Error al iniciar sesion"
-        type="warning"
-      ></notification-component>
-      <notification-component
-        text="Error al iniciar sesion"
-        type="success"
-      ></notification-component>
-    </section>
+    <div id="loader"></div>
+    <section class="notifications"></section>
     <div class="login-container">
       <div class="login-box">
         <div class="logo-area">
@@ -155,15 +146,15 @@
         <form id="loginForm">
           <div class="input-group">
             <label for="username">Usuario:</label>
-            <input type="text" id="username" name="username" required />
+            <input type="text" id="username" name="username" />
           </div>
 
           <div class="input-group">
             <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="password" required />
+            <input type="password" id="password" name="password" />
           </div>
 
-          <button type="submit" class="login-button">Iniciar Sesión</button>
+          <button class="login-button" id="loginBtn">Iniciar Sesión</button>
 
           <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
         </form>
@@ -172,13 +163,70 @@
 
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        const loginForm = document.getElementById("loginForm");
+        const loginBtn = document.getElementById("loginBtn");
+        const notificationContainer = document.querySelector(".notifications");
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
 
-        loginForm.addEventListener("submit", function (event) {
-          event.preventDefault();
+        loginBtn.addEventListener("click", (e) => {
+          e.preventDefault();
 
-          const username = document.getElementById("username").value;
-          const password = document.getElementById("password").value;
+          const username = usernameInput.value;
+          const password = passwordInput.value;
+
+          (async () => {
+            if (username.trim().length > 0 && password.trim().length > 0) {
+              await customElements.whenDefined("loader-spinner");
+              const loader = document.createElement("loader-spinner");
+              loader.title = "Iniciando sesión...";
+              document.body.appendChild(loader);
+              const response = await fetch(
+                `${window.APP_CONFIG.api_url}/user/login`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    Email: username,
+                    Clave: password,
+                  }),
+                }
+              );
+
+              const data = await response.json();
+
+              usernameInput.value = "";
+              passwordInput.value = "";
+              loader.remove();
+
+              const notification = document.createElement(
+                "notification-component"
+              );
+              notification.setAttribute("text", data.message);
+              notification.setAttribute(
+                "type",
+                response.status >= 400 ? "error" : "success"
+              );
+              notificationContainer.appendChild(notification);
+            } else {
+              let warningText = "";
+
+              if (username.trim().length === 0)
+                warningText = "Rellena el campo del nombre de usuario";
+              else if (password.trim().length === 0)
+                warningText = "Rellena el campo de la contraseña";
+
+              await customElements.whenDefined("notification-component");
+              const warningNotification = document.createElement(
+                "notification-component"
+              );
+              warningNotification.setAttribute("type", "warning");
+              warningNotification.setAttribute("text", warningText);
+
+              notificationContainer.appendChild(warningNotification);
+            }
+          })();
         });
       });
     </script>
