@@ -1,24 +1,6 @@
-const token = localStorage.getItem("auth");
-if (!token) window.location.href = "/app/iniciar-sesion.html";
+import authorize from "./auth.js";
 
-(async () => {
-  const response = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  const data = await response.json();
-  document.getElementById("userEmail").innerHTML = data.Email;
-
-  if (data.Rol !== "administrador") {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("role");
-    window.location.href = "/app/iniciar-sesion.html";
-  }
-})();
+authorize("administrador");
 
 document.addEventListener("DOMContentLoaded", () => {
   const notificationContainer = document.getElementById(
