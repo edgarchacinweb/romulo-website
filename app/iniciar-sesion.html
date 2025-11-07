@@ -162,6 +162,16 @@
     </div>
 
     <script>
+      // Redireccionando si ya inició sesión
+      const role = localStorage.getItem("role");
+
+      if (role) {
+        window.location.href =
+          role === "administrador"
+            ? "/app/dashboard/"
+            : "/app/horario_ver.html";
+      }
+
       document.addEventListener("DOMContentLoaded", function () {
         const loginBtn = document.getElementById("loginBtn");
         const notificationContainer = document.querySelector(".notifications");
@@ -248,7 +258,9 @@
                 if (role === "administrador") url = "/app/dashboard";
                 else url = "/";
 
-                window.location.href = url;
+                setTimeout(() => {
+                  window.location.href = url;
+                }, 1500);
               }
             } else {
               let warningText = "";
