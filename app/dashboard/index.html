@@ -188,6 +188,17 @@
         color: #003366;
       }
 
+      .notifications {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        align-items: center;
+      }
+
       @media (max-width: 900px) {
         .content-grid {
           grid-template-columns: 1fr;
@@ -208,6 +219,7 @@
     </style>
   </head>
   <body>
+    <section class="notifications" id="notificationContainer"></section>
     <aside class="sidebar">
       <div>
         <div class="logo">
@@ -249,22 +261,22 @@
       <section class="cards">
         <div class="card">
           <h3>Total Estudiantes <span>🎓</span></h3>
-          <div class="value" id="total-students">—</div>
+          <div class="value" id="totalStudents">—</div>
           <small id="delta-students"></small>
         </div>
         <div class="card">
           <h3>Total Docentes <span>👨‍🏫</span></h3>
-          <div class="value" id="total-teachers">—</div>
+          <div class="value" id="totalTeachers">—</div>
           <small id="delta-teachers"></small>
         </div>
         <div class="card">
           <h3>Inscripciones Activas <span>🧾</span></h3>
-          <div class="value" id="active-enrollments">—</div>
+          <div class="value" id="activeEnrollments">—</div>
           <small id="delta-enrollments"></small>
         </div>
         <div class="card">
-          <h3>Secciones Activas <span>📅</span></h3>
-          <div class="value" id="active-sections">—</div>
+          <h3>Período Escolar <span>📅</span></h3>
+          <div class="value" id="schoolTerm">—</div>
           <small id="delta-sections"></small>
         </div>
       </section>
