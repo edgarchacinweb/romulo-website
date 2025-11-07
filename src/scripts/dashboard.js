@@ -11,6 +11,7 @@ if (!token) window.location.href = "/app/iniciar-sesion.html";
   });
 
   const data = await response.json();
+  document.getElementById("userEmail").innerHTML = data.Email;
 
   if (data.Rol !== "administrador") {
     localStorage.removeItem("auth");
