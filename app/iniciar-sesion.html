@@ -175,6 +175,7 @@
           const password = passwordInput.value;
 
           (async () => {
+            // Iniciando sesión, obteniendo ID del usuario
             if (username.trim().length > 0 && password.trim().length > 0) {
               await customElements.whenDefined("loader-spinner");
               const loader = document.createElement("loader-spinner");
@@ -196,19 +197,59 @@
 
               const data = await response.json();
 
-              usernameInput.value = "";
               passwordInput.value = "";
               loader.remove();
 
               const notification = document.createElement(
                 "notification-component"
               );
-              notification.setAttribute("text", data.message);
+              notification.setAttribute(
+                "text",
+                response.status == 200 ? "Credenciales correctas" : data.message
+              );
               notification.setAttribute(
                 "type",
                 response.status >= 400 ? "error" : "success"
               );
               notificationContainer.appendChild(notification);
+
+              if (response.status >= 400) return;
+
+              // Obteniendo el token de autenticación
+              const responseToken = await fetch(
+                `${window.APP_CONFIG.api_url}/user/token/${data.id}`,
+                {
+                  method: "GET",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+
+              if (responseToken.status != 200) {
+                const tokenErrorNotification = document.createElement(
+                  "notification-component"
+                );
+                tokenErrorNotification.setAttribute(
+                  "text",
+                  "Error al obtener los datos del usuario"
+                );
+                tokenErrorNotification.setAttribute("type", "error");
+                notificationContainer.appendChild(tokenErrorNotification);
+              } else {
+                const { token, role } = await responseToken.json();
+
+                // Guardando el token de autenticación y el rol del usuario
+                localStorage.setItem("auth", token);
+                localStorage.setItem("role", role);
+
+                // Redirigiendo a la ventana correspondiente
+                let url = "";
+                if (role === "administrador") url = "/app/dashboard";
+                else url = "/";
+
+                window.location.href = url;
+              }
             } else {
               let warningText = "";
 
