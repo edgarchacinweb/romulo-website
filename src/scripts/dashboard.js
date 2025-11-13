@@ -56,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })();
 
+  const token = localStorage.getItem("auth");
+
   // Cargar datos del período escolar actual
   (async () => {
     const schoolTermResponse = await fetch(

@@ -6,7 +6,7 @@ authorize("administrador");
 document.addEventListener("DOMContentLoaded", async () => {
   const notificationContainer = document.getElementById("notifications");
   const saveTermBtn = document.getElementById("guardar-periodo");
-  const reporteButton = document.getElementById("generar-reporte");
+  // const reporteButton = document.getElementById("generar-reporte");
   const startDateInput = document.getElementById("fecha-inicio");
   const endDateInput = document.getElementById("fecha-fin");
 
