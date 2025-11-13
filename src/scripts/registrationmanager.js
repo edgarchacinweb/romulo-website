@@ -1,13 +1,34 @@
+import authorize from "../scripts/auth.js";
+
+authorize("administrador");
+
 // Esperar a que todo el HTML esté cargado
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const notificationContainer = document.getElementById("notifications");
   const saveTermBtn = document.getElementById("guardar-periodo");
   const reporteButton = document.getElementById("generar-reporte");
   const startDateInput = document.getElementById("fecha-inicio");
   const endDateInput = document.getElementById("fecha-fin");
 
+  // Cargando periodo de inscripcion
+  const registrationTermResponse = await fetch(
+    `${window.APP_CONFIG.api_url}/registration/get`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (registrationTermResponse.ok) {
+    const registrationTerm = await registrationTermResponse.json();
+    startDateInput.value = registrationTerm.Inicio;
+    endDateInput.value = registrationTerm.Fin;
+  }
+
   if (saveTermBtn) {
-    saveTermBtn.addEventListener("click", () => {
+    saveTermBtn.addEventListener("click", async () => {
       const startDate = startDateInput.valueAsDate;
       const endDate = endDateInput.valueAsDate;
       const notification = document.createElement("notification-component");
@@ -45,7 +66,51 @@ document.addEventListener("DOMContentLoaded", () => {
         );
         startDateInput.focus();
         notificationContainer.appendChild(notification);
+        return;
       }
+
+      const loader = document.createElement("loader-spinner");
+      document.body.appendChild(loader);
+
+      const date1 = startDateInput.value;
+      const date2 = endDateInput.value;
+
+      const token = localStorage.getItem("auth");
+      const response = await fetch(
+        `${window.APP_CONFIG.api_url}/registration/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            FechaInicio: date1.toString(),
+            FechaFin: date2.toString(),
+          }),
+        }
+      );
+
+      const resultQuery = await response.json();
+
+      if (!response.ok) {
+        console.log(resultQuery);
+        notification.setAttribute("text", resultQuery.message);
+        notification.setAttribute("type", "error");
+        loader.remove();
+        notificationContainer.appendChild(notification);
+        console.log(startDateInput.value, endDateInput.value);
+        return;
+      }
+
+      notification.setAttribute(
+        "text",
+        "Período de inscripción asignado correctamente."
+      );
+
+      loader.remove();
+      notification.setAttribute("type", "success");
+      notificationContainer.appendChild(notification);
     });
   }
 });
