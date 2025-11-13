@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Inscripciones</title>
+    <link rel="stylesheet" href="/src/styles/registrationmanager.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="page-header">
+        <div>
+          <h1>Gestión de Inscripciones</h1>
+          <p>Administra las solicitudes de inscripción de estudiantes</p>
+        </div>
+        <a href="/app/admin/dashboard/" class="btn btn-secondary"
+          >← Volver al Dashboard</a
+        >
+      </header>
+
+      <main>
+        <section class="card config-card">
+          <h2>Configurar Periodo de Inscripción</h2>
+          <p>
+            Define las fechas de inicio y fin para que los representantes puedan
+            inscribir a sus estudiantes
+          </p>
+
+          <div class="date-inputs">
+            <div class="form-group">
+              <label for="fecha-inicio">Fecha de Inicio</label>
+              <input
+                type="date"
+                id="fecha-inicio"
+                name="fecha-inicio"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="fecha-fin">Fecha de Fin</label>
+              <input type="date" id="fecha-fin" name="fecha-fin" required />
+            </div>
+          </div>
+
+          <div class="stats-container">
+            <div class="stat-box">
+              <p>Inscripciones Recibidas</p>
+              <span class="stat-number received">23</span>
+            </div>
+            <div class="stat-box">
+              <p>Pendientes de Aprobar</p>
+              <span class="stat-number pending">3</span>
+            </div>
+          </div>
+
+          <div class="config-actions">
+            <button id="guardar-periodo" class="btn btn-primary">
+              Guardar Periodo
+            </button>
+            <button id="generar-reporte" class="btn btn-secondary">
+              Generar Reporte del Periodo
+            </button>
+          </div>
+        </section>
+
+        <section class="pending-requests">
+          <h2>Solicitudes Pendientes</h2>
+          <p class="subtitle">3 estudiantes aguardando aprobación</p>
+
+          <div class="request-list">
+            <div class="card student-card">
+              <div class="student-info">
+                <div>
+                  <strong>ID ESTUDIANTE</strong>
+                  <p>EST001</p>
+                </div>
+                <div>
+                  <strong>NOMBRE</strong>
+                  <p>Juan Carlos Garcia Lopez</p>
+                </div>
+                <div>
+                  <strong>PROGRAMA</strong>
+                  <p>Ingeniería en Sistemas</p>
+                </div>
+                <div>
+                  <strong>EMAIL</strong>
+                  <p>juan.garcia@email.com</p>
+                </div>
+                <div>
+                  <strong>TELÉFONO</strong>
+                  <p>555-0123</p>
+                </div>
+                <div>
+                  <strong>SOLICITUD</strong>
+                  <p>9/11/2024</p>
+                </div>
+              </div>
+              <div class="student-actions">
+                <button class="btn btn-success" data-action="approve">
+                  ✓ Aprobar
+                </button>
+                <button class="btn btn-danger" data-action="reject">
+                  ✗ Rechazar
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/src/scripts/registrationmanager.js"></script>
+  </body>
+</html>
