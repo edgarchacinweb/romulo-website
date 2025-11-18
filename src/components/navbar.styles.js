@@ -1,7 +1,7 @@
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(`
     nav {
-        width: calc(100% - 1rem);
+        width: calc(100% - 2rem);
         min-height: 120px;
         margin: .5rem;
         padding: .4rem 2rem;

@@ -1,14 +1,14 @@
 import styles from "./navbar.styles.js";
 
 class NavbarComponent extends HTMLElement {
-    constructor() {
-        super();
-        this.attachShadow({mode: "open"});
-    }
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
 
-    connectedCallback() {
-        this.shadowRoot.adoptedStyleSheets = [styles];
-        this.shadowRoot.innerHTML = `
+  connectedCallback() {
+    this.shadowRoot.adoptedStyleSheets = [styles];
+    this.shadowRoot.innerHTML = `
         <nav class="navigation">
             <section class="navigation__logo">
                 <img src="./src/assets/images/romulo.png" />
@@ -37,7 +37,7 @@ class NavbarComponent extends HTMLElement {
                     </a>
                 </section>
                 <section class="navigation__account">
-                    <a href="./app/inscripcion.html" class="navigation__link">
+                    <a href="./app/inscripcion-selector.html" class="navigation__link">
                         <img src="./src/assets/icons/users-plus.svg" class="navigation__icon" />
                         <span class="navigation__text">Inscribirse</span>
                     </a>
@@ -51,12 +51,18 @@ class NavbarComponent extends HTMLElement {
         </nav>
         `;
 
-        const menuBtn = this.shadowRoot.querySelector(".navigation__menu");
-        const navigation = this.shadowRoot.querySelector(".navigation");
-        
-        menuBtn.addEventListener("click", () => navigation.classList.toggle("navigation--active"));
-        window.addEventListener("resize", () => window.innerWidth > 790 ? navigation.classList.remove("navigation--active") : "");
-    }
+    const menuBtn = this.shadowRoot.querySelector(".navigation__menu");
+    const navigation = this.shadowRoot.querySelector(".navigation");
+
+    menuBtn.addEventListener("click", () =>
+      navigation.classList.toggle("navigation--active")
+    );
+    window.addEventListener("resize", () =>
+      window.innerWidth > 790
+        ? navigation.classList.remove("navigation--active")
+        : ""
+    );
+  }
 }
 
 customElements.define("navbar-component", NavbarComponent);
