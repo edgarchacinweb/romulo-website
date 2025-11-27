@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Denegado</title>
+    
+    <style>
+        /* ESTILOS CSS REVISADOS Y MINIMIZADOS */
+        
+        body {
+            /* Asegúrate de que 'Liceo.png' existe en la misma carpeta */
+            background-image: url('Liceo.png'); 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat; 
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; 
+            margin: 0;
+        }
+
+        .contenedor-mensaje {
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white; 
+            padding: 40px;
+            border-radius: 12px; 
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+            text-align: center;
+            max-width: 450px; 
+            border: 2px solid #ff0000;
+        }
+
+        .contenedor-mensaje h1 {
+            font-size: 2.8em;
+            color: #ff0000;
+            margin-bottom: 10px;
+        }
+
+        .contenedor-mensaje p {
+            font-size: 1.3em;
+            margin-bottom: 25px;
+        }
+
+        .contenedor-mensaje a {
+            display: inline-block;
+            background-color: #ff0000;
+            color: white; 
+            text-decoration: none; 
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .contenedor-mensaje a:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor-mensaje" id="mensaje">
+        <h1>❌ Lo Sentimos</h1>
+        <p>Su usuario no ha sido registrado para el proceso de inscripción. Diríjase a las instalaciones del liceo para formalizar su registro.</p>
+        <a href="#" id="botonVolver">Volver a la página de inicio de sesión</a>
+    </div>
+    
+    <script>
+        // CÓDIGO JAVASCRIPT
+        
+        const botonVolver = document.getElementById('botonVolver');
+        const mensajeContenedor = document.getElementById('mensaje');
+
+        function manejarRegreso(event) {
+            // Previene la acción por defecto del enlace
+            event.preventDefault(); 
+            
+            // Simulación de acción
+            alert("Redirigiendo a la página de inicio de sesión (simulación de proceso).");
+
+            // Opcional: Ocultar el mensaje después de la alerta
+            mensajeContenedor.style.opacity = '0';
+            setTimeout(() => {
+                console.log("Se ha intentado redireccionar al usuario.");
+                // En un sistema real, aquí iría: window.location.href = 'pagina-de-inicio-de-sesion.html';
+            }, 500);
+        }
+
+        // Asignar el manejador de eventos
+        botonVolver.addEventListener('click', manejarRegreso);
+
+    </script>
+</body>
+</html>
