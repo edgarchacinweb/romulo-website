@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Personal Docente</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/teachermanager.css" />
+
+    <!-- Componentes -->
+    <script src="/src/components/notification.component.js" type="module" defer></script>
+    <script src="/src/components/loader.component.js" type="module" defer></script>
+    <script src="/src/components/notifications-container.component.js" type="module" defer></script>
+    <script src="/src/components/teacher-card.component.js" type="module" defer></script>    
+  </head>
+  <body class="antialiased">
+    <notifications-container id="notifications"></notifications-container>
+    <div id="app">
+      <nav class="navbar">
+        <div class="nav-container">
+          <div class="nav-brand">
+            <div class="nav-logo-bg">
+                <img src="/src/assets/images/romulo.png" class="nav-logo-img" alt="Icono de la institución" />
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div class="nav-brand-text nav-brand-text-desktop">
+              <h1>Gestión de Personal Docente</h1>
+              <p>Sistema de administración educativo</p>
+            </div>
+          </div>
+
+          <!-- Lado Derecho: Salir -->
+          <div>
+            <a href="/app/admin/dashboard/" class="nav-link">
+              <!-- Icono: LogOut -->
+              <svg
+                class="icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Salir</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- ======================= -->
+      <!-- Contenido Principal     -->
+      <!-- ======================= -->
+      <main>
+        <div class="grid-container">
+          <!-- Columna Izquierda: Formulario -->
+          <div class="form-container">
+            <div class="card">
+              <div class="form-header">
+                <h2>Nuevo Docente</h2>
+                <p>Registrar un nuevo profesor</p>
+              </div>
+
+              <form id="teacher-form">
+                <div class="form-group">
+                  <label for="nombre">Nombre</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    placeholder="Ej: Juan"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="apellido">Apellido</label>
+                  <input
+                    type="text"
+                    id="apellido"
+                    name="apellido"
+                    placeholder="Ej: Pérez"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="sexo">Sexo</label>
+                  <select id="sexo" name="sexo" class="form-select">
+                    <option>Masculino</option>
+                    <option>Femenino</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label for="cedula">Cédula</label>
+                  <input
+                    type="text"
+                    id="cedula"
+                    name="cedula"
+                    placeholder="Ej: 12345678"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="telefono">Teléfono</label>
+                  <input
+                    type="tel"
+                    id="telefono"
+                    name="telefono"
+                    placeholder="+58 XXXX XXXX XXXX"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="direccion">Dirección</label>
+                  <textarea
+                    id="direccion"
+                    name="direccion"
+                    placeholder="Ej: Calle 5, Casa 25, Apto 3"
+                    class="form-textarea"
+                  ></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                  Registrar Docente
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Lista -->
+          <div class="list-container">
+            <!-- Tarjeta de Docentes Registrados -->
+            <div class="card">
+              <div class="list-header">
+                <div class="list-title">
+                  <!-- Icono: Users -->
+                  <span class="list-title-icon">
+                    <svg
+                      class="icon-lg"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+                      ></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  </span>
+                  <div class="list-title-text">
+                    <h2>Docentes Registrados</h2>
+                    <p>Total: (<span id="active-teachers"></span>) Activos</p>
+                  </div>
+                </div>
+                <button id="export-btn" class="btn btn-export">
+                  <!-- Icono: Upload -->
+                  <svg
+                    class="icon"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span>Exportar</span>
+                </button>
+              </div>
+
+              <!-- Barra "Seleccionar todos" -->
+              <div class="select-all-bar">
+                <label class="select-all-label">
+                  <input type="checkbox" id="select-all" class="checkbox" />
+                  <span>Seleccionar todos (1)</span>
+                </label>
+              </div>
+
+              <!-- Lista de Docentes -->
+              <div id="teacher-list">
+                <!-- ======================= -->
+                <!-- Componente Tarjeta Docente (Inicio) -->
+                <!-- ======================= -->
+                
+                <!-- ======================= -->
+                <!-- Componente Tarjeta Docente (Fin) -->
+                <!-- ======================= -->
+
+                <!-- Aquí se podrían agregar más docentes dinámicamente -->
+              </div>
+            </div>
+          </div>
+          <!-- Fin Columna Derecha -->
+        </div>
+      </main>
+    </div>
+
+    <script src="/src/scripts/config.js" type="module"></script>
+    <script src="/src/scripts/teachermanager.js" type="module" defer></script>
+  </body>
+</html>

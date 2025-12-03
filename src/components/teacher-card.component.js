@@ -1,0 +1,165 @@
+class TeacherCardComponent extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+  }
+
+  static get observedAttribute() {
+    return ["teacherData"];
+  }
+
+  connectedCallback() {
+    const teacherData = JSON.parse(this.getAttribute("teacherData"));
+    const { DatosPersona, Materias } = teacherData;
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        .teacher-card {
+          border: 1px solid var(--color-gray-200);
+          border-radius: var(--border-radius-lg);
+          padding: 1rem; /* 16px */
+          background-color: var(--color-gray-50);
+          box-shadow: var(--shadow);
+          transition: box-shadow 150ms ease-in-out;
+        }
+        .teacher-card:hover {
+          box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+            0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .teacher-card-content {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem; /* 16px */
+        }
+
+        .teacher-card .checkbox {
+          flex-shrink: 0;
+          margin-top: 0.25rem; /* 4px */
+        }
+
+        .teacher-card-details {
+          flex-grow: 1;
+        }
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 0.5rem; /* 8px */
+          margin-bottom: 0.5rem; /* 8px */
+        }
+
+        .card-header-name {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem; /* 8px */
+        }
+        .card-header-name h3 {
+          font-size: 1.125rem; /* 18px */
+          font-weight: 500;
+          color: var(--color-gray-900);
+        }
+
+        .card-dropdown-icon {
+          color: var(--color-blue-600);
+          cursor: pointer;
+          padding: 0.25rem; /* 4px */
+          border-radius: var(--border-radius-full);
+          transition: background-color 150ms;
+        }
+        .card-dropdown-icon:hover {
+          background-color: var(--color-blue-100);
+        }
+
+        .card-registration-date {
+          font-size: 0.75rem; /* 12px */
+          color: var(--color-gray-500);
+          font-weight: 500;
+        }
+
+        .card-details-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.25rem 1.5rem; /* 4px 24px */
+          font-size: 0.875rem; /* 14px */
+          color: var(--color-gray-600);
+        }
+
+        .header-container {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+          .card-details-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .card-details-grid .span-2 {
+            grid-column: span 2 / span 2;
+          }
+        }
+
+        .card-details-grid p {
+          overflow-wrap: break-word;
+        }
+        .card-details-grid p span {
+          font-weight: 500;
+          color: var(--color-gray-800);
+        }
+      </style>
+      <div class="teacher-card">
+        <div class="teacher-card-content">
+        
+        <div class="teacher-card-details">
+            <!-- Cabecera de la tarjeta -->
+            <div class="card-header">
+            <div class="header-container">
+              <input type="checkbox" class="checkbox teacher-checkbox" />
+              <div class="card-header-name">
+                <h3>
+                  ${teacherData.DatosPersona.Nombre}
+                  ${teacherData.DatosPersona.Apellido}
+                </h3>
+                <!-- Icono Dropdown -->
+                <span class="card-dropdown-icon">
+                  <svg
+                    class="icon"
+                    style="width: 16px; height: 16px"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </span>
+            </div>
+
+              </div>
+              <span class="card-registration-date">Registrado: 14/11/2025</span>
+            </div>
+
+            <!-- Detalles del docente -->
+            <div class="card-details-grid">
+              <p><span>Cédula:</span> V-${DatosPersona.Cedula}</p>
+              <p><span>Teléfono:</span> +58 ${DatosPersona.Telefono}</p>
+              <p><span>Dirección:</span> ${DatosPersona.Direccion}</p>
+              <p><span>Materias:</span> ${Materias.join(", ")}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+customElements.define("teacher-card", TeacherCardComponent);

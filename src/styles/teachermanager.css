@@ -1,0 +1,377 @@
+:root {
+  --color-blue-800: #1e40af; /* Azul principal */
+  --color-blue-700: #1d4ed8; /* Azul hover */
+  --color-blue-200: #bfdbfe; /* Azul claro (texto nav) */
+  --color-blue-100: #dbeafe; /* Azul muy claro (fondo icono) */
+  --color-blue-600: #2563eb; /* Azul (checkbox) */
+  --color-orange-600: #ea580c; /* Naranja (botón) */
+  --color-orange-700: #c2410c; /* Naranja hover */
+  --color-white: #ffffff;
+  --color-gray-50: #f9fafb; /* Fondo tarjeta docente */
+  --color-gray-200: #e5e7eb; /* Bordes */
+  --color-gray-300: #d1d5db; /* Borde input */
+  --color-gray-400: #9ca3af; /* Borde checkbox */
+  --color-gray-500: #6b7280; /* Texto secundario */
+  --color-gray-600: #4b5563; /* Texto */
+  --color-gray-700: #374151; /* Labels */
+  --color-gray-800: #1f2937; /* Títulos */
+  --color-gray-900: #111827; /* Títulos oscuros */
+  --color-body-bg: #f4f7f6;
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --border-radius: 0.5rem; /* 8px */
+  --border-radius-lg: 0.75rem; /* 12px */
+  --border-radius-xl: 1rem; /* 16px */
+  --border-radius-full: 9999px;
+}
+
+/* Reseteo básico y fuente principal */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  position: relative;
+  font-family: var(--tipography), Arial, Helvetica, sans-serif;
+  background-color: var(--color-body-bg);
+  color: var(--color-gray-700);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.nav-logo-img {
+  width: 100%;
+  height: 100%;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--color-gray-800);
+  font-weight: 600;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: 100%;
+}
+
+/* Utilidad para SVGs */
+.icon {
+  width: 1.25rem; /* 20px */
+  height: 1.25rem; /* 20px */
+}
+.icon-lg {
+  width: 1.5rem; /* 24px */
+  height: 1.5rem; /* 24px */
+}
+
+/* ======================= */
+/* Barra de Navegación     */
+/* ======================= */
+.navbar {
+  background-color: var(--color-blue-800);
+  color: var(--color-white);
+  box-shadow: var(--shadow-lg);
+  height: 4rem; /* 64px */
+}
+
+.nav-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem; /* 16px */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+@media (min-width: 640px) {
+  .nav-container {
+    padding: 0 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .nav-container {
+    padding: 0 2rem;
+  }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* 8px */
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  padding: 0.5rem; /* 8px */
+  border-radius: var(--border-radius);
+  transition: background-color 150ms ease-in-out;
+}
+.nav-link:hover {
+  background-color: var(--color-blue-700);
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* 12px */
+}
+
+.nav-logo-bg {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  background-color: #ffffff;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-white);
+  padding: 0.375rem; /* 6px */
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  color: var(--color-blue-800);
+}
+
+.nav-brand-text h1 {
+  font-size: 1.125rem; /* 18px */
+  font-weight: 700;
+  color: var(--color-white);
+}
+
+.nav-brand-text p {
+  font-size: 0.75rem; /* 12px */
+  color: var(--color-blue-200);
+}
+
+/* Ocultar texto de marca en pantallas pequeñas */
+.nav-brand-text-desktop {
+  display: none;
+}
+@media (min-width: 640px) {
+  .nav-brand-text-desktop {
+    display: block;
+  }
+}
+
+/* ======================= */
+/* Contenido Principal     */
+/* ======================= */
+main {
+  padding: 1rem; /* 16px */
+}
+@media (min-width: 640px) {
+  main {
+    padding: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  main {
+    padding: 2rem;
+  }
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem; /* 24px */
+}
+@media (min-width: 1024px) {
+  .grid-container {
+    grid-template-columns: 1fr 2fr; /* 1/3 y 2/3 */
+  }
+}
+
+/* ======================= */
+/* Tarjeta (Genérica)      */
+/* ======================= */
+.card {
+  background-color: var(--color-white);
+  padding: 1.5rem; /* 24px */
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-lg);
+  height: fit-content;
+}
+
+/* ======================= */
+/* Formulario (Col. Izq)   */
+/* ======================= */
+.form-header h2 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+}
+.form-header p {
+  font-size: 0.875rem; /* 14px */
+  color: var(--color-gray-500);
+  margin-bottom: 1.5rem; /* 24px */
+  border-bottom: 1px solid var(--color-gray-200);
+  padding-bottom: 1rem; /* 16px */
+}
+
+.form-group {
+  margin-bottom: 1rem; /* 16px */
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  color: var(--color-gray-700);
+  margin-bottom: 0.25rem; /* 4px */
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  display: block;
+  width: 100%;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-gray-300);
+  box-shadow: var(--shadow);
+  padding: 0.625rem; /* 10px */
+  font-size: 0.875rem; /* 14px */
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--color-gray-400);
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--color-blue-600);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.form-textarea {
+  resize: none;
+  height: 7rem; /* ~rows=3 */
+}
+
+.form-select {
+  /* Apariencia para que se vea la flecha */
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+.btn {
+  cursor: pointer;
+  border-radius: var(--border-radius-lg);
+  font-weight: 600;
+  padding: 0.75rem 1rem; /* 12px 16px */
+  transition: background-color 200ms ease-in-out;
+  border: none;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  background-color: var(--color-blue-700);
+  color: var(--color-white);
+  width: 100%;
+  padding-top: 0.875rem; /* 14px */
+  padding-bottom: 0.875rem; /* 14px */
+}
+.btn-primary:hover {
+  background-color: var(--color-blue-800);
+}
+
+/* ======================= */
+/* Lista (Col. Der)        */
+/* ======================= */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem; /* 16px */
+  margin-bottom: 1.25rem; /* 20px */
+}
+
+.list-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem; /* 12px */
+}
+
+.list-title-icon {
+  flex-shrink: 0;
+  padding: 0.625rem; /* 10px */
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-700);
+  border-radius: var(--border-radius-full);
+}
+
+.list-title-text h2 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+}
+.list-title-text p {
+  font-size: 0.875rem; /* 14px */
+  color: var(--color-gray-500);
+}
+
+.btn-export {
+  background-color: var(--color-orange-600);
+  color: var(--color-white);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem; /* 8px */
+  padding-top: 0.625rem; /* 10px */
+  padding-bottom: 0.625rem; /* 10px */
+}
+.btn-export:hover {
+  background-color: var(--color-orange-700);
+}
+
+/* --- Barra Seleccionar Todos --- */
+.select-all-bar {
+  border-top: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: 0.75rem 0; /* 12px */
+}
+
+.select-all-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem; /* 12px */
+  font-size: 0.875rem; /* 14px */
+  color: var(--color-gray-600);
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 1rem; /* 16px */
+  height: 1rem; /* 16px */
+  border-radius: 0.25rem; /* 4px */
+  border: 1px solid var(--color-gray-400);
+  box-shadow: var(--shadow);
+  color: var(--color-blue-600);
+  /* Ocultar checkbox por defecto para estilizarlo */
+  accent-color: var(--color-blue-600);
+}
+.checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+/* --- Lista de Docentes --- */
+#teacher-list {
+  margin-top: 1rem; /* 16px */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* 16px */
+}

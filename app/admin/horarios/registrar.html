@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crear Horario | Liceo Nacional</title>
-    <link rel="stylesheet" href="../../src/styles/schedulemanager.css" />
+    <link rel="stylesheet" href="/src/styles/schedulemanager.css" />
 
     <!-- Components -->
-    <script src="../../src/components/notification.component.js" type="module"></script>
+    <script src="/src/components/notification.component.js" type="module"></script>
   </head>
   <body>
     <section class="notifications" id="notificationContainer"></section>
@@ -18,7 +18,7 @@
     <div class="main-content">
       <div class="header-area">
         <img
-          src="../../src/assets/images/romulo.png"
+          src="/src/assets/images/romulo.png"
           alt="Logo Liceo Nacional"
           class="logo"
         />
@@ -33,12 +33,20 @@
           <label for="admin_year">Seleccionar Año:</label>
           <select id="admin_year" name="admin_year" required>
             <option value="">...</option>
+            <option value="1" selected>1° Año</option>
+            <option value="2">2° Año</option>
+            <option value="3">3° Año</option>
+            <option value="4">4° Año</option>
+            <option value="5">5° Año</option>
           </select>
         </div>
         <div class="input-group">
           <label for="admin_section">Seleccionar Sección:</label>
           <select id="admin_section" name="admin_section" required>
             <option value="">...</option>
+            <option value="1" selected>A</option>
+            <option value="2">B</option>
+            <option value="3">C</option>
           </select>
         </div>
 
@@ -112,6 +120,98 @@
                 <input
                   type="text"
                   value="8:35 - 10:05"
+                  class="schedule-input"
+                  style="background-color: #f8f8f8"
+                  disabled
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Materia / Profesor"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Materia / Profesor"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Materia / Profesor"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Materia / Profesor"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="Materia / Profesor"
+                  class="schedule-input"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value="10:05 - 10:20"
+                  class="schedule-input"
+                  style="background-color: #f8f8f8"
+                  disabled
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="RECESO"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="RECESO"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="RECESO"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="RECESO"
+                  class="schedule-input"
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  placeholder="RECESO"
+                  class="schedule-input"
+                />
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <input
+                  type="text"
+                  value="10:20 - 11:30"
                   class="schedule-input"
                   style="background-color: #f8f8f8"
                   disabled
