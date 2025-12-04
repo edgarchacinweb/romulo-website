@@ -10,7 +10,7 @@ class TeacherCardComponent extends HTMLElement {
 
   connectedCallback() {
     const teacherData = JSON.parse(this.getAttribute("teacherData"));
-    const { DatosPersona, Materias } = teacherData;
+    const { DatosPersona, Materias, FechaCreacion } = teacherData;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -20,8 +20,15 @@ class TeacherCardComponent extends HTMLElement {
           padding: 1rem; /* 16px */
           background-color: var(--color-gray-50);
           box-shadow: var(--shadow);
-          transition: box-shadow 150ms ease-in-out;
+          overflow: hidden;
+          height: 60px;
+          transition: all 350ms ease;
         }
+
+        .teacher-card--active {
+          height: 220px;
+        }
+
         .teacher-card:hover {
           box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
             0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -65,10 +72,23 @@ class TeacherCardComponent extends HTMLElement {
         .card-dropdown-icon {
           color: var(--color-blue-600);
           cursor: pointer;
-          padding: 0.25rem; /* 4px */
+          width: 32px;
+          height: 32px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
           border-radius: var(--border-radius-full);
-          transition: background-color 150ms;
+          transition: all 150ms ease;
         }
+
+        .card-dropdown-icon svg {
+          pointer-events: none;
+        }
+
+        .card-dropdown-icon--active {
+          transform: rotate(180deg);
+        }
+
         .card-dropdown-icon:hover {
           background-color: var(--color-blue-100);
         }
@@ -88,10 +108,10 @@ class TeacherCardComponent extends HTMLElement {
         }
 
         .header-container {
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            justify-content: center;
+          display: flex;
+          flex-direction: row;
+          gap: 10px;
+          justify-content: center;
         }
 
         @media (min-width: 768px) {
@@ -113,39 +133,37 @@ class TeacherCardComponent extends HTMLElement {
       </style>
       <div class="teacher-card">
         <div class="teacher-card-content">
-        
-        <div class="teacher-card-details">
+          <div class="teacher-card-details">
             <!-- Cabecera de la tarjeta -->
             <div class="card-header">
-            <div class="header-container">
-              <input type="checkbox" class="checkbox teacher-checkbox" />
-              <div class="card-header-name">
-                <h3>
-                  ${teacherData.DatosPersona.Nombre}
-                  ${teacherData.DatosPersona.Apellido}
-                </h3>
-                <!-- Icono Dropdown -->
-                <span class="card-dropdown-icon">
-                  <svg
-                    class="icon"
-                    style="width: 16px; height: 16px"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </span>
-            </div>
-
+              <div class="header-container">
+                <input type="checkbox" class="checkbox teacher-checkbox" />
+                <div class="card-header-name">
+                  <h3>
+                    ${teacherData.DatosPersona.Nombre}
+                    ${teacherData.DatosPersona.Apellido}
+                  </h3>
+                  <!-- Icono Dropdown -->
+                  <span class="card-dropdown-icon">
+                    <svg
+                      class="icon"
+                      style="width: 16px; height: 16px"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </span>
+                </div>
               </div>
-              <span class="card-registration-date">Registrado: 14/11/2025</span>
+              <span class="card-registration-date">Registrado: ${FechaCreacion}</span>
             </div>
 
             <!-- Detalles del docente -->
@@ -154,11 +172,21 @@ class TeacherCardComponent extends HTMLElement {
               <p><span>Teléfono:</span> +58 ${DatosPersona.Telefono}</p>
               <p><span>Dirección:</span> ${DatosPersona.Direccion}</p>
               <p><span>Materias:</span> ${Materias.join(", ")}</p>
+              <p><span>Ocupación:</span> ${DatosPersona.Ocupacion}</p>
             </div>
           </div>
         </div>
       </div>
     `;
+
+    // Script
+    const card = this.shadowRoot.querySelector(".teacher-card");
+    this.shadowRoot
+      .querySelector(".card-dropdown-icon")
+      .addEventListener("click", (e) => {
+        e.target.classList.toggle("card-dropdown-icon--active");
+        card.classList.toggle("teacher-card--active");
+      });
   }
 }
 

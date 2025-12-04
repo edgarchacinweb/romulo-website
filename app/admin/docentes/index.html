@@ -106,7 +106,7 @@
                 <div class="form-group">
                   <label for="cedula">Cédula</label>
                   <input
-                    type="text"
+                    type="number"
                     id="cedula"
                     name="cedula"
                     placeholder="Ej: 12345678"
@@ -120,9 +120,27 @@
                     type="tel"
                     id="telefono"
                     name="telefono"
-                    placeholder="+58 XXXX XXXX XXXX"
+                    placeholder="XXXX-XXXXXXX"
                     class="form-input"
                   />
+                </div>
+
+                <div class="form-group">
+                  <label for="ocupacion">Ocupación</label>
+                  <input
+                    type="text"
+                    id="ocupacion"
+                    name="ocupacion"
+                    placeholder="Licenciado en Matemáticas"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="materia">Materia</label>
+                  <select id="materia" name="materia" class="form-select">
+                    <option>Cargando...</option>
+                  </select>
                 </div>
 
                 <div class="form-group">
@@ -135,7 +153,7 @@
                   ></textarea>
                 </div>
 
-                <button type="submit" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" id="submit-btn">
                   Registrar Docente
                 </button>
               </form>

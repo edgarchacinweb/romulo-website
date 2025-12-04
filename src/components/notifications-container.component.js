@@ -7,20 +7,30 @@ class NotificationContainerComponent extends HTMLElement {
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <style>
-        .notifications {
-          position: absolute;
+        div {
+          position: fixed;
           top: 0;
           left: 0;
           width: 100vw;
+          min-height: 100vw;
           display: flex;
           flex-direction: column;
-          gap: 5px;
           align-items: center;
+          pointer-events: none;
+        }
+
+        .notifications {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
         }
       </style>
-      <section class="notifications" id="notificationContainer">
-        <slot></slot>
-      </section>
+      <div>
+        <section class="notifications" id="notificationContainer">
+          <slot></slot>
+        </section>
+      </div>
     `;
   }
 }
