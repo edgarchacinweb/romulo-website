@@ -58,6 +58,11 @@ class TeacherCardComponent extends HTMLElement {
           margin-bottom: 0.5rem; /* 8px */
         }
 
+        .header-container {
+          display: flex;
+          align-items: center;
+        }
+
         .card-header-name {
           display: flex;
           align-items: center;
@@ -130,14 +135,35 @@ class TeacherCardComponent extends HTMLElement {
           font-weight: 500;
           color: var(--color-gray-800);
         }
+
+        #teacher-delete-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 8px;
+          border: 1px solid #acacac;
+          box-shadow: 0 0 3px 1px #33333385;
+          background-color: #ff0000;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+        }
+
+        #teacher-delete-btn span {
+          width: 18px;
+          height: 18px;
+          color: #fcfcfc;
+        }
       </style>
-      <div class="teacher-card">
+      <div class="teacher-card" data-id="${teacherData.DatosPersona.Cedula}">
         <div class="teacher-card-content">
           <div class="teacher-card-details">
             <!-- Cabecera de la tarjeta -->
             <div class="card-header">
               <div class="header-container">
-                <input type="checkbox" class="checkbox teacher-checkbox" />
+                <button type="button" id="teacher-delete-btn">
+                  <span>B</span>
+                </button>
                 <div class="card-header-name">
                   <h3>
                     ${teacherData.DatosPersona.Nombre}
@@ -163,7 +189,9 @@ class TeacherCardComponent extends HTMLElement {
                   </span>
                 </div>
               </div>
-              <span class="card-registration-date">Registrado: ${FechaCreacion}</span>
+              <span class="card-registration-date"
+                >Registrado: ${FechaCreacion}</span
+              >
             </div>
 
             <!-- Detalles del docente -->

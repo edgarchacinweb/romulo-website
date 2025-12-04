@@ -2,6 +2,44 @@ import authorize from "./auth.js";
 
 authorize("administrador");
 
+const removeTeacher = (e) => {
+  let card = e.target;
+  const token = localStorage.getItem("auth");
+  while (!card.getAttribute("data-id")) card = card.parentElement;
+  const id = card.getAttribute("data-id");
+  console.log(card);
+  console.log(`${window.APP_CONFIG.api_url}/teacher/delete/${id}`);
+
+  const notification = document.createElement("notification-component");
+  const notificationContainer = document.getElementById("notifications");
+  const loader = document.createElement("loader-spinner");
+  loader.setAttribute("text", "Eliminando docente...");
+  document.body.appendChild(loader);
+
+  fetch(`${window.APP_CONFIG.api_url}/teacher/delete/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  })
+    .then((response) => {
+      if (response.status !== 200) throw "Error al eliminar al docente";
+
+      notification.setAttribute("type", "success");
+      notification.setAttribute("text", "Docente eliminado correctamente...");
+    })
+    .catch((error) => {
+      notification.setAttribute("type", "error");
+      notification.setAttribute("text", error);
+      console.log(error);
+    })
+    .finally(() => {
+      notificationContainer.appendChild(notification);
+      loader.remove();
+    });
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("auth");
   const notificationContainer = document.getElementById("notifications");
@@ -73,6 +111,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         const teacherCard = document.createElement("teacher-card");
         teacherCard.setAttribute("teacherData", JSON.stringify(teacherElement));
         teacherList.appendChild(teacherCard);
+        teacherCard.shadowRoot
+          .getElementById("teacher-delete-btn")
+          .addEventListener("click", removeTeacher);
       });
       notification.setAttribute("type", "success");
       notification.setAttribute(
@@ -129,6 +170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const phoneField = document.getElementById("telefono");
   const ocupationField = document.getElementById("ocupacion");
   const subjectField = document.getElementById("materia");
+  const emailField = document.getElementById("correo");
   const locationField = document.getElementById("direccion");
 
   document.getElementById("submit-btn").addEventListener("click", async () => {
@@ -142,6 +184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       identityField.value.length === 0 ||
       phoneField.value.length === 0 ||
       ocupationField.value.length === 0 ||
+      emailField.value.length === 0 ||
       locationField.value.length === 0
     ) {
       const validationNotification = document.createElement(
@@ -167,6 +210,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         },
         Materia: {
           MateriaId: subjectField.value,
+        },
+        Usuario: {
+          UsuarioId: "",
+          Rol: "docente",
+          Email: emailField.value,
         },
       };
 
@@ -197,8 +245,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         newTeacherData["DatosPersona"]["DatosPersonaId"] =
           createTeacherResponse.id;
 
-        const registerTeacherQuery = fetch(
-          `${window.APP_CONFIG.api_url}/teacher/create`,
+        // Crear usuario
+        const createUserQuery = await fetch(
+          `${window.APP_CONFIG.api_url}/user/register`,
           {
             method: "POST",
             headers: {
@@ -206,54 +255,86 @@ document.addEventListener("DOMContentLoaded", async () => {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
+              Email: newTeacherData.Usuario.Email,
+              Rol: newTeacherData.Usuario.Rol,
               DatosPersonaId: newTeacherData.DatosPersona.DatosPersonaId,
-              MateriaId: newTeacherData.Materia.MateriaId,
             }),
           }
-        )
-          .then((response) => {
-            if (response.status !== 201) {
-              throw "Error al registrar datos del docente";
-            }
+        );
 
-            return response.json();
-          })
-          .then((data) => {
-            createTeacherNotification.setAttribute("type", "success");
-            createTeacherNotification.setAttribute(
-              "text",
-              "Docente guardado correctamente"
-            );
-            notificationContainer.appendChild(createTeacherNotification);
-            const newTeacherCard = document.createElement("teacher-card");
-            const selectedSubject = subjectField.querySelector(
-              `[value="${subjectField.value}"]`
-            ).textContent;
-            const date = new Intl.DateTimeFormat("es-VE", {
-              year: "numeric",
-              day: "2-digit",
-              month: "2-digit",
-            }).format(new Date());
-            newTeacherCard.setAttribute(
-              "teacherData",
-              JSON.stringify({
-                DatosPersona: newTeacherData.DatosPersona,
-                Materias: [selectedSubject],
-                FechaCreacion: date,
-              })
-            );
-            teacherList.appendChild(newTeacherCard);
-          })
-          .catch((error) => {
-            createTeacherNotification.setAttribute("type", "error");
-            createTeacherNotification.setAttribute("text", error);
-            notificationContainer.appendChild(createTeacherNotification);
-            console.log(error);
-          })
-          .finally(() => {
-            loader.remove();
-            teacherForm.reset();
-          });
+        if (createUserQuery.status !== 201) {
+          createTeacherNotification.setAttribute("type", "error");
+          createTeacherNotification.setAttribute(
+            "text",
+            "Error al crear el usuario del docente"
+          );
+          notificationContainer.appendChild(createTeacherNotification);
+        } else {
+          const createUserResponse = await createUserQuery.json();
+          newTeacherData.Usuario.UsuarioId = createUserResponse.id;
+
+          const registerTeacherQuery = fetch(
+            `${window.APP_CONFIG.api_url}/teacher/create`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                DatosPersonaId: newTeacherData.DatosPersona.DatosPersonaId,
+                MateriaId: newTeacherData.Materia.MateriaId,
+              }),
+            }
+          )
+            .then((response) => {
+              if (response.status !== 201) {
+                throw "Error al registrar datos del docente";
+              }
+
+              return response.json();
+            })
+            .then((data) => {
+              createTeacherNotification.setAttribute("type", "success");
+              createTeacherNotification.setAttribute(
+                "text",
+                "Docente guardado correctamente"
+              );
+              notificationContainer.appendChild(createTeacherNotification);
+              const newTeacherCard = document.createElement("teacher-card");
+              const selectedSubject = subjectField.querySelector(
+                `[value="${subjectField.value}"]`
+              ).textContent;
+              const date = new Intl.DateTimeFormat("es-VE", {
+                year: "numeric",
+                day: "2-digit",
+                month: "2-digit",
+              }).format(new Date());
+              newTeacherCard.setAttribute(
+                "teacherData",
+                JSON.stringify({
+                  DatosPersona: newTeacherData.DatosPersona,
+                  Materias: [selectedSubject],
+                  FechaCreacion: date,
+                })
+              );
+              teacherList.appendChild(newTeacherCard);
+
+              newTeacherCard.shadowRoot
+                .getElementById("teacher-delete-btn")
+                .addEventListener("click", removeTeacher);
+            })
+            .catch((error) => {
+              createTeacherNotification.setAttribute("type", "error");
+              createTeacherNotification.setAttribute("text", error);
+              notificationContainer.appendChild(createTeacherNotification);
+              console.log(error);
+            })
+            .finally(() => {
+              loader.remove();
+              teacherForm.reset();
+            });
+        }
       }
     }
   });

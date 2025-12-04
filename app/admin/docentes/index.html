@@ -144,6 +144,17 @@
                 </div>
 
                 <div class="form-group">
+                  <label for="correo">Correo electrónico</label>
+                  <input
+                    type="email"
+                    id="correo"
+                    name="correo"
+                    placeholder="ejemplo@correo.com"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
                   <label for="direccion">Dirección</label>
                   <textarea
                     id="direccion"
@@ -190,7 +201,7 @@
                   </span>
                   <div class="list-title-text">
                     <h2>Docentes Registrados</h2>
-                    <p>Total: (<span id="active-teachers"></span>) Activos</p>
+                    <p>Total: (<span id="active-teachers">0</span>) Activos</p>
                   </div>
                 </div>
                 <button id="export-btn" class="btn btn-export">
@@ -213,14 +224,6 @@
                   </svg>
                   <span>Exportar</span>
                 </button>
-              </div>
-
-              <!-- Barra "Seleccionar todos" -->
-              <div class="select-all-bar">
-                <label class="select-all-label">
-                  <input type="checkbox" id="select-all" class="checkbox" />
-                  <span>Seleccionar todos (1)</span>
-                </label>
               </div>
 
               <!-- Lista de Docentes -->
