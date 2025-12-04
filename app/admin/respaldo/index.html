@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Respaldo y Gestión de Base de Datos</title>
+    <style>
+      /* --- Código CSS Incrustado --- */
+      :root {
+        --primary-color: #007bff; /* Azul primario */
+        --danger-color: #dc3545; /* Rojo */
+        --status-pending-bg: #e9f5ff;
+        --border-color: #dee2e6;
+        --text-color-dark: #212529;
+        --bg-color: #f8f9fa;
+      }
+
+      .exit-button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        font-weight: 600;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      .exit-button:hover {
+        background-color: #0056b3;
+      }
+
+      body {
+        font-family: Arial, sans-serif;
+        background-color: var(--bg-color);
+        margin: 0;
+        padding: 20px;
+        color: var(--text-color-dark);
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      /* --- Encabezado y Logo --- */
+      .header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+      }
+
+      /* AJUSTE FINAL: Tamaño del logo grande (120x120px) */
+      .logo {
+        height: 120px;
+        width: 120px;
+        object-fit: contain;
+        margin-right: 20px;
+        background-color: transparent; /* Asegura que no haya fondo */
+        border: none;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+        margin: 0;
+        font-weight: bold;
+        color: var(--text-color-dark);
+      }
+
+      /* [El resto del CSS se mantiene igual] */
+      .action-selection {
+        margin-bottom: 30px;
+      }
+      .action-selection p {
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: var(--text-color-dark);
+      }
+      .button-group .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-weight: bold;
+        margin-right: 10px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      }
+      .primary-btn {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .primary-btn:hover {
+        background-color: #0056b3;
+      }
+      .secondary-btn {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .secondary-btn:hover {
+        background-color: #0056b3;
+      }
+      #eliminarTodoBtn {
+        background-color: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        font-size: 1em;
+        cursor: pointer;
+        font-weight: bold;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s;
+      }
+      #eliminarTodoBtn:hover {
+        background-color: #c82333;
+      }
+      .operation-status-section h2 {
+        font-size: 1.3em;
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: var(--text-color-dark);
+      }
+      .status-box {
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 30px;
+        font-weight: bold;
+        font-size: 1.1em;
+        border: 1px solid transparent;
+        color: var(--text-color-dark);
+      }
+      .status-box.pending {
+        background-color: var(--status-pending-bg);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+      .status-box.processing {
+        background-color: #fff3cd;
+        color: #856404;
+        border-color: #ffeeba;
+      }
+      .status-box.success {
+        background-color: #d4edda;
+        color: #155724;
+        border-color: #c3e6cb;
+      }
+      .history-section h2 {
+        font-size: 1.3em;
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: var(--text-color-dark);
+      }
+      .backup-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      .backup-table th,
+      .backup-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .backup-table thead th {
+        background-color: #e9ecef;
+        font-weight: bold;
+        color: var(--text-color-dark);
+      }
+      .backup-table tbody tr:hover {
+        background-color: #f5f5f5;
+      }
+      .action-link {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .action-link:hover {
+        text-decoration: underline;
+      }
+      .delete-btn {
+        background-color: var(--danger-color);
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: background-color 0.3s;
+      }
+      .delete-btn:hover {
+        background-color: #c82333;
+      }
+    </style>
+
+    <!-- Components -->
+    <script
+      src="/src/components/loader.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notification.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notifications-container.component.js"
+      type="module"
+      defer
+    ></script>
+  </head>
+  <body>
+    <notifications-container id="notifications"></notifications-container>
+    <a href="/app/admin/dashboard/" class="exit-button">Salir</a>
+    <div class="container">
+      <header class="header">
+        <img
+          src="/src/assets/images/Liceo.png"
+          alt="Logo del Liceo"
+          class="logo"
+        />
+        <h1>Respaldo y Gestión de Base de Datos</h1>
+      </header>
+
+      <section class="action-selection">
+        <p>Selecciona la acción que deseas realizar:</p>
+        <div class="button-group">
+          <button id="generarRespaldo" class="btn primary-btn">
+            Generar Respaldo
+          </button>
+        </div>
+      </section>
+
+      <section class="history-section">
+        <h2>Historial de Respaldos</h2>
+        <table class="backup-table" id="backup-table">
+          <thead>
+            <tr>
+              <th>Fecha y Hora</th>
+              <th>Tipo</th>
+              <th>Tamaño</th>
+              <th>Acción</th>
+              <th>Eliminar</th>
+            </tr>
+          </thead>
+          <tbody id="historialBody"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <script src="/src/scripts/config.js" type="module"></script>
+    <script src="/src/scripts/backupmanager.js" type="module"></script>
+  </body>
+</html>

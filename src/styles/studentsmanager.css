@@ -1,0 +1,298 @@
+:root {
+  --bg-color: #f8f9fb;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --primary-btn: #1e3a8a; /* Azul oscuro */
+  --white: #ffffff;
+  --border-color: #e2e8f0;
+
+  /* Colores de Badges */
+  --blue-bg: #dbeafe;
+  --blue-text: #1e40af;
+  --green-bg: #dcfce7;
+  --green-text: #166534;
+  --purple-bg: #f3e8ff;
+  --purple-text: #6b21a8;
+  --yellow-bg: #fef9c3;
+  --yellow-text: #854d0e;
+}
+
+.exit-button {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-decoration: none;
+  font-weight: 600;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.exit-button:hover {
+  background-color: #0056b3;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  padding: 2rem;
+  color: var(--text-primary);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.main-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.main-header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+.btn-primary {
+  background-color: var(--primary-btn);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Filtros */
+.filters-container {
+  background: var(--white);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.btn-clean {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.filter-inputs {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 2;
+  min-width: 250px;
+  position: relative;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.6rem 0.6rem 0.6rem 2.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #f8f9fb;
+}
+
+.select-input {
+  flex: 1;
+  min-width: 150px;
+  padding: 0.6rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #f8f9fb;
+  color: var(--text-secondary);
+}
+
+/* Grid de Estudiantes */
+.students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Tarjeta de Estudiante */
+.student-card {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-header-info {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.avatar-placeholder {
+  width: 60px;
+  height: 60px;
+  background: #e2e8f0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  font-size: 1.5rem;
+}
+
+/* Badges */
+.badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.badge-blue {
+  background: var(--blue-bg);
+  color: var(--blue-text);
+}
+.badge-green {
+  background: var(--green-bg);
+  color: var(--green-text);
+}
+.badge-purple {
+  background: var(--purple-bg);
+  color: var(--purple-text);
+}
+.badge-yellow {
+  background: var(--yellow-bg);
+  color: var(--yellow-text);
+}
+
+/* Detalles */
+.info-section {
+  margin-top: 1.5rem;
+}
+
+.info-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.info-data {
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin-bottom: 0.2rem;
+}
+
+.sub-data {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 1rem 0;
+}
+
+/* Footer de la tarjeta */
+.card-footer {
+  background: #fdfdfd;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-details {
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.action-icon {
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.action-icon.delete:hover {
+  color: #ef4444;
+}
+.action-icon.edit:hover {
+  color: #3b82f6;
+}
+
+/* Tipografía de nombres y IDs */
+.student-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.student-id {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}

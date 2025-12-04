@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión Estudiantil</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="/src/styles/studentsmanager.css" />
+  </head>
+  <body>
+    <a href="/app/admin/dashboard/" class="exit-button">Salir</a>
+    <div class="container">
+      <header class="main-header">
+        <div class="header-text">
+          <h1>Gestión Estudiantil</h1>
+          <p>Administra el estado de inscripción y datos de los estudiantes</p>
+        </div>
+        <button class="btn-primary">
+          <i class="fa-solid fa-plus"></i> Nuevo Estudiante
+        </button>
+      </header>
+
+      <section class="filters-container">
+        <div class="filter-header">
+          <h3>Filtrar Estudiantes</h3>
+          <button class="btn-clean" id="btn-clean">
+            <i class="fa-solid fa-rotate-left"></i> Limpiar
+          </button>
+        </div>
+
+        <div class="filter-inputs">
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Buscar por nombre o cédula..."
+            />
+          </div>
+
+          <select class="select-input">
+            <option value="">Todos los grados</option>
+            <option value="10">Grado 10</option>
+            <option value="11">Grado 11</option>
+          </select>
+
+          <select class="select-input">
+            <option value="">Tipo de inscripción</option>
+            <option value="nuevo">Nuevo Ingreso</option>
+            <option value="reinscripcion">Reinscripción</option>
+          </select>
+
+          <select class="select-input">
+            <option value="">Estado</option>
+            <option value="completado">Completado</option>
+            <option value="pendiente">Pendiente</option>
+          </select>
+        </div>
+      </section>
+
+      <main class="students-grid" id="students-grid"></main>
+    </div>
+
+    <script src="/src/scripts/config.js" type="module"></script>
+    <script src="/src/scripts/studentsmanager.js" type="module"></script>
+  </body>
+</html>
