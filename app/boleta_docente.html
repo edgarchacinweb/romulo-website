@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carga de Notas - Docente</title>
+    
+    <style>
+        /* --- ESTILOS CSS CON CAMBIO DE COLOR --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+        }
+        
+        /* BARRA DE NAVEGACIÓN SUPERIOR (AÑOS) */
+        .navbar {
+            background-color: #1A75E0; /* Azul Primario */
+            color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .navbar h2 {
+            margin: 0;
+            padding: 15px 0;
+            font-size: 1.5em;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        #navMenu {
+            display: flex;
+            margin-left: 20px;
+        }
+
+        .nav-link {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-link:hover {
+            background-color: #0056b3; /* Azul más oscuro al pasar el mouse */
+        }
+
+        .nav-link.active {
+            background-color: #00458b; /* Azul oscuro para el seleccionado */
+            font-weight: bold;
+        }
+
+        /* CONTENIDO PRINCIPAL */
+        .main-content {
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto; /* Centrar el contenido */
+            background-color: white;
+            min-height: calc(100vh - 60px); /* Ajuste de altura */
+        }
+
+        .main-content h1 {
+            color: #1A75E0; /* Título en azul */
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* TABLA DE NOTAS */
+        .tabla-notas {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .tabla-notas th, .tabla-notas td {
+            border: 1px solid #ddd;
+            padding: 10px 8px;
+            text-align: center;
+        }
+
+        .tabla-notas th {
+            background-color: #f0f8ff; /* Fondo blanco azulado para encabezados */
+            color: #333;
+            font-weight: bold;
+        }
+        
+        /* Campos de entrada */
+        .nota-input {
+            width: 50px; 
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        
+        .observacion-input {
+            width: 90%;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            text-align: left;
+        }
+
+        .nota-final {
+            background-color: #e6f7ff; /* Fondo azul claro para la final */
+            font-weight: bold;
+            color: #1A75E0;
+        }
+
+        /* Botón de guardar */
+        .btn-guardar {
+            margin-top: 30px;
+            padding: 12px 25px;
+            background-color: #1A75E0; /* Botón azul */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+        }
+
+        .btn-guardar:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="navbar">
+        <h2>Años y Secciones</h2>
+        <div id="navMenu">
+            </div>
+    </div>
+
+    <div class="main-content">
+        <h1 id="tituloSeccion">Seleccione un Año y Sección</h1>
+        
+        <div id="listaEstudiantes">
+            <p>Utilice el menú superior para ver el listado de estudiantes y cargar las notas.</p>
+        </div>
+        
+        <button class="btn-guardar" onclick="guardarNotas()" style="display: none;" id="btnGuardar">
+            💾 Guardar Notas y Observaciones
+        </button>
+    </div>
+
+    <script>
+        // --- DATOS SIMULADOS ---
+        const seccionesImpartidas = [
+            { id: '1A', nombre: '1er Año - Sección A', estudiantes: [
+                { id: 1, nombre: 'Ana Rivas', observacion: '' },
+                { id: 2, nombre: 'Carlos Soto', observacion: '' },
+                { id: 3, nombre: 'Elena Gómez', observacion: '' }
+            ]},
+            { id: '2B', nombre: '2do Año - Sección B', estudiantes: [
+                { id: 4, nombre: 'Felipe Díaz', observacion: '' },
+                { id: 5, nombre: 'Juana Pérez', observacion: '' },
+                { id: 6, nombre: 'Ricardo Torres', observacion: '' },
+                { id: 7, nombre: 'Sofía Vargas', observacion: '' }
+            ]},
+            { id: '5C', nombre: '5to Año - Sección C', estudiantes: [
+                { id: 8, nombre: 'Pedro Mármol', observacion: '' },
+                { id: 9, nombre: 'Verónica Luna', observacion: '' }
+            ]}
+        ];
+
+        // --- FUNCIONES JAVASCRIPT ---
+
+        function cargarMenu() {
+            const navMenu = document.getElementById('navMenu');
+            seccionesImpartidas.forEach(seccion => {
+                const link = document.createElement('div');
+                link.className = 'nav-link';
+                link.textContent = seccion.nombre;
+                // Asigna la función 'mostrarEstudiantes' al hacer click
+                link.onclick = () => mostrarEstudiantes(seccion.id, link);
+                navMenu.appendChild(link);
+            });
+        }
+
+        function mostrarEstudiantes(seccionId, clickedElement) {
+            // 1. Desactivar y activar el enlace de navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            clickedElement.classList.add('active');
+
+            // 2. Obtener los datos y elementos DOM
+            const seccion = seccionesImpartidas.find(s => s.id === seccionId);
+            const tituloSeccion = document.getElementById('tituloSeccion');
+            const listaEstudiantesDiv = document.getElementById('listaEstudiantes');
+            const btnGuardar = document.getElementById('btnGuardar');
+
+            tituloSeccion.textContent = `Listado de Estudiantes: ${seccion.nombre}`;
+
+            // 3. Crear la tabla HTML
+            let tablaHTML = `<table class="tabla-notas" id="tablaNotas">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 3%;">#</th>
+                                        <th style="width: 20%;">Estudiante</th>
+                                        <th style="width: 8%;">1er Lapso</th>
+                                        <th style="width: 8%;">2do Lapso</th>
+                                        <th style="width: 8%;">3er Lapso</th>
+                                        <th style="width: 10%;">Nota Final</th>
+                                        <th style="width: 43%;">Observación / Nota del Docente</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            seccion.estudiantes.forEach((estudiante, index) => {
+                const idBase = `nota_${estudiante.id}_${seccionId}`;
+                
+                tablaHTML += `<tr>
+                                <td>${index + 1}</td>
+                                <td style="text-align: left;">${estudiante.nombre}</td>
+                                <td><input type="number" min="0" max="20" class="nota-input" id="${idBase}_L1" value="" oninput="calcularFinal('${idBase}')"></td>
+                                <td><input type="number" min="0" max="20" class="nota-input" id="${idBase}_L2" value="" oninput="calcularFinal('${idBase}')"></td>
+                                <td><input type="number" min="0" max="20" class="nota-input" id="${idBase}_L3" value="" oninput="calcularFinal('${idBase}')"></td>
+                                <td class="nota-final" id="${idBase}_Final"></td>
+                                <td>
+                                    <input type="text" class="observacion-input" id="${idBase}_Obs" placeholder="Escriba aquí alguna nota sobre el alumno..." value="${estudiante.observacion}">
+                                </td>
+                              </tr>`;
+            });
+
+            tablaHTML += `</tbody></table>`;
+            
+            // 4. Mostrar la tabla y el botón
+            listaEstudiantesDiv.innerHTML = tablaHTML;
+            btnGuardar.style.display = 'block';
+        }
+        
+        function calcularFinal(idBase) {
+            const nota1 = parseFloat(document.getElementById(`${idBase}_L1`).value) || 0;
+            const nota2 = parseFloat(document.getElementById(`${idBase}_L2`).value) || 0;
+            const nota3 = parseFloat(document.getElementById(`${idBase}_L3`).value) || 0;
+            const celdaFinal = document.getElementById(`${idBase}_Final`);
+
+            let promedio = (nota1 + nota2 + nota3) / 3;
+            
+            if (promedio > 0) {
+                 const notaRedondeada = Math.round(promedio * 10) / 10; // Redondea a un decimal
+                 celdaFinal.textContent = notaRedondeada.toFixed(1);
+                 celdaFinal.style.color = notaRedondeada < 10 ? '#cc0000' : '#1A75E0'; // Rojo si aplazado, Azul si aprobado
+            } else {
+                 celdaFinal.textContent = '';
+                 celdaFinal.style.color = 'inherit';
+            }
+        }
+
+        function guardarNotas() {
+            const tabla = document.getElementById('tablaNotas');
+            if (!tabla) {
+                alert("No hay notas para guardar.");
+                return;
+            }
+            
+            let datosAGuardar = [];
+            const filas = tabla.querySelectorAll('tbody tr');
+            
+            filas.forEach(fila => {
+                const inputs = fila.querySelectorAll('input');
+                const notaFinal = fila.querySelector('.nota-final').textContent;
+                
+                // Los inputs son: [L1, L2, L3, Observacion]
+                datosAGuardar.push({
+                    lapso1: inputs[0].value,
+                    lapso2: inputs[1].value,
+                    lapso3: inputs[2].value,
+                    final: notaFinal,
+                    observacion: inputs[3].value
+                    // En una app real, aquí se obtendrían los IDs del estudiante
+                });
+            });
+
+            console.log("Datos listos para enviar:", datosAGuardar);
+            alert("¡Notas y Observaciones guardadas con éxito! (Simulación de envío de datos)");
+        }
+
+        // Ejecutar al cargar la página
+        document.addEventListener('DOMContentLoaded', cargarMenu);
+
+    </script>
+</body>
+</html>
