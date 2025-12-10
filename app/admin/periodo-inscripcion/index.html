@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Períodos de Inscripción</title>
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link
+      rel="stylesheet"
+      href="/src/styles/studentregistrationtermmanager.css"
+    />
+
+    <!-- Variables de entorno -->
+    <script src="/src/scripts/config.js"></script>
+
+    <!-- Components -->
+    <script
+      src="/src/components/loader.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notification.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notifications-container.component.js"
+      type="module"
+      defer
+    ></script>
+  </head>
+  <body>
+    <notifications-container id="notifications"></notifications-container>
+    <header class="top-header">
+      <div class="header-content">
+        <div class="header-titles">
+          <h1>Gestión de Períodos de Inscripción</h1>
+          <p>
+            Administra los períodos de inscripción para tu institución educativa
+          </p>
+        </div>
+
+        <a href="/app/admin/dashboard/" class="btn-logout">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Salir
+        </a>
+      </div>
+    </header>
+
+    <main class="main-container">
+      <section class="card form-section">
+        <div class="card-header">
+          <h2>Nuevo Período</h2>
+          <p>Registra un nuevo período de inscripción</p>
+        </div>
+
+        <form id="inscription-form">
+          <div class="input-group">
+            <label for="period-name">Período escolar</label>
+            <input
+              type="text"
+              id="period-name"
+              value="Cargando..."
+              readonly
+              class="input-readonly"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="start-date">Fecha de Inicio</label>
+            <input type="date" id="start-date" class="input-control" required />
+          </div>
+
+          <div class="input-group">
+            <label for="end-date">Fecha de Fin</label>
+            <input type="date" id="end-date" class="input-control" required />
+          </div>
+
+          <button type="submit" id="add-school-term-btn" class="btn-primary">
+            Registrar Período
+          </button>
+        </form>
+      </section>
+
+      <section class="card table-section">
+        <div class="card-header">
+          <h2>Histórico de Períodos de inscripción</h2>
+          <p><span id="record-count">1</span> períodos registrados</p>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Período Escolar</th>
+                <th>Fecha de Inicio</th>
+                <th>Fecha de Fin</th>
+                <th>Fecha y Hora de Creación</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script
+      src="/src/scripts/studentsregistrationtermmanger.js"
+      type="module"
+    ></script>
+  </body>
+</html>
