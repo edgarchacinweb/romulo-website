@@ -8,7 +8,7 @@ class NotificationComponent extends HTMLElement {
 
   connectedCallback() {
     const text = this.getAttribute("text") || "";
-    const type = this.getAttribute("type").toLocaleLowerCase() || "success";
+    const type = this.getAttribute("type").toLowerCase() || "success";
 
     let color = "";
     if (type === "error") color = "#97051D";

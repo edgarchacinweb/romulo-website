@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const schoolTermBtn = document.getElementById("add-school-term-btn");
   const startDateEntry = document.getElementById("start-date");
   const endDateEntry = document.getElementById("end-date");
+  let schoolTerms = [];
   let registrationId = null;
   let schoolTermYear = null;
 
@@ -74,6 +75,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error(data.msg);
     }
 
+    schoolTerms = data;
     data.forEach((e) => {
       const item = document.createElement("tr");
       const schoolTermYear = new Date(
@@ -101,9 +103,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const startDate = startDateEntry.value;
       const endDate = endDateEntry.value;
+      const startEntryDate = new Date(startDate);
+      const endEntryDate = new Date(endDate);
+
+      startEntryDate.setHours(0, 0, 0, 0);
+      endEntryDate.setHours(0, 0, 0, 0);
 
       if (!startDate || !endDate)
         throw new Error("Debes rellenar ambos campos primero");
+      else if (startEntryDate > endEntryDate) {
+        throw new Error(
+          "La fecha de inicio no puede ser posterior a la fecha de fin."
+        );
+      }
+
+      const hasOverlap = schoolTerms.some((term) => {
+        const termStart = new Date(term["Inicio"]);
+        const termEnd = new Date(term["Fin"]);
+        const start = new Date(startEntryDate);
+        const end = new Date(endEntryDate);
+
+        // Comparar solo fechas (ignorando horas)
+        const normalize = (date) => date.toISOString().split("T")[0];
+
+        const tStart = normalize(termStart);
+        const tEnd = normalize(termEnd);
+        const sDate = normalize(start);
+        const eDate = normalize(end);
+
+        // Los rangos se solapan si no se cumple:
+        // (nuevo_fin < existente_inicio) o (nuevo_inicio > existente_fin)
+        return tStart >= sDate && tEnd <= eDate;
+      });
+
+      if (hasOverlap) {
+        throw new Error(
+          "Las fechas seleccionadas chocan con un periodo existente."
+        );
+      }
 
       const response = await fetch(
         `${window.APP_CONFIG.api_url}/registration/create`,
