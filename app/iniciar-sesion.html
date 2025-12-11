@@ -146,7 +146,7 @@
         <form id="loginForm">
           <div class="input-group">
             <label for="username">Usuario:</label>
-            <input type="text" id="username" name="username" />
+            <input type="email" id="username" name="username" />
           </div>
 
           <div class="input-group">
@@ -166,10 +166,13 @@
       const role = localStorage.getItem("role");
 
       if (role) {
-        window.location.href =
-          role === "administrador"
-            ? "/app/admin/dashboard/"
-            : "/app/horario_ver.html";
+        if (role === "administrador") {
+          window.location.href = "/app/admin/dashboard/";
+        } else if (role === "representante") {
+          window.location.href = "/app/representante/inicio/";
+        } else if (role === "docente") {
+          window.location.href = "/app/docente/inicio/";
+        }
       }
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -255,7 +258,10 @@
 
                 // Redirigiendo a la ventana correspondiente
                 let url = "";
-                if (role === "administrador") url = "/app/admin/dashboard";
+                if (role === "administrador") url = "/app/admin/dashboard/";
+                else if (role === "representante")
+                  url = "/app/representante/inicio/";
+                else if (role === "docente") url = "/app/docente/inicio/";
                 else url = "/";
 
                 setTimeout(() => {

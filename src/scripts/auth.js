@@ -12,8 +12,6 @@ const authorize = async (role) => {
   const data = await response.json();
 
   if (data.Rol !== role) {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("role");
     window.location.href = "/app/iniciar-sesion.html";
   }
 };
