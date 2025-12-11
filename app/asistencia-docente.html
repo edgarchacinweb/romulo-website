@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Laboral Docente</title>
+    <style>
+        /* BASE Y ESTRUCTURA GENERAL */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 40px;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+        .main-container {
+            width: 90%;
+            max-width: 950px; 
+            margin-bottom: 50px;
+            padding: 35px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        
+        /* HEADER Y BOTÓN SALIR */
+        .header h1 {
+            font-size: 28px;
+            color: #34495e;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .header p {
+            font-size: 16px;
+            color: #7f8c8d;
+            margin-bottom: 25px;
+        }
+        .exit-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            padding: 10px 18px;
+            background-color: #e74c3c;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .exit-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* FILTROS Y CONTROLES */
+        .filters-box {
+            background-color: #ecf0f1;
+            padding: 25px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+        .report-mode-toggle {
+            display: inline-flex;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #bdc3c7;
+        }
+        .mode-button {
+            padding: 10px 20px;
+            background-color: #f0f2f5;
+            color: #34495e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            border-right: 1px solid #bdc3c7;
+        }
+        .mode-button:last-child {
+            border-right: none;
+        }
+        .mode-button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .filter-controls > div {
+            text-align: left;
+        }
+        .filter-controls label {
+            display: block;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .filter-controls select {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+            min-width: 250px;
+        }
+        /* Oculta/Muestra el control de Lapso */
+        #lapso-filter-container {
+            display: none; 
+        }
+
+        .generate-btn {
+            padding: 12px 40px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        .generate-btn:hover {
+            background-color: #27ae60;
+        }
+
+        /* TABLA DE RESULTADOS */
+        .report-section {
+            margin-top: 40px;
+        }
+        .report-section h2 {
+            font-size: 20px;
+            color: #2980b9;
+            margin-bottom: 20px;
+            font-weight: 600;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .report-table-container {
+            width: 100%;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            background-color: white;
+            border: 1px solid #ecf0f1;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .report-table th, .report-table td {
+            padding: 12px 8px;
+            border: 1px solid #ecf0f1;
+            font-size: 14px;
+        }
+        .report-table thead th {
+            background-color: #3498db; 
+            color: white;
+            font-weight: 600;
+        }
+        .report-table tbody tr:nth-child(even) {
+            background-color: #f9fbfc;
+        }
+        
+        /* Columnas de Totales */
+        .total-col {
+            font-weight: 700;
+            background-color: #f4f6f9; 
+        }
+        .percentage-col {
+            font-weight: 700;
+            background-color: #e8f8f5;
+            color: #2ecc71;
+        }
+
+        /* Fila de Totales Generales */
+        .docente-total td {
+            font-weight: 700 !important;
+            background-color: #d6eaf8 !important;
+            color: #2c3e50;
+            font-size: 1.1em !important;
+            border-top: 3px solid #3498db;
+        }
+
+        .hidden-report {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <a href="asistencia-gestion.html" class="exit-btn">SALIR</a>
+
+    <div class="main-container">
+        
+        <div class="header">
+            <h1>Reporte de Cumplimiento Laboral de Docentes</h1>
+            <p>Visualización del resumen de horas trabajadas por materia y período seleccionado.</p>
+        </div>
+        
+        <div class="filters-box">
+            
+            <div class="report-mode-toggle">
+                <div class="mode-button active" data-mode="anual" onclick="showReportMode('anual')">Reporte Anual (Resumen)</div>
+                <div class="mode-button" data-mode="lapso" onclick="showReportMode('lapso')">Reporte por Lapso (Detalle)</div>
+            </div>
+            
+            <div class="filter-controls">
+                <div>
+                    <label for="docenteSelect">Docente:</label>
+                    <select id="docenteSelect" required>
+                        <option value="">Seleccione el Docente</option>
+                        <option value="1">Docente A - (Matemática, Física)</option>
+                        <option value="2">Docente B - (Lenguaje, Historia)</option>
+                    </select>
+                </div>
+                
+                <div id="lapso-filter-container">
+                    </div>
+            </div>
+            
+            <button class="generate-btn">Generar Reporte Detallado</button>
+        </div>
+        
+        <div class="report-section">
+            <h2 id="report-title">Resumen Laboral: Docente A (Anual)</h2>
+            
+            <div id="reporte-anual" class="report-table-container">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 25%;">Materia Impartida</th>
+                            <th style="width: 10%;">Horas Semanales Programadas</th>
+                            <th style="width: 10%;">Horas Semanales Cumplidas</th>
+                            <th class="total-col" style="width: 15%;">Total Horas Programadas (Anual)</th>
+                            <th class="total-col" style="width: 15%;">Total Horas Cumplidas (Anual)</th>
+                            <th class="percentage-col" style="width: 15%;">Porcentaje de Cumplimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td style="text-align: left; font-weight: 600;">Matemática</td>
+                            <td>4</td>
+                            <td>3.8</td>
+                            <td class="total-col">330</td>
+                            <td class="total-col">318</td>
+                            <td class="percentage-col">96.36%</td>
+                        </tr>
+                        <tr class="docente-total">
+                            <td colspan="4" style="text-align: right;">PROMEDIO Y TOTAL FINAL</td>
+                            <td class="total-col">540</td>
+                            <td class="total-col">519</td>
+                            <td class="percentage-col">96.11%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="reporte-lapso" class="report-table-container hidden-report">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">#</th>
+                            <th rowspan="2" style="width: 15%;">Materia Impartida</th>
+                            <th colspan="2">Primer Lapso</th>
+                            <th colspan="2">Segundo Lapso</th>
+                            <th colspan="2">Tercer Lapso</th>
+                            <th colspan="3">Total Acumulado Anual</th>
+                        </tr>
+                        <tr>
+                            <th style="width: 8%;">Horas Programadas</th>
+                            <th style="width: 8%;">Horas Cumplidas</th>
+                            <th style="width: 8%;">Horas Programadas</th>
+                            <th style="width: 8%;">Horas Cumplidas</th>
+                            <th style="width: 8%;">Horas Programadas</th>
+                            <th style="width: 8%;">Horas Cumplidas</th>
+                            <th class="total-col">Total Programadas</th>
+                            <th class="total-col">Total Cumplidas</th>
+                            <th class="percentage-col">Cumplimiento (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td style="text-align: left; font-weight: 600;">Matemática</td>
+                            <td>120</td>
+                            <td>115</td>
+                            <td>100</td>
+                            <td>98</td>
+                            <td>110</td>
+                            <td>105</td>
+                            <td class="total-col">330</td>
+                            <td class="total-col">318</td>
+                            <td class="percentage-col">96.36%</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td style="text-align: left; font-weight: 600;">Física</td>
+                            <td>80</td>
+                            <td>78</td>
+                            <td>60</td>
+                            <td>55</td>
+                            <td>70</td>
+                            <td>68</td>
+                            <td class="total-col">210</td>
+                            <td class="total-col">201</td>
+                            <td class="percentage-col">95.71%</td>
+                        </tr>
+                        <tr class="docente-total">
+                            <td colspan="8" style="text-align: right;">TOTALES ACUMULADOS ANUALES</td>
+                            <td class="total-col">540</td>
+                            <td class="total-col">519</td>
+                            <td class="percentage-col">96.11%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // Función para cambiar el modo de reporte (Lapso vs Anual)
+        function showReportMode(mode) {
+            const lapsoFilterContainer = document.getElementById('lapso-filter-container');
+            const annualButton = document.querySelector('.mode-button[data-mode="anual"]');
+            const lapsoButton = document.querySelector('.mode-button[data-mode="lapso"]');
+            
+            const tableAnual = document.getElementById('reporte-anual');
+            const tableLapso = document.getElementById('reporte-lapso');
+            const reportTitle = document.getElementById('report-title');
+            
+            // 1. Alternar clases de los botones
+            annualButton.classList.remove('active');
+            lapsoButton.classList.remove('active');
+            
+            // 2. Controlar la visibilidad de los filtros y tablas
+            if (mode === 'lapso') {
+                // Ocultar el contenedor de Lapso (ya que la tabla muestra el detalle)
+                lapsoFilterContainer.style.display = 'none'; 
+                lapsoButton.classList.add('active');
+                
+                tableAnual.classList.add('hidden-report');
+                tableLapso.classList.remove('hidden-report');
+                reportTitle.textContent = 'Resumen Laboral: Docente A (Detalle Completo por Lapso)';
+                
+            } else { // mode === 'anual'
+                lapsoFilterContainer.style.display = 'none'; // Siempre oculto en este diseño simplificado
+                annualButton.classList.add('active');
+                
+                tableAnual.classList.remove('hidden-report');
+                tableLapso.classList.add('hidden-report');
+                reportTitle.textContent = 'Resumen Laboral: Docente A (Resumen Anual)';
+            }
+        }
+
+        // Inicializar la interfaz en modo Anual al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            showReportMode('anual');
+        });
+    </script>
+</body>
+</html>

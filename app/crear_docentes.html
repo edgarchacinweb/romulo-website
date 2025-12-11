@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Horarios - Crear Docente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .section-title {
+            color: #333;
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        /* --- Barra de Navegación (Header) --- */
+        .navbar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .btn-salir {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn-salir:hover {
+            background-color: #c82333;
+        }
+
+        .btn-salir svg {
+            margin-right: 5px;
+        }
+
+        /* --- Estilos del Formulario --- */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        /* --- Estilos para Materias Dinámicas --- */
+        .dynamic-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        #materia-list {
+            margin-top: 15px;
+            padding: 0 10px;
+            border-left: 3px solid #007bff;
+        }
+        
+        .materia-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .materia-entry span {
+            color: #007bff;
+        }
+
+        .btn-remove-materia {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1.2em;
+            margin-left: 10px;
+        }
+        .btn-remove-materia:hover {
+            color: #c82333;
+        }
+        
+        /* Botón de Agregar Materia */
+        .btn-add-materia {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .btn-add-materia:hover {
+            background-color: #1e7e34;
+        }
+        .btn-add-materia svg {
+            margin-right: 5px;
+        }
+        
+        /* Contenedor de Select y Botón */
+        .add-materia-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        .add-materia-row .form-group {
+            margin-bottom: 0;
+            flex-grow: 1;
+        }
+
+
+        /* --- Botón de Guardar --- */
+        .actions-footer {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+
+        .btn-guardar {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+
+        .btn-guardar:hover {
+            background-color: #1e7e34;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-left">
+            <span class="app-title">Control de Docentes</span>
+        </div>
+        <div class="navbar-right">
+            <a href="lista-docentes.html" class="btn-salir" style="background-color: #6c757d;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list-ul" viewBox="0 0 16 16" style="margin-right: 5px;">
+                  <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m-3 1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m0-4a1 1 0 1 0 0 2 1 1 0 0 0 0-2m0-4a1 1 0 1 0 0 2 1 1 0 0 0 0-2"/>
+                </svg>
+                Ver Lista
+            </a>
+            <a href="#" class="btn-salir">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+                Salir
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>Registrar Nuevo Docente</h1>
+
+        <form id="docente-form">
+            <h2 class="section-title">Datos Personales</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre Completo:</label>
+                    <input type="text" id="nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label for="cedula">Cédula de Identidad:</label>
+                    <input type="text" id="cedula" name="cedula" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="telefono">Teléfono:</label>
+                    <input type="text" id="telefono" name="telefono">
+                </div>
+                <div class="form-group">
+                    <label for="email">Correo Electrónico:</label>
+                    <input type="text" id="email" name="email" required>
+                </div>
+            </div>
+
+            <h2 class="section-title">Materias que Puede Impartir</h2>
+
+            <div class="add-materia-row">
+                <div class="form-group">
+                    <label for="materia-select">Seleccionar Materia:</label>
+                    <select id="materia-select">
+                        <option value="">-- Elija una materia --</option>
+                        <option value="Castellano">Castellano</option>
+                        <option value="Inglés">Inglés</option>
+                        <option value="Matemática">Matemática</option>
+                        <option value="Química">Química</option>
+                        <option value="Física">Física</option>
+                        <option value="Arte y Patrimonio">Arte y Patrimonio</option>
+                        <option value="Geografía e Historia">Geografía e Historia</option>
+                        <option value="Biología">Biología</option>
+                        <option value="Educación Física">Educación Física</option>
+                    </select>
+                </div>
+                <button type="button" class="btn-add-materia" onclick="addMateria()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+                    </svg>
+                    Añadir
+                </button>
+            </div>
+            
+            <div id="materia-list">
+                </div>
+            
+            <input type="hidden" id="materias-impartidas" name="materias-impartidas">
+
+
+            <div class="actions-footer">
+                <button type="submit" class="btn-guardar">Guardar Docente</button>
+            </div>
+        </form>
+        
+    </main>
+
+    <script>
+        // Array para rastrear las materias seleccionadas (y evitar duplicados)
+        const selectedMaterias = [];
+
+        /**
+         * Añade la materia seleccionada de la lista desplegable a la lista dinámica.
+         */
+        function addMateria() {
+            const select = document.getElementById('materia-select');
+            const materia = select.value;
+            const materiaListContainer = document.getElementById('materia-list');
+
+            if (materia && !selectedMaterias.includes(materia)) {
+                
+                // 1. Añadir al array de rastreo
+                selectedMaterias.push(materia);
+                
+                // 2. Crear el elemento visual
+                const newEntry = document.createElement('div');
+                newEntry.classList.add('materia-entry');
+                newEntry.setAttribute('data-materia', materia);
+                
+                newEntry.innerHTML = `
+                    <span>${materia}</span>
+                    <button type="button" class="btn-remove-materia" onclick="removeMateria(this, '${materia}')">
+                        &times; </button>
+                `;
+                
+                materiaListContainer.appendChild(newEntry);
+                
+                // 3. Actualizar el campo oculto y resetear el select
+                updateHiddenField();
+                select.value = ""; 
+                select.querySelector('option[value=""]').selected = true;
+
+            } else if (selectedMaterias.includes(materia)) {
+                alert(`"${materia}" ya ha sido añadida.`);
+            }
+        }
+
+        /**
+         * Remueve una materia de la lista dinámica y del array de rastreo.
+         * @param {HTMLElement} button - El botón de eliminar que fue presionado.
+         * @param {string} materia - El nombre de la materia a eliminar.
+         */
+        function removeMateria(button, materia) {
+            // Remover del DOM
+            button.parentElement.remove();
+            
+            // Remover del array de rastreo
+            const index = selectedMaterias.indexOf(materia);
+            if (index > -1) {
+                selectedMaterias.splice(index, 1);
+            }
+            
+            // Actualizar el campo oculto
+            updateHiddenField();
+        }
+
+        /**
+         * Actualiza el valor del campo oculto con la lista de materias separada por comas.
+         */
+        function updateHiddenField() {
+            document.getElementById('materias-impartidas').value = selectedMaterias.join(',');
+            console.log("Materias a enviar:", selectedMaterias.join(','));
+        }
+
+        /**
+         * Simula el guardado del formulario.
+         */
+        document.getElementById('docente-form').addEventListener('submit', function(event) {
+            event.preventDefault(); 
+            
+            const nombre = document.getElementById('nombre').value;
+            const materias = document.getElementById('materias-impartidas').value;
+            
+            if (materias.length === 0) {
+                 alert("Por favor, añada al menos una materia que el docente puede impartir.");
+                 return;
+            }
+
+            alert(`Docente ${nombre} registrado con éxito.\nMaterias: ${materias}\n(Simulación de envío a la base de datos)`);
+            
+            // Resetear todo después del guardado (simulado)
+            this.reset();
+            selectedMaterias.length = 0; // Vaciar el array
+            document.getElementById('materia-list').innerHTML = ''; // Vaciar la lista visual
+            updateHiddenField(); // Vaciar el campo oculto
+        });
+    </script>
+</body>
+</html>

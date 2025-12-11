@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Horarios - Crear</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .section-title {
+            color: #333;
+            font-size: 1.5em;
+            margin-top: 40px;
+            margin-bottom: 15px;
+        }
+
+        /* --- Barra de Navegación (Header) --- */
+        .navbar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .btn-salir {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn-salir:hover {
+            background-color: #c82333;
+        }
+
+        .btn-salir svg {
+            margin-right: 5px;
+        }
+
+        /* --- Formulario de Año/Sección --- */
+        .year-section-form {
+            display: flex;
+            gap: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 30px;
+        }
+
+        .year-section-form label {
+            font-weight: 700;
+            color: #007bff;
+            margin-right: 5px;
+        }
+
+        .year-section-form select {
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            min-width: 100px; /* Asegurar que los selectores se vean bien */
+        }
+
+        /* --- Tabla de Horarios --- */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .schedule-table th {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #0056b3;
+        }
+
+        .schedule-table td {
+            border: 1px solid #ccc;
+            padding: 0;
+            height: 40px;
+        }
+
+        .subject-input, .hour-input {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            border: none;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9em;
+            outline: none;
+        }
+
+        /* Estilo para Negrita en las materias */
+        .subject-input {
+            font-weight: bold;
+        }
+
+        .hour-column {
+            width: 100px;
+        }
+        .hour-input {
+            background-color: #f9f9f9;
+            font-weight: 500;
+        }
+
+        /* --- Botón "Agregar Fila" (Horario y Profesor) --- */
+        .btn-add-row {
+            background-color: #28a745; /* Verde */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-add-row:hover {
+            background-color: #1e7e34;
+        }
+
+        .btn-add-row svg {
+            margin-right: 5px;
+        }
+
+        /* --- Sección de Asignación de Profesores --- */
+        #assignment-list {
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .assignment-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .assignment-row select {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1em;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        /* --- Pie de Página de Acciones --- */
+        .actions-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 50px;
+        }
+
+        .btn-guardar {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            transition: background-color 0.2s;
+        }
+
+        .btn-guardar:hover {
+            background-color: #0056b3;
+        }
+
+        .history-link-container {
+            text-align: right;
+        }
+
+        .btn-ver-historial {
+            background-color: #6c757d; /* Gris */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+
+        .btn-ver-historial:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Eliminamos el estilo de .history-file-name ya que se quitó el elemento */
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-left">
+            <span class="app-title">Control de Horarios</span>
+            </div>
+        <div class="navbar-right">
+            <a href="#" class="btn-salir">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+                Salir
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>Crear Nuevo Horario Escolar</h1>
+
+        <div class="year-section-form">
+            <label for="select-year">Año:</label>
+            <select id="select-year">
+                <option value="1er Año">1er Año</option>
+                <option value="2do Año">2do Año</option>
+                <option value="3er Año" selected>3er Año</option>
+                <option value="4to Año">4to Año</option>
+                <option value="5to Año">5to Año</option>
+            </select>
+            
+            <label for="select-section">Sección:</label>
+            <select id="select-section">
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+                <option value="E">E</option>
+                <option value="Única">Única</option>
+            </select>
+        </div>
+
+        <div class="schedule-section">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th class="hour-column">Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body">
+                    <tr>
+                        <td><input type="text" value="8:00 - 9:00" class="hour-input"></td>
+                        <td><input type="text" value="uuuikl" class="subject-input"></td>
+                        <td><input type="text" value="iii" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="text" value="9:00 - 10:00" class="hour-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                        <td><input type="text" class="subject-input"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button class="btn-add-row" onclick="addRow()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+                </svg>
+                Agregar Fila
+            </button>
+        </div>
+
+        <h2 class="section-title">Asignación Profesores</h2>
+
+        <div id="assignment-list">
+            <div class="assignment-row">
+                <select class="form-control select-profesor">
+                    <option value="">Seleccionar Profesor...</option>
+                    <option value="prof1">Profesor Juan Pérez</option>
+                    <option value="prof2">Profesora Ana Gómez</option>
+                    </select>
+
+                <select class="form-control select-materia">
+                    <option value="">Seleccionar Materia...</option>
+                    <option value="castellano">Castellano</option>
+                    <option value="ingles">Inglés</option>
+                    <option value="matematica">Matemática</option>
+                    <option value="quimica">Química</option>
+                    <option value="fisica">Física</option>
+                    <option value="arte">Arte y Patrimonio</option>
+                    <option value="geohistoria">Geografía e Historia</option>
+                    <option value="biologia">Biología</option>
+                    <option value="edufisica">Educación Física</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-add-row" onclick="addAssignmentRow()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+            </svg>
+            Agregar Profesor/Materia
+        </button>
+
+
+        <div class="actions-footer">
+            <button class="btn-guardar">Guardar Horario</button>
+            <div class="history-link-container">
+                <a href="horario-historial.html" class="btn-ver-historial">Ver Historial de Horarios</a>
+                </div>
+        </div>
+        
+    </main>
+
+    <script>
+        // Lista de opciones de materia para reusar en nuevas filas
+        const materiaOptions = `
+            <option value="">Seleccionar Materia...</option>
+            <option value="castellano">Castellano</option>
+            <option value="ingles">Inglés</option>
+            <option value="matematica">Matemática</option>
+            <option value="quimica">Química</option>
+            <option value="fisica">Física</option>
+            <option value="arte">Arte y Patrimonio</option>
+            <option value="geohistoria">Geografía e Historia</option>
+            <option value="biologia">Biología</option>
+            <option value="edufisica">Educación Física</option>
+        `;
+
+        // Lista de opciones de profesor (Debería cargarse desde una base de datos real)
+        const profesorOptions = `
+            <option value="">Seleccionar Profesor...</option>
+            <option value="prof1">Profesor Juan Pérez</option>
+            <option value="prof2">Profesora Ana Gómez</option>
+            <option value="prof3">Profesor Carlos Silva</option>
+            <option value="prof4">Profesora María Torres</option>
+        `;
+
+        /**
+         * 1. Añade una nueva fila a la tabla de horarios (Hora y Días).
+         */
+        function addRow() {
+            const tableBody = document.getElementById('schedule-body');
+            const newRow = document.createElement('tr');
+            
+            // 5 columnas para los días (Lunes a Viernes)
+            const daysColumns = '<td><input type="text" class="subject-input"></td>'.repeat(5);
+
+            newRow.innerHTML = `
+                <td><input type="text" value="[Nueva Hora]" class="hour-input"></td>
+                ${daysColumns}
+            `;
+
+            tableBody.appendChild(newRow);
+
+            // Enfocar el input de la hora de la nueva fila 
+            const newHourInput = newRow.querySelector('.hour-input');
+            if (newHourInput) {
+                newHourInput.focus();
+                newHourInput.select(); 
+            }
+        }
+
+        /**
+         * 2. Añade una nueva fila de asignación de Profesor/Materia.
+         */
+        function addAssignmentRow() {
+            const assignmentList = document.getElementById('assignment-list');
+            const newAssignmentDiv = document.createElement('div');
+            newAssignmentDiv.classList.add('assignment-row');
+            
+            newAssignmentDiv.innerHTML = `
+                <select class="form-control select-profesor">
+                    ${profesorOptions}
+                </select>
+
+                <select class="form-control select-materia">
+                    ${materiaOptions}
+                </select>
+            `;
+
+            assignmentList.appendChild(newAssignmentDiv);
+        }
+        
+        // Se ha quitado la función updateScheduleInfo() y la sección-info en el header
+    </script>
+</body>
+</html>

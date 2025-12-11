@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Horarios - Lista de Docentes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            font-size: 2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* --- Barra de Navegación (Header) --- */
+        .navbar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+        
+        .navbar-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            background-color: #dc3545; /* Rojo, se sobrescribe después */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn-action svg {
+            margin-right: 5px;
+        }
+        
+        .btn-crear {
+            background-color: #28a745; /* Verde */
+        }
+        .btn-crear:hover {
+            background-color: #1e7e34;
+        }
+        
+        .btn-salir {
+            background-color: #dc3545; /* Rojo */
+        }
+        .btn-salir:hover {
+            background-color: #c82333;
+        }
+
+        /* --- Herramientas de Búsqueda y Creación --- */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+        }
+
+        .search-box input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            width: 300px;
+            font-size: 1em;
+            margin-left: 10px;
+        }
+        
+        .search-box label {
+            font-weight: 700;
+            color: #007bff;
+        }
+
+        /* --- Tabla de Docentes --- */
+        .docente-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .docente-table th {
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #0056b3;
+            font-size: 1em;
+        }
+
+        .docente-table td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 0.95em;
+        }
+        
+        .docente-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .docente-table .actions {
+            text-align: center;
+            width: 120px;
+        }
+        
+        /* Estilos para Materias */
+        .materia-tag {
+            display: inline-block;
+            background-color: #6c757d;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+
+        /* Botones de Acción en la Tabla */
+        .btn-edit-row, .btn-delete-row {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85em;
+            margin-left: 5px;
+            transition: background-color 0.2s;
+        }
+        .btn-edit-row {
+            background-color: #ffc107; /* Amarillo */
+            color: #333;
+        }
+        .btn-delete-row {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+        }
+        .btn-edit-row:hover { background-color: #e0a800; }
+        .btn-delete-row:hover { background-color: #c82333; }
+
+    </style>
+</head>
+<body onload="filterTable()">
+    <header class="navbar">
+        <div class="navbar-left">
+            <span class="app-title">Control de Docentes</span>
+        </div>
+        <div class="navbar-right">
+             <a href="crear_docentes.html" class="btn-action btn-crear">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+                </svg>
+                Registrar Nuevo
+            </a>
+            <a href="#" class="btn-action btn-salir">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+                Salir
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>Listado de Docentes Registrados</h1>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <label for="docente-search">Buscar Docente:</label>
+                <input type="text" id="docente-search" onkeyup="filterTable()" placeholder="Nombre o Cédula...">
+            </div>
+            </div>
+
+        <table class="docente-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">ID</th>
+                    <th style="width: 25%;">Nombre Completo</th>
+                    <th style="width: 15%;">Cédula</th>
+                    <th style="width: 35%;">Materias que Imparte</th>
+                    <th style="width: 20%;" class="actions">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="docente-table-body">
+                <tr data-docente-id="1">
+                    <td>001</td>
+                    <td>Juan Pérez Gómez</td>
+                    <td>V-12.345.678</td>
+                    <td>
+                        <span class="materia-tag">Matemática</span>
+                        <span class="materia-tag">Física</span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-edit-row" onclick="editDocente('1')">Editar</button>
+                        <button class="btn-delete-row" onclick="deleteDocente('1')">Eliminar</button>
+                    </td>
+                </tr>
+                <tr data-docente-id="2">
+                    <td>002</td>
+                    <td>Ana Torres Silva</td>
+                    <td>E-25.012.345</td>
+                    <td>
+                        <span class="materia-tag">Castellano</span>
+                        <span class="materia-tag">Arte y Patrimonio</span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-edit-row" onclick="editDocente('2')">Editar</button>
+                        <button class="btn-delete-row" onclick="deleteDocente('2')">Eliminar</button>
+                    </td>
+                </tr>
+                <tr data-docente-id="3">
+                    <td>003</td>
+                    <td>Carlos Rodríguez</td>
+                    <td>V-10.987.654</td>
+                    <td>
+                        <span class="materia-tag">Biología</span>
+                        <span class="materia-tag">Química</span>
+                        <span class="materia-tag">Geografía e Historia</span>
+                    </td>
+                    <td class="actions">
+                        <button class="btn-edit-row" onclick="editDocente('3')">Editar</button>
+                        <button class="btn-delete-row" onclick="deleteDocente('3')">Eliminar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+    </main>
+
+    <script>
+        /**
+         * Filtra la tabla de docentes según el texto introducido en la barra de búsqueda.
+         */
+        function filterTable() {
+            const input = document.getElementById('docente-search');
+            const filter = input.value.toUpperCase();
+            const tableBody = document.getElementById('docente-table-body');
+            const rows = tableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                // Obtenemos las celdas de Nombre (índice 1) y Cédula (índice 2)
+                const nameCell = rows[i].getElementsByTagName('td')[1];
+                const cedulaCell = rows[i].getElementsByTagName('td')[2];
+                
+                if (nameCell || cedulaCell) {
+                    const nameText = nameCell.textContent || nameCell.innerText;
+                    const cedulaText = cedulaCell.textContent || cedulaCell.innerText;
+
+                    if (nameText.toUpperCase().indexOf(filter) > -1 || cedulaText.toUpperCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+
+        /**
+         * Simula la edición de un docente, redirigiendo a la página de creación/edición.
+         * @param {string} docenteId - ID del docente a editar.
+         */
+        function editDocente(docenteId) {
+            alert(`Simulando Edición del Docente ID: ${docenteId}`);
+            // Redirección real: window.location.href = `crear_docentes.html?edit=${docenteId}`;
+        }
+        
+        /**
+         * Simula la eliminación de un docente.
+         * @param {string} docenteId - ID del docente a eliminar.
+         */
+        function deleteDocente(docenteId) {
+            if (confirm(`¿Estás seguro de que deseas eliminar al Docente con ID: ${docenteId}?`)) {
+                alert(`Docente ID ${docenteId} ha sido (simuladamente) eliminado.`);
+                
+                // Lógica real: Eliminar la fila de la tabla (solo para el ejemplo visual)
+                const row = document.querySelector(`tr[data-docente-id="${docenteId}"]`);
+                if (row) {
+                    row.remove();
+                    // Aquí se enviaría la solicitud de eliminación al servidor
+                }
+            }
+        }
+    </script>
+</body>
+</html>

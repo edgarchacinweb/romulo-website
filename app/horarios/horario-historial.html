@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Horarios - Historial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* --- Barra de Navegación (Header) --- */
+        .navbar {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-middle {
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+        
+        .navbar-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .app-title {
+            font-weight: 700;
+            font-size: 1.2em;
+        }
+
+        .btn-salir {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn-salir:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-salir svg {
+            margin-right: 5px;
+        }
+        
+        /* Nuevo botón de Eliminación Global */
+        .btn-delete-global {
+            background-color: #6c757d; /* Gris */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .btn-delete-global:hover {
+            background-color: #5a6268;
+        }
+        .btn-delete-global svg {
+            margin-right: 5px;
+        }
+
+        /* --- Estilos del Acordeón (Historial) --- */
+        .history-list {
+            margin-top: 30px;
+        }
+
+        .period-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .period-header:hover {
+            background-color: #0056b3;
+        }
+
+        .period-content {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-top: none;
+            padding: 10px 20px;
+            margin-bottom: 15px;
+            display: none; /* Oculto por defecto */
+        }
+
+        /* Sub-nivel: Listado de Años/Secciones */
+        .year-entry {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .year-entry:hover {
+            background-color: #eee;
+        }
+
+        /* Sub-nivel 2: Horario (Oculto por defecto) */
+        .schedule-details {
+            padding: 15px 0 5px 0;
+            border-top: 2px solid #ddd;
+            margin-top: 10px;
+            display: none; /* Oculto por defecto */
+        }
+        
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+        }
+        
+        /* --- Estilos de la Tabla (Historial) --- */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .schedule-table th {
+            background-color: #555;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #444;
+            font-size: 0.85em;
+        }
+
+        .schedule-table td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.85em;
+            font-weight: bold; /* Para que las materias resaltan */
+        }
+        
+        .schedule-table .hour-column {
+            background-color: #e9ecef;
+            font-weight: 500;
+        }
+
+        /* --- Botones de Acción --- */
+        .action-buttons button, .action-buttons a {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-left: 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-edit {
+            background-color: #28a745; /* Verde */
+            color: white;
+        }
+        .btn-delete {
+            background-color: #dc3545; /* Rojo */
+            color: white;
+        }
+        .btn-edit:hover { background-color: #1e7e34; }
+        .btn-delete:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-left">
+            <span class="app-title">Control de Horarios</span>
+        </div>
+        <div class="navbar-right">
+            <button class="btn-delete-global" onclick="activateDeleteMode()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5m4.5 0a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5"/>
+                </svg>
+                Eliminar Período(s)
+            </button>
+            <a href="horario.html" class="btn-salir">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+                    <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"/>
+                </svg>
+                Salir
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1>Historial de Horarios Escolares</h1>
+
+        <div class="history-list">
+            
+            <div class="period-item" data-period-id="2025-2026">
+                <div class="period-header" onclick="togglePeriod(this)">
+                    <span>Periodo 2025 - 2026 (Actual)</span>
+                </div>
+                <div class="period-content">
+                    
+                    <div class="year-entry" onclick="toggleSchedule(this, '1A')">
+                        <span>1er Año - Sección A</span>
+                    </div>
+                    <div class="schedule-details" data-schedule-id="1A">
+                        <div class="schedule-header">
+                            <h3>Horario de 1er Año - Sección A</h3>
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="editSchedule('1A')">Editar</button>
+                                <button class="btn-delete" onclick="deleteSchedule('1A')">Eliminar</button>
+                            </div>
+                        </div>
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th class="hour-column">Hora</th>
+                                    <th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="hour-column">8:00 - 9:00</td>
+                                    <td>Matemática</td><td>Castellano</td><td>Física</td><td>Matemática</td><td>Educ. Física</td>
+                                </tr>
+                                <tr>
+                                    <td class="hour-column">9:00 - 10:00</td>
+                                    <td>Inglés</td><td>Biología</td><td>Química</td><td>Arte y P.</td><td>Geografía</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="year-entry" onclick="toggleSchedule(this, '3C')">
+                        <span>3er Año - Sección C</span>
+                    </div>
+                     <div class="schedule-details" data-schedule-id="3C">
+                        <div class="schedule-header">
+                            <h3>Horario de 3er Año - Sección C</h3>
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="editSchedule('3C')">Editar</button>
+                                <button class="btn-delete" onclick="deleteSchedule('3C')">Eliminar</button>
+                            </div>
+                        </div>
+                         <p>Contenido del Horario de 3er Año - Sección C (Tabla de ejemplo iría aquí).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="period-item" data-period-id="2024-2025">
+                <div class="period-header" onclick="togglePeriod(this)">
+                    <span>Periodo 2024 - 2025</span>
+                </div>
+                <div class="period-content">
+                    <div class="year-entry" onclick="toggleSchedule(this, '5B')">
+                        <span>5to Año - Sección B</span>
+                    </div>
+                     <div class="schedule-details" data-schedule-id="5B">
+                        <div class="schedule-header">
+                            <h3>Horario de 5to Año - Sección B</h3>
+                            <div class="action-buttons">
+                                <button class="btn-edit" onclick="editSchedule('5B')">Editar</button>
+                                <button class="btn-delete" onclick="deleteSchedule('5B')">Eliminar</button>
+                            </div>
+                        </div>
+                        <p>Contenido del Horario de 5to Año - Sección B (Tabla de ejemplo iría aquí).</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <script>
+        // --- Funciones del Acordeón ---
+
+        /**
+         * Maneja el despliegue del Período de Años (Nivel 1).
+         * @param {HTMLElement} header - El encabezado del período (period-header).
+         */
+        function togglePeriod(header) {
+            const content = header.nextElementSibling;
+            
+            if (content.style.display === "block") {
+                content.style.display = "none";
+            } else {
+                content.style.display = "block";
+                
+                // Opcional: Cierra todos los detalles de horarios dentro de este periodo al abrir
+                const details = content.querySelectorAll('.schedule-details');
+                details.forEach(detail => {
+                    detail.style.display = "none";
+                });
+            }
+        }
+
+        /**
+         * Maneja el despliegue de la tabla de Horario dentro de un Año/Sección (Nivel 2).
+         * @param {HTMLElement} entry - La entrada del año (year-entry).
+         */
+        function toggleSchedule(entry) {
+            // Encuentra el elemento schedule-details (el siguiente hermano después de la entrada)
+            let currentElement = entry.nextElementSibling;
+            
+            if (currentElement && currentElement.classList.contains('schedule-details')) {
+                 if (currentElement.style.display === "block") {
+                    currentElement.style.display = "none";
+                } else {
+                    currentElement.style.display = "block";
+                }
+            }
+        }
+        
+        // --- Funcionalidades de Edición/Eliminación (Simuladas) ---
+
+        /**
+         * Simula la activación del modo de eliminación global de períodos.
+         */
+        function activateDeleteMode() {
+            alert("MODO ELIMINAR PERÍODO(S) ACTIVADO.\n\nEn una aplicación real, aparecerían checkboxes junto a cada período y se mostraría un botón de 'Confirmar Eliminación'.");
+            // Aquí iría la lógica para mostrar checkboxes o cambiar el diseño
+        }
+        
+        /**
+         * Simula la acción de editar un horario específico.
+         * En una aplicación real, esto redirigiría a la página de creación (horario.html) 
+         * con los datos cargados.
+         * @param {string} scheduleId - ID del horario a editar (ej: '1A', '3C').
+         */
+        function editSchedule(scheduleId) {
+            alert(`Simulando la edición del Horario con ID: ${scheduleId}.\n\n(Redirigiría a horario.html?edit=${scheduleId})`);
+            // Ejemplo de redirección (descomentar para probar la conexión entre páginas):
+            // window.location.href = `horario.html?edit=${scheduleId}`;
+        }
+        
+        /**
+         * Simula la acción de eliminar un horario específico.
+         * @param {string} scheduleId - ID del horario a eliminar.
+         */
+        function deleteSchedule(scheduleId) {
+            if (confirm(`¿Estás seguro de que deseas eliminar el horario con ID: ${scheduleId}?`)) {
+                alert(`Horario ${scheduleId} ha sido (simuladamente) eliminado.`);
+                // Aquí iría la lógica para eliminar el elemento del DOM y del backend
+            }
+        }
+    </script>
+</body>
+</html>

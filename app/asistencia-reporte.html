@@ -5,227 +5,298 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reporte de Asistencia | Liceo Nacional</title>
     <style>
-        /* Paleta de Colores: Primario Azul (#2196F3), Secundario Verde (#4CAF50) */
-        
+        /* Paleta de Colores Principal: Azul (#2196F3) y Blanco */
+
         /* ESTILOS BASE Y CONTENEDOR */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f8f9fa; /* Fondo gris muy claro */
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-start; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding-top: 60px; 
-            color: #212529; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8ff; /* Azul pastel */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding-top: 60px;
+            color: #212529;
         }
         .main-content {
             width: 100%;
-            max-width: 1200px; /* Aumentado ligeramente para mejor visualización */
+            max-width: 1200px;
             background-color: #ffffff;
-            padding: 40px; 
+            padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1); 
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
         }
-        
-        /* BOTÓN SALIR */
-        .top-bar { position: absolute; top: 25px; right: 25px; z-index: 10; } 
-        .exit-button { 
-            background-color: #64b5f6;
-            color: #fff; 
-            border: none; 
-            padding: 10px 20px; 
-            border-radius: 6px; 
-            font-size: 15px; 
-            cursor: pointer; 
-            transition: background-color 0.3s ease; 
-            font-weight: 700; 
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); 
-        }
-        .exit-button:hover { background-color: #42a5f5; }
 
-        /* --- ENCABEZADO CON LOGO A LA IZQUIERDA Y CENTRADO --- */
-        .header-area { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            margin-bottom: 30px; 
-            padding-bottom: 15px;
-            border-bottom: 3px solid #2196F3;
+        /* BOTÓN SALIR */
+        .top-bar { position: absolute; top: 25px; right: 25px; z-index: 10; }
+        .exit-button {
+            background-color: #f44336;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 700;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        .logo { 
-            max-width: 90px; 
-            height: auto; 
-            margin-right: 25px; 
-            margin-left: -50px; 
-            margin-bottom: 0; 
+        .exit-button:hover { background-color: #d32f2f; }
+
+        /* --- ENCABEZADO --- */
+        .header-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
         }
         .header-text {
-            text-align: left;
+            text-align: center;
         }
         .header-text h1 {
             font-size: 30px;
-            color: #2196F3; 
+            color: #2196F3;
             margin: 0 0 8px 0;
             padding-bottom: 0;
-            display: block;
         }
-        .header-text p { 
-            font-size: 16px; 
-            color: #6c757d; 
-            margin: 0; 
-            white-space: nowrap; 
+        .header-text p {
+            font-size: 16px;
+            color: #6c757d;
+            margin: 0;
+            white-space: nowrap;
         }
-        /* -------------------------------------------------------------------------- */
-        
-        #reportContainer h2 { margin-bottom: 15px; font-size: 24px; color: #2196F3; text-align: center;} 
 
-        /* CONTROLES DE FILTRO */
+        /* --- CONTROLES DE FILTRO (CAJÓN AZUL CLARO) --- */
         .filter-controls {
-            display: flex; 
-            justify-content: center; 
-            align-items: flex-end;
-            gap: 25px; 
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
             padding: 20px;
-            background-color: #e3f2fd; 
+            background-color: #e3f2fd; /* Azul claro para el fondo del filtro */
             border-radius: 8px;
-            margin: 0 auto 30px auto; 
-            max-width: 800px; 
-            border: 1px solid #bbde
+            margin: 0 auto 30px auto;
+            max-width: 1000px;
+            border: 1px solid #bbdefb;
         }
         .form-group {
             display: flex;
             flex-direction: column;
         }
         .form-group label { margin-bottom: 8px; font-weight: 600; color: #343a40; font-size: 15px; }
-        .form-group select { 
-            padding: 12px; 
-            border: 1px solid #ced4da; 
-            border-radius: 6px; 
-            transition: border-color 0.3s, box-shadow 0.3s;
+        .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
             background-color: #fff;
             min-width: 150px;
         }
         .form-group select:focus { border-color: #2196F3; outline: none; box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25); }
-        
-        .load-button-group {
-            align-self: flex-end;
-        }
 
+        /* Botón Generar Reporte */
         .load-button {
-            background-color: #2196F3; 
+            background-color: #2196F3;
             color: #fff;
-            padding: 12px 25px; 
+            padding: 10px 25px;
             border-radius: 6px;
             font-size: 17px;
             font-weight: 700;
             letter-spacing: 0.5px;
-            box-shadow: 0 2px 5px rgba(33, 150, 243, 0.3); 
+            box-shadow: 0 2px 5px rgba(33, 150, 243, 0.3);
             border: none;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
         .load-button:hover { background-color: #1976D2; }
+
+        /* --- SELECCIÓN DE TIPO DE REPORTE (Total/Materia) --- */
+        .report-type-selection {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .report-type-btn-group {
+            display: inline-flex;
+            border: 1px solid #2196F3;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .report-type-btn {
+            background-color: #fff;
+            color: #2196F3;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+        .report-type-btn:hover:not(.active) {
+            background-color: #e3f2fd;
+        }
+        .report-type-btn.active {
+            background-color: #2196F3;
+            color: #fff;
+        }
+
+        /* Contenedor de filtros de materia */
+        #materiaFilterGroup {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+        .hidden {
+            display: none !important;
+        }
+        /* -------------------------------------------------------------------------- */
 
         /* TABLA DE REPORTE */
         #reportContainer { margin-top: 20px; display: none; }
         .table-responsive { overflow-x: auto; }
-        .report-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 15px; 
-            border: 1px solid #e0e0e0; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); 
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            min-width: 1000px;
         }
-        .report-table th, .report-table td { 
-            padding: 14px 5px; 
-            border: 1px solid #e0e0e0; 
-            font-size: 15px; 
+        .report-table th, .report-table td {
+            padding: 12px 8px;
+            border: 1px solid #e0e0e0;
+            font-size: 14px;
             text-align: center;
             white-space: nowrap;
         }
+        .report-table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+
+        /* --- UNIFORMIDAD DE COLOR Y TAMAÑO EN ENCABEZADOS DE TABLA --- */
         
-        /* Colores de Encabezados */
-        .report-table th { background-color: #343a40; color: #f8f9fa; font-weight: bold; } 
-        .lapso-header { background-color: #78909c !important; color: #fff; } 
-        .main-header { background-color: #2196F3 !important; color: #fff; } 
-        
-        /* --- ESPACIO EN COLUMNAS DE ASISTENCIA/FALTAS Y PORCENTAJE --- */
-        .report-table th:nth-child(1) { width: 5%; } /* # */
-        .report-table th.name-col { width: 25%; text-align: left; padding-left: 15px; } /* Nombre del Estudiante */
-        
-        /* Columnas de Asistencia y Faltas (Lapsos) */
-        .report-table thead th:nth-child(3), .report-table thead th:nth-child(4), 
-        .report-table thead th:nth-child(5), .report-table thead th:nth-child(6), 
-        .report-table thead th:nth-child(7), .report-table thead th:nth-child(8) { 
-            width: 7%; 
+        /* Fila 1 de encabezados (Nombre, Lapsos, Acumulado) */
+        .report-table.total-report thead tr:first-child th {
+            background-color: #2196F3; /* Azul primario uniforme */
+            color: #fff;
+            font-weight: bold;
         }
-        
-        /* Columnas de Acumulado Total */
-        .report-table thead th:nth-child(9), 
-        .report-table thead th:nth-child(10) { 
-             width: 8%; 
+        /* Fila 2 de encabezados (Asistencias, Faltas, Total Clases) */
+        .report-table.total-report thead tr:nth-child(2) th {
+            background-color: #64b5f6; /* Azul más claro uniforme para la sub-fila */
+            color: #fff;
+            font-weight: bold;
         }
 
-        /* Columna de Porcentaje Final */
-        .report-table thead th:nth-child(11) {
-             width: 10%; 
+        /* Ajuste de ancho de columnas para palabras completas y uniformidad */
+        .report-table.total-report th:nth-child(3), .report-table.total-report th:nth-child(4),
+        .report-table.total-report th:nth-child(5), .report-table.total-report th:nth-child(6),
+        .report-table.total-report th:nth-child(7), .report-table.total-report th:nth-child(8) {
+            /* Asegura que Asistencias y Faltas en los lapsos tengan el mismo ancho */
+            min-width: 85px; /* Ligeramente más grande para que quepa "Asistencias" */
         }
-        
+        /* Fin de Ajustes de Uniformidad */
+
+
+        /* Colores de Encabezados (Materia Reporte) - Mantenidos en azul para uniformidad */
+        .report-table.materia-report th { background-color: #2196F3; color: #fff; font-weight: bold; }
+        .report-table.materia-report th:first-child, .report-table.materia-report th:nth-child(2) {
+            background-color: #1976D2;
+        }
+
+        .report-table th.name-col { text-align: left; padding-left: 15px; }
+
         .no-data-row {
             text-align: center;
             color: #f44336;
             font-style: italic;
             padding: 20px;
+            background-color: #ffebee !important;
         }
 
         /* Estilos para celdas de datos */
-        .high { color: #4CAF50; font-weight: bold; } /* Verde para alto rendimiento (>90%) */
-        .medium { color: #FFC107; font-weight: bold; } /* Amarillo para medio (>=75%) */
-        .low { color: #F44336; font-weight: bold; } /* Rojo para bajo (<75%) */
-
+        .high { color: #4CAF50; font-weight: bold; }
+        .medium { color: #FF9800; font-weight: bold; }
+        .low { color: #F44336; font-weight: bold; }
     </style>
 </head>
 <body>
-    
+
     <div class="top-bar">
         <button type="button" id="exitBtn" class="exit-button">SALIR</button>
     </div>
 
     <div class="main-content">
-        
+
         <div class="header-area">
-            <img src="../src/assets/images/romulo.png" alt="Escudo o Logo del Liceo Nacional" class="logo">
             <div class="header-text">
                 <h1>Reporte Acumulado de Asistencia</h1>
                 <p>Resumen de asistencia por lapsos y porcentaje final.</p>
             </div>
         </div>
-        
+
         <form class="filter-controls" id="filterForm">
-            <div class="form-group">
-                <label for="grade">Año (1-5):</label>
-                <select id="grade" required>
-                    <option value="" disabled selected>Seleccione el Año</option>
-                    <option value="1">1er Año</option>
-                    <option value="2">2do Año</option>
-                    <option value="3">3er Año</option>
-                    <option value="4">4to Año</option>
-                    <option value="5">5to Año</option>
-                </select>
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group">
+                    <label for="grade">Año (1-5):</label>
+                    <select id="grade" required>
+                        <option value="" disabled selected>Seleccione el Año</option>
+                        <option value="1">1er Año</option>
+                        <option value="2">2do Año</option>
+                        <option value="3">3er Año</option>
+                        <option value="4">4to Año</option>
+                        <option value="5">5to Año</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="section">Sección (A-D):</label>
+                    <select id="section" required>
+                        <option value="" disabled selected>Seleccione Sección</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
             </div>
-            
-            <div class="form-group">
-                <label for="section">Sección (A-D):</label>
-                <select id="section" required>
-                    <option value="" disabled selected>Seleccione Sección</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option> 
-                    <option value="D">D</option>
-                </select>
+
+            <div class="report-type-selection">
+                <div class="report-type-btn-group">
+                    <button type="button" id="btnTotal" class="report-type-btn active">Total Asistencia Estudiante</button>
+                    <button type="button" id="btnMateria" class="report-type-btn">Asistencia por Materia</button>
+                </div>
             </div>
-            
+
+            <div id="materiaFilterGroup" class="filter-controls hidden" style="width: 100%; border: none; background-color: transparent; margin: 0; padding: 0; justify-content: center;">
+                <div class="form-group">
+                    <label for="materiaSelect">Materia:</label>
+                    <select id="materiaSelect">
+                        <option value="castellano">Castellano</option>
+                        <option value="ingles">Inglés</option>
+                        <option value="matematica">Matemática</option>
+                        <option value="quimica">Química</option>
+                        <option value="fisica">Física</option>
+                        <option value="arte">Arte y Patrimonio</option>
+                        <option value="geografia">Geografía e Historia</option>
+                        <option value="biologia">Biología</option>
+                        <option value="educacion-fisica">Educación Física</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="periodoSelect">Período:</label>
+                    <select id="periodoSelect">
+                        <option value="1">1er Lapso</option>
+                        <option value="2">2do Lapso</option>
+                        <option value="3">3er Lapso</option>
+                        <option value="total">Acumulado Total</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="load-button-group">
                 <button type="button" id="generateReportBtn" class="load-button">
                     Generar Reporte
@@ -235,42 +306,61 @@
 
         <div id="reportContainer">
             <h2 style="font-size: 22px; color: #2196F3;">
-                Resumen de Asistencia: <span id="reportTitle"></span>
+                <span id="reportTitle">Resumen de Asistencia General</span>
             </h2>
-            
-            <div class="table-responsive">
-                <table class="report-table">
+
+            <div id="totalReportWrapper" class="table-responsive">
+                <table class="report-table total-report">
                     <thead>
                         <tr>
                             <th rowspan="2" style="width: 5%;">#</th>
                             <th rowspan="2" class="name-col">Nombre del Estudiante</th>
-                            
-                            <th colspan="2" class="lapso-header">1er Lapso</th>
-                            <th colspan="2" class="lapso-header">2do Lapso</th>
-                            <th colspan="2" class="lapso-header">3er Lapso</th>
-                            
-                            <th colspan="2" class="main-header">Acumulado Total</th>
-                            <th rowspan="2" class="main-header">Porcentaje Final (%)</th>
+
+                            <th colspan="2">1er Lapso</th>
+                            <th colspan="2">2do Lapso</th>
+                            <th colspan="2">3er Lapso</th>
+
+                            <th colspan="2">Acumulado Total</th>
+                            <th rowspan="2">Porcentaje Final (%)</th>
                         </tr>
                         <tr>
-                            <th class="lapso-header">Asist.</th>
-                            <th class="lapso-header">Faltas</th>
-                            <th class="lapso-header">Asist.</th>
-                            <th class="lapso-header">Faltas</th>
-                            <th class="lapso-header">Asist.</th>
-                            <th class="lapso-header">Faltas</th>
+                            <th>Asistencias</th>
+                            <th>Faltas</th>
+                            <th>Asistencias</th>
+                            <th>Faltas</th>
+                            <th>Asistencias</th>
+                            <th>Faltas</th>
 
-                            <th class="main-header">Total Clases</th>
-                            <th class="main-header">Total Asist.</th>
+                            <th>Total Clases</th>
+                            <th>Total Asistencias</th>
                         </tr>
                     </thead>
-                    <tbody id="reportTableBody">
+                    <tbody id="totalReportTableBody">
                         <tr><td colspan="11" class="no-data-row">Seleccione un año y sección y haga click en "Generar Reporte".</td></tr>
                     </tbody>
                 </table>
             </div>
+
+            <div id="materiaReportWrapper" class="table-responsive hidden">
+                <table class="report-table materia-report">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th class="name-col">Nombre del Estudiante</th>
+                            <th>Total Clases</th>
+                            <th>Asistencias</th>
+                            <th>Faltas</th>
+                            <th>Porcentaje Asistencia (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materiaReportTableBody">
+                        <tr><td colspan="6" class="no-data-row">Seleccione una materia y un período y haga click en "Generar Reporte".</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
         </div>
-        
+
     </div>
 
     <script>
@@ -279,50 +369,78 @@
             const sectionSelect = document.getElementById('section');
             const generateReportBtn = document.getElementById('generateReportBtn');
             const reportContainer = document.getElementById('reportContainer');
-            const reportTableBody = document.getElementById('reportTableBody');
             const reportTitle = document.getElementById('reportTitle');
             const exitBtn = document.getElementById('exitBtn');
 
-            // --- Lógica de color de porcentaje (Mantenida para el front-end) ---
+            const btnTotal = document.getElementById('btnTotal');
+            const btnMateria = document.getElementById('btnMateria');
+            const materiaFilterGroup = document.getElementById('materiaFilterGroup');
+            const materiaSelect = document.getElementById('materiaSelect');
+            const periodoSelect = document.getElementById('periodoSelect');
+            const totalReportWrapper = document.getElementById('totalReportWrapper');
+            const materiaReportWrapper = document.getElementById('materiaReportWrapper');
+            const totalReportTableBody = document.getElementById('totalReportTableBody');
+            const materiaReportTableBody = document.getElementById('materiaReportTableBody');
+            let currentReportMode = 'total';
+
             function calculatePercentageColor(percentage) {
-                if (percentage >= 90) return 'high'; 
-                if (percentage >= 75) return 'medium'; 
-                return 'low'; 
+                if (percentage >= 90) return 'high';
+                if (percentage >= 75) return 'medium';
+                return 'low';
             }
-            
-            // --- SIMULACIÓN DE DATOS (Muestra la tabla de ejemplo al seleccionar 2do B) ---
-            function getSimulatedReportData(grade, section) {
-                if (grade === '2' && section === 'B') {
-                    // Datos de ejemplo detallados para 2do B
+
+            function setReportMode(mode) {
+                currentReportMode = mode;
+
+                if (mode === 'total') {
+                    btnTotal.classList.add('active');
+                    btnMateria.classList.remove('active');
+                } else {
+                    btnTotal.classList.remove('active');
+                    btnMateria.classList.add('active');
+                }
+
+                materiaFilterGroup.classList.toggle('hidden', mode === 'total');
+                totalReportWrapper.classList.toggle('hidden', mode !== 'total');
+                materiaReportWrapper.classList.toggle('hidden', mode !== 'materia');
+
+                reportContainer.style.display = 'none';
+            }
+
+            btnTotal.addEventListener('click', () => setReportMode('total'));
+            btnMateria.addEventListener('click', () => setReportMode('materia'));
+
+            // --- SIMULACIÓN DE DATOS (Mantenida) ---
+            function getSimulatedReportData(grade, section, mode, materia = null, periodo = null) {
+                if (mode === 'total' && grade === '2' && section === 'B') {
                     return [
                         { id: 1, name: 'Estudiante Pérez Juan', a1: 22, f1: 3, a2: 25, f2: 0, a3: 13, f3: 2, tc: 65, ta: 60, pct: '92.31' },
                         { id: 2, name: 'Estudiante Rodríguez Ana', a1: 18, f1: 7, a2: 20, f2: 5, a3: 10, f3: 5, tc: 65, ta: 48, pct: '73.85' },
                         { id: 3, name: 'Estudiante Soto María', a1: 25, f1: 0, a2: 25, f2: 0, a3: 15, f3: 0, tc: 65, ta: 65, pct: '100.00' },
                     ];
                 }
-                if (grade === '5' && section === 'A') {
-                    // Otro ejemplo de datos para 5to A
-                     return [
-                        { id: 1, name: 'Estudiante López Carlos', a1: 15, f1: 10, a2: 18, f2: 7, a3: 10, f3: 5, tc: 65, ta: 43, pct: '66.15' },
+                if (mode === 'materia' && grade === '2' && section === 'B' && materia === 'ingles' && periodo === '2') {
+                    return [
+                        { id: 1, name: 'Estudiante Pérez Juan', total_clases: 12, asistencias: 11, faltas: 1, pct: '91.67' },
+                        { id: 2, name: 'Estudiante Rodríguez Ana', total_clases: 12, asistencias: 8, faltas: 4, pct: '66.67' },
+                        { id: 3, name: 'Estudiante Soto María', total_clases: 12, asistencias: 12, faltas: 0, pct: '100.00' },
                     ];
                 }
-                return []; 
+
+                return [];
             }
 
-
-            // --- FUNCIÓN PARA RENDERIZAR LA TABLA COMPLETA ---
-            function renderTable(students, grade, section) {
-                 reportTableBody.innerHTML = ''; 
+            // --- FUNCIÓN PARA RENDERIZAR LA TABLA DE REPORTE TOTAL (Mantenida) ---
+            function renderTotalTable(students, grade, section) {
+                totalReportTableBody.innerHTML = '';
 
                 if (students.length === 0) {
-                    reportTableBody.innerHTML = `<tr><td colspan="11" class="no-data-row">No se encontraron datos de asistencia para ${grade}° Año, Sección ${section}.</td></tr>`;
+                    totalReportTableBody.innerHTML = `<tr><td colspan="11" class="no-data-row">No se encontraron datos de asistencia para ${grade}° Año, Sección ${section}.</td></tr>`;
                     return;
                 }
-                
+
                 students.forEach((student, index) => {
-                    const row = reportTableBody.insertRow();
-                    
-                    // Asegurar que el porcentaje tiene dos decimales y el color correcto
+                    const row = totalReportTableBody.insertRow();
                     const percentageValue = parseFloat(student.pct);
                     const percentageDisplay = percentageValue.toFixed(2) + '%';
                     const percentageClass = calculatePercentageColor(percentageValue);
@@ -342,7 +460,37 @@
                     `;
                 });
             }
-            
+
+            // --- FUNCIÓN PARA RENDERIZAR LA TABLA DE REPORTE POR MATERIA (Mantenida) ---
+            function renderMateriaTable(students, materia, periodo) {
+                materiaReportTableBody.innerHTML = '';
+
+                const materiaName = materiaSelect.options[materiaSelect.selectedIndex].textContent;
+                const periodoName = periodoSelect.options[periodoSelect.selectedIndex].textContent;
+
+                if (students.length === 0) {
+                    materiaReportTableBody.innerHTML = `<tr><td colspan="6" class="no-data-row">No se encontraron datos de asistencia para ${materiaName} en ${periodoName}.</td></tr>`;
+                    return;
+                }
+
+                students.forEach((student, index) => {
+                    const row = materiaReportTableBody.insertRow();
+                    const percentageValue = parseFloat(student.pct);
+                    const percentageDisplay = percentageValue.toFixed(2) + '%';
+                    const percentageClass = calculatePercentageColor(percentageValue);
+
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td style="text-align: left; padding-left: 15px;">${student.name}</td>
+                        <td>${student.total_clases}</td>
+                        <td>${student.asistencias}</td>
+                        <td>${student.faltas}</td>
+                        <td><strong class="${percentageClass}">${percentageDisplay}</strong></td>
+                    `;
+                });
+            }
+
+
             // --- LÓGICA PRINCIPAL PARA GENERAR EL REPORTE ---
             generateReportBtn.addEventListener('click', function() {
                 const grade = gradeSelect.value;
@@ -353,25 +501,38 @@
                     reportContainer.style.display = 'none';
                     return;
                 }
-                
-                reportTitle.textContent = `${grade}° Año, Sección ${section}`;
-                reportContainer.style.display = 'block';
-                
-                // 1. Obtener los datos (Simulación)
-                const students = getSimulatedReportData(grade, section);
 
-                // 2. Renderizar la tabla con los datos (o el mensaje de no datos)
-                renderTable(students, grade, section);
+                reportContainer.style.display = 'block';
+
+                let students = [];
+                let titleText = '';
+
+                if (currentReportMode === 'total') {
+                    titleText = `Resumen de Asistencia: ${grade}° Año, Sección ${section}`;
+                    students = getSimulatedReportData(grade, section, 'total');
+                    renderTotalTable(students, grade, section);
+                } else {
+                    const materia = materiaSelect.value;
+                    const periodo = periodoSelect.value;
+                    const materiaName = materiaSelect.options[materiaSelect.selectedIndex].textContent;
+                    const periodoName = periodoSelect.options[periodoSelect.selectedIndex].textContent;
+
+                    titleText = `Reporte de Asistencia: ${materiaName} - ${periodoName} (${grade}° Año, Sección ${section})`;
+                    students = getSimulatedReportData(grade, section, 'materia', materia, periodo);
+                    renderMateriaTable(students, materia, periodo);
+                }
+
+                reportTitle.textContent = titleText;
             });
-            
+
             // --- Botón Salir ---
             exitBtn.addEventListener('click', function(event) {
-                event.preventDefault(); 
-                console.log('Saliendo del Reporte de Asistencia. (Acción simulada)');
+                event.preventDefault();
+                alert('Saliendo del Reporte de Asistencia. (Acción simulada)');
             });
 
-            // Muestra el contenedor inicial vacío para que se vea el placeholder
-            // reportContainer.style.display = 'block'; // Lo dejamos en 'none' para que el usuario tenga que usar el botón primero
+            // Inicializar el modo de reporte al cargar la página
+            setReportMode('total');
         });
     </script>
 </body>
