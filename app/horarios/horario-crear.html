@@ -77,7 +77,7 @@
             margin-right: 5px;
         }
 
-        /* --- Formulario de Año/Sección --- */
+        /* --- Formulario de Año/Sección/Aula --- */
         .year-section-form {
             display: flex;
             gap: 20px;
@@ -85,21 +85,29 @@
             background-color: #e9ecef;
             border-radius: 4px;
             margin-bottom: 30px;
+            flex-wrap: wrap; 
         }
 
         .year-section-form label {
             font-weight: 700;
             color: #007bff;
             margin-right: 5px;
+            align-self: center; 
+        }
+        
+        .form-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .year-section-form select {
             padding: 8px;
             border: 1px solid #ced4da;
             border-radius: 4px;
-            min-width: 100px; /* Asegurar que los selectores se vean bien */
+            min-width: 100px; 
         }
-
+        
         /* --- Tabla de Horarios --- */
         .schedule-table {
             width: 100%;
@@ -119,9 +127,11 @@
             border: 1px solid #ccc;
             padding: 0;
             height: 40px;
+            width: auto;
         }
-
-        .subject-input, .hour-input {
+        
+        /* Estilo para la hora editable */
+        .hour-input {
             width: 100%;
             height: 100%;
             box-sizing: border-box;
@@ -130,45 +140,29 @@
             text-align: center;
             font-size: 0.9em;
             outline: none;
-        }
-
-        /* Estilo para Negrita en las materias */
-        .subject-input {
-            font-weight: bold;
-        }
-
-        .hour-column {
-            width: 100px;
-        }
-        .hour-input {
             background-color: #f9f9f9;
             font-weight: 500;
         }
 
-        /* --- Botón "Agregar Fila" (Horario y Profesor) --- */
-        .btn-add-row {
-            background-color: #28a745; /* Verde */
-            color: white;
+        /* Estilo para los selectores de materia dentro de la tabla */
+        .subject-select {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
             border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 5px 8px; 
+            text-align: center;
+            font-size: 0.9em;
+            outline: none;
             cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            margin-top: 15px;
-            transition: background-color 0.2s;
         }
 
-        .btn-add-row:hover {
-            background-color: #1e7e34;
+        /* CORRECCIÓN: Oculta el botón "Agregar Fila" */
+        #btn-add-row-schedule {
+            display: none; 
         }
 
-        .btn-add-row svg {
-            margin-right: 5px;
-        }
-
-        /* --- Sección de Asignación de Profesores --- */
+        /* --- Sección de Asignación de Profesores (AJUSTADO) --- */
         #assignment-list {
             margin-top: 20px;
             margin-bottom: 15px;
@@ -179,15 +173,36 @@
             gap: 15px;
             align-items: center;
             margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        /* Estilo para la Materia (Fijo) */
+        .assignment-row .materia-display {
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-weight: bold;
+            min-width: 250px; 
+            max-width: 250px; /* Ancho fijo para la materia */
+            text-align: left;
         }
         
+        /* AJUSTE CLAVE: Reducir el ancho del selector de profesor */
         .assignment-row select {
             padding: 10px;
             border: 1px solid #ced4da;
             border-radius: 4px;
             font-size: 1em;
-            flex: 1;
-            max-width: 300px;
+            /* Establecemos un ancho similar al de la materia */
+            min-width: 250px;
+            max-width: 300px; 
+            flex-grow: 1; /* Permite crecer, pero limitado por max-width */
+        }
+        
+        /* Ocultar el botón Agregar Profesor/Materia, ya que la lista es automática */
+        #btn-add-assignment {
+            display: none;
         }
 
         /* --- Pie de Página de Acciones --- */
@@ -219,7 +234,7 @@
         }
 
         .btn-ver-historial {
-            background-color: #6c757d; /* Gris */
+            background-color: #6c757d; 
             color: white;
             border: none;
             padding: 10px 20px;
@@ -235,8 +250,6 @@
         .btn-ver-historial:hover {
             background-color: #5a6268;
         }
-        
-        /* Eliminamos el estilo de .history-file-name ya que se quitó el elemento */
     </style>
 </head>
 <body>
@@ -259,24 +272,34 @@
         <h1>Crear Nuevo Horario Escolar</h1>
 
         <div class="year-section-form">
-            <label for="select-year">Año:</label>
-            <select id="select-year">
-                <option value="1er Año">1er Año</option>
-                <option value="2do Año">2do Año</option>
-                <option value="3er Año" selected>3er Año</option>
-                <option value="4to Año">4to Año</option>
-                <option value="5to Año">5to Año</option>
-            </select>
+            <div class="form-group">
+                <label for="select-year">Año:</label>
+                <select id="select-year">
+                    <option value="1er Año">1er Año</option>
+                    <option value="2do Año">2do Año</option>
+                    <option value="3er Año" selected>3er Año</option>
+                    <option value="4to Año">4to Año</option>
+                    <option value="5to Año">5to Año</option>
+                </select>
+            </div>
             
-            <label for="select-section">Sección:</label>
-            <select id="select-section">
-                <option value="A">A</option>
-                <option value="B">B</option>
-                <option value="C">C</option>
-                <option value="D">D</option>
-                <option value="E">E</option>
-                <option value="Única">Única</option>
-            </select>
+            <div class="form-group">
+                <label for="select-section">Sección:</label>
+                <select id="select-section">
+                    <option value="A" selected>A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                    <option value="Única">Única</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="select-aula">Aula:</label>
+                <select id="select-aula">
+                    </select>
+            </div>
         </div>
 
         <div class="schedule-section">
@@ -292,59 +315,48 @@
                     </tr>
                 </thead>
                 <tbody id="schedule-body">
-                    <tr>
+                    <tr data-block="1">
                         <td><input type="text" value="8:00 - 9:00" class="hour-input"></td>
-                        <td><input type="text" value="uuuikl" class="subject-input"></td>
-                        <td><input type="text" value="iii" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
+                        <td><select class="subject-select" data-day="lunes" data-block="1" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="martes" data-block="1" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="miercoles" data-block="1" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="jueves" data-block="1" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="viernes" data-block="1" onchange="syncAssignments()"></select></td>
                     </tr>
-                    <tr>
+                    <tr data-block="2">
                         <td><input type="text" value="9:00 - 10:00" class="hour-input"></td>
-                        <td><input type="text" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
-                        <td><input type="text" class="subject-input"></td>
+                        <td><select class="subject-select" data-day="lunes" data-block="2" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="martes" data-block="2" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="miercoles" data-block="2" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="jueves" data-block="2" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="viernes" data-block="2" onchange="syncAssignments()"></select></td>
+                    </tr>
+                    <tr data-block="3">
+                        <td><input type="text" value="10:00 - 11:00" class="hour-input"></td>
+                        <td><select class="subject-select" data-day="lunes" data-block="3" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="martes" data-block="3" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="miercoles" data-block="3" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="jueves" data-block="3" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="viernes" data-block="3" onchange="syncAssignments()"></select></td>
+                    </tr>
+                    <tr data-block="4">
+                        <td><input type="text" value="11:00 - 12:00" class="hour-input"></td>
+                        <td><select class="subject-select" data-day="lunes" data-block="4" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="martes" data-block="4" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="miercoles" data-block="4" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="jueves" data-block="4" onchange="syncAssignments()"></select></td>
+                        <td><select class="subject-select" data-day="viernes" data-block="4" onchange="syncAssignments()"></select></td>
                     </tr>
                 </tbody>
             </table>
-
-            <button class="btn-add-row" onclick="addRow()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
-                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
-                </svg>
-                Agregar Fila
-            </button>
-        </div>
+            </div>
 
         <h2 class="section-title">Asignación Profesores</h2>
 
         <div id="assignment-list">
-            <div class="assignment-row">
-                <select class="form-control select-profesor">
-                    <option value="">Seleccionar Profesor...</option>
-                    <option value="prof1">Profesor Juan Pérez</option>
-                    <option value="prof2">Profesora Ana Gómez</option>
-                    </select>
-
-                <select class="form-control select-materia">
-                    <option value="">Seleccionar Materia...</option>
-                    <option value="castellano">Castellano</option>
-                    <option value="ingles">Inglés</option>
-                    <option value="matematica">Matemática</option>
-                    <option value="quimica">Química</option>
-                    <option value="fisica">Física</option>
-                    <option value="arte">Arte y Patrimonio</option>
-                    <option value="geohistoria">Geografía e Historia</option>
-                    <option value="biologia">Biología</option>
-                    <option value="edufisica">Educación Física</option>
-                </select>
-            </div>
         </div>
 
-        <button class="btn-add-row" onclick="addAssignmentRow()">
+        <button class="btn-add-row" id="btn-add-assignment" style="display: none;" onclick="addAssignmentRow()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle-fill" viewBox="0 0 16 16">
                 <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
             </svg>
@@ -353,7 +365,7 @@
 
 
         <div class="actions-footer">
-            <button class="btn-guardar">Guardar Horario</button>
+            <button class="btn-guardar" onclick="collectData()">Guardar Horario</button>
             <div class="history-link-container">
                 <a href="horario-historial.html" class="btn-ver-historial">Ver Historial de Horarios</a>
                 </div>
@@ -362,76 +374,190 @@
     </main>
 
     <script>
-        // Lista de opciones de materia para reusar en nuevas filas
-        const materiaOptions = `
-            <option value="">Seleccionar Materia...</option>
-            <option value="castellano">Castellano</option>
-            <option value="ingles">Inglés</option>
-            <option value="matematica">Matemática</option>
-            <option value="quimica">Química</option>
-            <option value="fisica">Física</option>
-            <option value="arte">Arte y Patrimonio</option>
-            <option value="geohistoria">Geografía e Historia</option>
-            <option value="biologia">Biología</option>
-            <option value="edufisica">Educación Física</option>
-        `;
+        // --- DATA DE REFERENCIA (PROFESORES Y MATERIAS) ---
+        
+        // Lista de opciones de materia
+        const materias = [
+            { value: "", text: "Seleccionar Materia..." },
+            { value: "castellano", text: "Castellano" },
+            { value: "ingles", text: "Inglés" },
+            { value: "matematicas", text: "Matemáticas" },
+            { value: "quimica", text: "Química" },
+            { value: "fisica", text: "Física" },
+            { value: "arte", text: "Arte y Patrimonio" },
+            { value: "biologia", text: "Biología" },
+            { value: "edufisica", text: "Educación Física" },
+            { value: "geohistoria", text: "Geografía e Historia" }
+        ];
 
-        // Lista de opciones de profesor (Debería cargarse desde una base de datos real)
-        const profesorOptions = `
+        // Opciones de profesor para la lista desplegable
+        const profesorOptionsHTML = `
             <option value="">Seleccionar Profesor...</option>
             <option value="prof1">Profesor Juan Pérez</option>
             <option value="prof2">Profesora Ana Gómez</option>
             <option value="prof3">Profesor Carlos Silva</option>
             <option value="prof4">Profesora María Torres</option>
+            <option value="prof5">Profesor Luis Blanco</option>
         `;
+        
+        // Almacenamiento temporal para guardar la asignación actual Profesor -> Materia
+        let currentAssignments = {};
 
-        /**
-         * 1. Añade una nueva fila a la tabla de horarios (Hora y Días).
-         */
-        function addRow() {
-            const tableBody = document.getElementById('schedule-body');
-            const newRow = document.createElement('tr');
-            
-            // 5 columnas para los días (Lunes a Viernes)
-            const daysColumns = '<td><input type="text" class="subject-input"></td>'.repeat(5);
+        // --- FUNCIONES AUXILIARES ---
 
-            newRow.innerHTML = `
-                <td><input type="text" value="[Nueva Hora]" class="hour-input"></td>
-                ${daysColumns}
-            `;
+        function generateMateriaOptions() {
+            let optionsHTML = '';
+            materias.forEach(materia => {
+                optionsHTML += `<option value="${materia.value}">${materia.text}</option>`;
+            });
+            return optionsHTML;
+        }
+        const materiaOptionsHTML = generateMateriaOptions();
 
-            tableBody.appendChild(newRow);
-
-            // Enfocar el input de la hora de la nueva fila 
-            const newHourInput = newRow.querySelector('.hour-input');
-            if (newHourInput) {
-                newHourInput.focus();
-                newHourInput.select(); 
+        function generateAulaOptions() {
+            const aulaSelect = document.getElementById('select-aula');
+            if (aulaSelect) {
+                let optionsHTML = '<option value="">Seleccionar Aula...</option>';
+                for (let i = 1; i <= 25; i++) {
+                    optionsHTML += `<option value="${i}">Aula ${i}</option>`;
+                }
+                aulaSelect.innerHTML = optionsHTML;
+                aulaSelect.value = 25;
             }
         }
 
         /**
-         * 2. Añade una nueva fila de asignación de Profesor/Materia.
+         * Inicializa los SELECTs de la tabla de horarios con las materias
          */
-        function addAssignmentRow() {
+        function initializeScheduleSelects() {
+            const selects = document.querySelectorAll('.schedule-table .subject-select');
+            selects.forEach(select => {
+                select.innerHTML = materiaOptionsHTML;
+            });
+        }
+
+        /**
+         * FUNCION CLAVE: Obtiene las materias únicas seleccionadas en el horario 
+         * y reconstruye la lista de asignación de profesores.
+         */
+        function syncAssignments() {
+            const scheduleSelects = document.querySelectorAll('.subject-select');
             const assignmentList = document.getElementById('assignment-list');
-            const newAssignmentDiv = document.createElement('div');
-            newAssignmentDiv.classList.add('assignment-row');
             
-            newAssignmentDiv.innerHTML = `
-                <select class="form-control select-profesor">
-                    ${profesorOptions}
-                </select>
+            // 1. Obtener materias únicas (excluyendo la opción vacía)
+            const uniqueSubjects = new Set();
+            scheduleSelects.forEach(select => {
+                if (select.value && select.value !== "") {
+                    uniqueSubjects.add(select.value);
+                }
+            });
 
-                <select class="form-control select-materia">
-                    ${materiaOptions}
-                </select>
-            `;
+            // 2. Conservar las asignaciones actuales antes de limpiar
+            const oldAssignments = {...currentAssignments};
+            currentAssignments = {};
 
-            assignmentList.appendChild(newAssignmentDiv);
+            // 3. Reconstruir la lista de Asignación Profesores
+            assignmentList.innerHTML = '';
+
+            uniqueSubjects.forEach(subjectValue => {
+                // Obtener el nombre legible de la materia
+                const subjectData = materias.find(m => m.value === subjectValue);
+                const subjectName = subjectData ? subjectData.text : subjectValue;
+                
+                // Reutilizar la asignación previa si existe, o usar vacío
+                const assignedProf = oldAssignments[subjectValue] || "";
+
+                // Generar la fila de asignación
+                const newAssignmentDiv = document.createElement('div');
+                newAssignmentDiv.classList.add('assignment-row');
+                newAssignmentDiv.setAttribute('data-subject', subjectValue);
+                
+                newAssignmentDiv.innerHTML = `
+                    <div class="materia-display">${subjectName}</div>
+                    <select class="form-control select-profesor" onchange="saveAssignment(this)">
+                        ${profesorOptionsHTML}
+                    </select>
+                `;
+                
+                assignmentList.appendChild(newAssignmentDiv);
+                
+                // 4. Seleccionar el profesor guardado
+                const profSelect = newAssignmentDiv.querySelector('.select-profesor');
+                if (profSelect) {
+                    profSelect.value = assignedProf;
+                    // 5. Guardar la asignación actual
+                    currentAssignments[subjectValue] = assignedProf; 
+                }
+            });
+        }
+
+        /**
+         * Guarda la asignación de profesor en el objeto temporal `currentAssignments`.
+         */
+        function saveAssignment(selectElement) {
+            const row = selectElement.closest('.assignment-row');
+            const subjectValue = row.getAttribute('data-subject');
+            const professorValue = selectElement.value;
+            
+            currentAssignments[subjectValue] = professorValue;
+            console.log("Asignación guardada:", currentAssignments);
         }
         
-        // Se ha quitado la función updateScheduleInfo() y la sección-info en el header
+        /**
+         * Recolecta todos los datos del formulario (para simular el envío)
+         */
+        function collectData() {
+            const horario = [];
+            const scheduleRows = document.querySelectorAll('#schedule-body tr');
+            
+            // Recoger datos de la tabla de horario
+            scheduleRows.forEach((row, blockIndex) => {
+                const hourInput = row.querySelector('.hour-input');
+                const rowData = {
+                    block: blockIndex + 1,
+                    hora: hourInput ? hourInput.value : `Bloque ${blockIndex + 1}`,
+                    dias: {}
+                };
+
+                const selects = row.querySelectorAll('.subject-select');
+                selects.forEach(select => {
+                    const day = select.getAttribute('data-day');
+                    if (select.value && select.value !== "") { // Solo guardar si hay materia seleccionada
+                        rowData.dias[day] = select.value;
+                    }
+                });
+                horario.push(rowData);
+            });
+            
+            const formData = {
+                year: document.getElementById('select-year').value,
+                section: document.getElementById('select-section').value,
+                aula: document.getElementById('select-aula').value,
+                horario: horario,
+                asignacion_profesores: currentAssignments
+            };
+            
+            console.log("--- DATOS LISTOS PARA ENVÍO ---");
+            console.log(JSON.stringify(formData, null, 2));
+            alert('Datos recolectados. Mira la consola (F12) para ver el JSON listo para enviar.');
+
+            return formData;
+        }
+
+        // --- INICIALIZACIÓN ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateAulaOptions();
+            initializeScheduleSelects();
+            syncAssignments(); 
+        });
+        
+        // La función addRow() se elimina/comenta para asegurar que solo existan 4 bloques fijos.
+        /*
+        function addRow() {
+             // ... código no accesible ...
+        }
+        */
     </script>
 </body>
 </html>
