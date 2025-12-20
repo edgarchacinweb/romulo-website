@@ -1,126 +1,133 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestión de Asistencia</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f8ff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            width: 90%; /* Ajuste para móviles */
-            max-width: 450px;
-            padding: 40px;
-            background-color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            text-align: center;
-        }
-        .logo-container {
-            /* Contenedor del logo para asegurar centrado */
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .logo {
-            /* Estilos de la imagen del logo */
-            width: 150px; /* Tamaño que se ve bien */
-            height: auto;
-            margin: 0 auto; /* Centrar la imagen */
-            display: block; 
-        }
-        .container h1 {
-            font-size: 24px;
-            color: #2196F3;
-            margin-bottom: 10px;
-        }
-        .container p {
-            font-size: 16px;
-            color: #6c757d;
-            margin-bottom: 30px;
-        }
-        .buttons-group {
-            /* Usamos display flex para centrar mejor el grupo de botones si fuera necesario */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Asegura el centrado horizontal si los elementos no ocupan 100% */
-        }
-        .action-button {
-            display: block;
-            width: 100%; /* Ocupa todo el ancho disponible del contenedor */
-            max-width: 350px; /* Limita el ancho en pantallas grandes para que no se vea estirado */
-            padding: 15px 20px;
-            margin-bottom: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-            text-decoration: none;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        /* Botón para Registrar Asistencia (Verde Principal) */
-        .register-btn {
-            background-color: #4CAF50; 
-            color: #fff;
-        }
-        .register-btn:hover {
-            background-color: #388E3C;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
-        /* Botón para Reporte de Estudiantes (Azul Principal) */
-        .student-report-btn {
-            background-color: #2196F3;
-            color: #fff;
-        }
-        .student-report-btn:hover {
-            background-color: #1976D2;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
-        /* Botón para Reporte de Docente (Naranja/Amarillo - para diferenciar) */
-        .docente-report-btn {
-            background-color: #FFC107; /* Amarillo Ámbar */
-            color: #333; /* Texto oscuro */
-        }
-        .docente-report-btn:hover {
-            background-color: #FFA000; /* Naranja más oscuro */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f8ff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+      }
+      .container {
+        width: 90%; /* Ajuste para móviles */
+        max-width: 450px;
+        padding: 40px;
+        background-color: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        text-align: center;
+      }
+      .logo-container {
+        /* Contenedor del logo para asegurar centrado */
+        text-align: center;
+        margin-bottom: 25px;
+      }
+      .logo {
+        /* Estilos de la imagen del logo */
+        width: 150px; /* Tamaño que se ve bien */
+        height: auto;
+        margin: 0 auto; /* Centrar la imagen */
+        display: block;
+      }
+      .container h1 {
+        font-size: 24px;
+        color: #2196f3;
+        margin-bottom: 10px;
+      }
+      .container p {
+        font-size: 16px;
+        color: #6c757d;
+        margin-bottom: 30px;
+      }
+      .buttons-group {
+        /* Usamos display flex para centrar mejor el grupo de botones si fuera necesario */
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Asegura el centrado horizontal si los elementos no ocupan 100% */
+      }
+      .action-button {
+        display: block;
+        width: 100%; /* Ocupa todo el ancho disponible del contenedor */
+        max-width: 350px; /* Limita el ancho en pantallas grandes para que no se vea estirado */
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      /* Botón para Registrar Asistencia (Verde Principal) */
+      .register-btn {
+        background-color: #4caf50;
+        color: #fff;
+      }
+      .register-btn:hover {
+        background-color: #388e3c;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      }
+      /* Botón para Reporte de Estudiantes (Azul Principal) */
+      .student-report-btn {
+        background-color: #2196f3;
+        color: #fff;
+      }
+      .student-report-btn:hover {
+        background-color: #1976d2;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      }
+      /* Botón para Reporte de Docente (Naranja/Amarillo - para diferenciar) */
+      .docente-report-btn {
+        background-color: #ffc107; /* Amarillo Ámbar */
+        color: #333; /* Texto oscuro */
+      }
+      .docente-report-btn:hover {
+        background-color: #ffa000; /* Naranja más oscuro */
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="container">
-        <div class="logo-container">
-            <img src="../../assets/images/image_809918.png" alt="Logo del Liceo" class="logo">
-        </div>
+      <div class="logo-container">
+        <img
+          src="../src/assets/images/Liceo.png"
+          alt="Logo del Liceo"
+          class="logo"
+        />
+      </div>
 
-        <h1>Gestión de Asistencia</h1>
-        <p>Seleccione la acción que desea realizar.</p>
-        
-        <div class="buttons-group">
-            <a href="asistencia-registrar.html" class="action-button register-btn">
-                🟢 Registrar Asistencia del Día
-            </a>
-            
-            <a href="asistencia-reporte.html?type=student" class="action-button student-report-btn">
-                📊 Reporte de Estudiantes
-            </a>
+      <h1>Gestión de Asistencia</h1>
+      <p>Seleccione la acción que desea realizar.</p>
 
-            <a href="asistencia-docente.html" class="action-button docente-report-btn">
-                📋 Reporte de Docente
-            </a>
-        </div>
+      <div class="buttons-group">
+        <a href="asistencia-registrar.html" class="action-button register-btn">
+          🟢 Registrar Asistencia del Día
+        </a>
 
+        <a
+          href="asistencia-reporte.html?type=student"
+          class="action-button student-report-btn"
+        >
+          📊 Reporte de Estudiantes
+        </a>
+
+        <a
+          href="asistencia-docente.html"
+          class="action-button docente-report-btn"
+        >
+          📋 Reporte de Docente
+        </a>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>
