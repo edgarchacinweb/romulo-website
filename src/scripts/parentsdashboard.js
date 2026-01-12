@@ -24,36 +24,6 @@ const studentsData = [
     average: 8.5,
     imageColor: "linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)", // Azulado
   },
-  {
-    name: "María González",
-    cedula: "23456789",
-    dob: "22/06/2008",
-    age: 16,
-    grade: "2º Año",
-    section: "B",
-    average: 9.2,
-    imageColor: "linear-gradient(120deg, #fbc2eb 0%, #a6c1ee 100%)", // Rosado/Azul
-  },
-  {
-    name: "Juan Martínez",
-    cedula: "34567890",
-    dob: "08/11/2008",
-    age: 16,
-    grade: "1º Año",
-    section: "C",
-    average: 7.8,
-    imageColor: "linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)", // Verdoso
-  },
-  {
-    name: "Ana López",
-    cedula: "45678901",
-    dob: "19/01/2007",
-    age: 18,
-    grade: "3º Año",
-    section: "A",
-    average: 9.5,
-    imageColor: "linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%)", // Violeta
-  },
 ];
 
 // Función para obtener la clase de color basada en el promedio
