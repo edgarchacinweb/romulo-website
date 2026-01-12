@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Horarios</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/schedulemanager.css" />
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>Control de Estudios</h1>
+          <span>Administración de Horarios Estudiantiles</span>
+        </div>
+      </div>
+      <a href="/app/admin/dashboard/" class="btn btn-outline">
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <polyline points="16 17 21 12 16 7" />
+          <line x1="21" y1="12" x2="9" y2="12" />
+        </svg>
+        Salir
+      </a>
+    </header>
+
+    <main class="container">
+      <section class="card filter-card">
+        <div class="card-header">
+          <div class="icon-title">
+            <svg
+              class="text-blue"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <h2>Filtros de Horario</h2>
+          </div>
+          <p class="card-subtitle">
+            Selecciona el grado, sección y período escolar para cargar el
+            horario correspondiente
+          </p>
+        </div>
+
+        <div class="filter-grid">
+          <div class="form-group">
+            <label>Grado Estudiantil</label>
+            <div class="select-wrapper">
+              <select>
+                <option>Seleccionar grado</option>
+                <option>1er Año</option>
+                <option>2do Año</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Sección</label>
+            <div class="select-wrapper">
+              <select>
+                <option>Seleccionar sección</option>
+                <option>A</option>
+                <option>B</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Período Escolar</label>
+            <div class="select-wrapper">
+              <select>
+                <option>Seleccionar período</option>
+                <option>2025-2026</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group btn-container">
+            <button id="btn-cargar" class="btn btn-primary btn-block">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              Cargar Horario
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <div id="empty-state" class="empty-state">
+        <div class="empty-icon-bg">
+          <svg
+            width="40"
+            height="40"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#64748b"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        </div>
+        <h3>Selecciona un horario para editar</h3>
+        <p>
+          Utiliza los filtros superiores para seleccionar el grado, sección y
+          período escolar del horario que deseas visualizar o modificar.
+        </p>
+      </div>
+
+      <div id="results-container" class="hidden schedule-container">
+        <section class="card">
+          <div class="card-header border-bottom">
+            <div class="icon-title">
+              <svg
+                class="text-blue"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path
+                  d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+                />
+              </svg>
+              <h2>Asignación de Materias</h2>
+            </div>
+            <p class="card-subtitle">
+              Selecciona la materia para cada bloque de horario por día
+            </p>
+          </div>
+
+          <div class="schedule-grid">
+            <div class="grid-head">Bloque</div>
+            <div class="grid-head">Lunes</div>
+            <div class="grid-head">Martes</div>
+            <div class="grid-head">Miércoles</div>
+            <div class="grid-head">Jueves</div>
+            <div class="grid-head">Viernes</div>
+
+            <div class="grid-row-label">
+              <strong>Bloque 1</strong>
+              <span>07:00 - 07:50</span>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Matemáticas</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Física</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Matemáticas</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Química</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Español</option>
+              </select>
+            </div>
+
+            <div class="grid-row-label">
+              <strong>Bloque 2</strong>
+              <span>07:50 - 08:40</span>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Matemáticas</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Física</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Inglés</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Español</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Historia</option>
+              </select>
+            </div>
+
+            <div class="grid-row-label">
+              <strong>Bloque 3</strong>
+              <span>08:40 - 09:30</span>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Español</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Química</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Inglés</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Matemáticas</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Biología</option>
+              </select>
+            </div>
+
+            <div class="grid-row-label">
+              <strong>Receso</strong>
+              <span>09:30 - 10:00</span>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill disabled" disabled>
+                <option>Sin asignar</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill disabled" disabled>
+                <option>Sin asignar</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill disabled" disabled>
+                <option>Sin asignar</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill disabled" disabled>
+                <option>Sin asignar</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill disabled" disabled>
+                <option>Sin asignar</option>
+              </select>
+            </div>
+
+            <div class="grid-row-label">
+              <strong>Bloque 4</strong>
+              <span>10:00 - 10:50</span>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Historia</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Español</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Biología</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Física</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Inglés</option>
+              </select>
+            </div>
+
+            <div class="grid-row-label">
+              <strong>Bloque 5</strong>
+              <span>10:50 - 11:40</span>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Biología</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Geografía</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Historia</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Informática</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill">
+                <option>Matemáticas</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header border-bottom">
+            <div class="icon-title">
+              <svg
+                class="text-blue"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <h2>Asignación de Docentes por Materia</h2>
+            </div>
+            <p class="card-subtitle">
+              Selecciona el docente que impartirá cada materia para esta sección
+            </p>
+          </div>
+
+          <div class="table-list">
+            <div class="table-header">
+              <span>Materia</span>
+              <span>Docente Asignado</span>
+            </div>
+
+            <div class="table-row">
+              <div class="materia-cell">
+                <span class="dot bg-blue"></span> Matemáticas
+              </div>
+              <div class="select-wrapper full-width">
+                <select class="select-gray">
+                  <option>Prof. García López</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="action-footer card">
+          <span class="text-muted">Todos los cambios están guardados</span>
+          <div class="footer-buttons">
+            <button class="btn btn-outline">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Exportar PDF
+            </button>
+            <button class="btn btn-primary">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+              Guardar Cambios
+            </button>
+          </div>
+        </footer>
+      </div>
+    </main>
+
+    <script src="/src/scripts/config.js" type="module"></script>
+    <script src="/src/scripts/schedulemanager.js" type="module"></script>
+  </body>
+</html>
