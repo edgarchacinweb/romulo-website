@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Constancia de Estudios | L.N. Don Rómulo Gallegos</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+
+        :root { --azul-liceo: #007bff; }
+
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+
+
+        /* Interfaz */
+
+        .main-container { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; border-top: 6px solid var(--azul-liceo); }
+
+        .logo-interfaz { width: 80px; margin-bottom: 10px; }
+
+        h1 { font-size: 18px; color: #2c3e50; margin: 10px 0; text-transform: uppercase; }
+
+        
+
+        .form-group { text-align: left; margin-top: 20px; }
+
+        input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; text-align: center; }
+
+        
+
+        .btn-generar { background-color: var(--azul-liceo); color: white; border: none; padding: 15px; border-radius: 6px; width: 100%; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 20px; text-transform: uppercase; }
+
+
+
+        #btn-descargar { display: none; margin-top: 20px; background: #28a745; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; cursor: pointer; }
+
+
+
+        /* ESTILO DEL PDF (Oculto en web, visible en proceso) */
+
+        #contenedor-pdf {
+
+            display: none; /* Se activa vía JS */
+
+            background: white;
+
+            width: 215.9mm;
+
+            padding: 20mm 25mm;
+
+            box-sizing: border-box;
+
+            color: black;
+
+            line-height: 1.8;
+
+        }
+
+
+
+        .membrete { text-align: center; font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; margin-bottom: 30px; }
+
+        .seccion-titulo { text-align: center; margin-bottom: 40px; }
+
+        .logo-doc { width: 80px; margin-bottom: 10px; }
+
+        .titulo-doc { font-family: 'Times New Roman', serif; font-size: 20pt; font-weight: bold; text-decoration: underline; }
+
+        .cuerpo-texto { font-family: 'Times New Roman', serif; font-size: 12pt; text-align: justify; }
+
+        .cuerpo-texto p { text-indent: 40px; margin-bottom: 20px; }
+
+        .firma { margin-top: 80px; text-align: center; font-family: 'Times New Roman', serif; }
+
+    </style>
+
+</head>
+
+<body>
+
+
+
+    <div class="main-container">
+
+        <img src="../src/assets/images/romulo.png" class="logo-interfaz" id="logo_web" onerror="this.src='https://via.placeholder.com/80?text=LOGO'">
+
+        <h1>Constancia de Estudios</h1>
+
+        <div class="form-group">
+
+            <input type="text" id="ci_input" placeholder="Ingresar la cédula del estudiante">
+
+        </div>
+
+        <button class="btn-generar" onclick="previsualizar()">Visualizar Documento</button>
+
+    </div>
+
+
+
+    <button id="btn-descargar" onclick="descargarPDF()">↓ DESCARGAR CONSTANCIA (PDF)</button>
+
+
+
+    <div id="contenedor-pdf">
+
+        <div class="membrete">
+
+            REPÚBLICA BOLIVARIANA DE VENEZUELA<br>
+
+            MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN<br>
+
+            LICEO NACIONAL "DON RÓMULO GALLEGOS"
+
+        </div>
+
+
+
+        <div class="seccion-titulo">
+
+            <img src="../src/assets/images/romulo.png" class="logo-doc" id="logo_pdf" onerror="this.style.display='none'">
+
+            <div class="titulo-doc">Constancia de Estudio</div>
+
+        </div>
+
+
+
+        <div class="cuerpo-texto">
+
+            <p>
+
+                Quien suscribe, la Dirección del <strong>Liceo Nacional "Don Rómulo Gallegos"</strong>, hace constar por medio de la presente que el (la) ciudadano (a): 
+
+                <strong>_________________________</strong>, titular de la Cédula de Identidad Nº 
+
+                <strong id="pdf_ci"></strong>, es estudiante regular de esta institución y actualmente se encuentra cursando el 
+
+                <strong>__________</strong> año de bachillerato.
+
+            </p>
+
+            <p>
+
+                Constancia que se expide a petición de parte interesada en la ciudad de Turmero, a los 
+
+                <span id="fecha_actual"></span>.
+
+            </p>
+
+        </div>
+
+
+
+        <div class="firma">
+
+            <br><br>__________________________<br>
+
+            <strong>Dirección del Plantel</strong>
+
+        </div>
+
+    </div>
+
+
+
+    <script>
+
+        function previsualizar() {
+
+            const ci = document.getElementById('ci_input').value.trim();
+
+            if(!ci) { 
+
+                Swal.fire('Error', 'Ingrese la cédula del estudiante', 'error'); 
+
+                return; 
+
+            }
+
+
+
+            document.getElementById('pdf_ci').innerText = ci;
+
+            const hoy = new Date();
+
+            const opciones = { day: 'numeric', month: 'long', year: 'numeric' };
+
+            document.getElementById('fecha_actual').innerText = hoy.toLocaleDateString('es-ES', opciones);
+
+
+
+            // Importante: Mostrar el contenedor pero fuera del flujo visual si es necesario
+
+            const cont = document.getElementById('contenedor-pdf');
+
+            cont.style.display = 'block';
+
+            document.getElementById('btn-descargar').style.display = 'block';
+
+            
+
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+        }
+
+
+
+        function descargarPDF() {
+
+            const element = document.getElementById('contenedor-pdf');
+
+            const ci = document.getElementById('pdf_ci').innerText;
+
+
+
+            Swal.fire({
+
+                title: 'Generando PDF',
+
+                text: 'Espere un momento...',
+
+                allowOutsideClick: false,
+
+                didOpen: () => {
+
+                    Swal.showLoading();
+
+                    
+
+                    // Pequeño timeout para evitar que el navegador se bloquee al iniciar html2canvas
+
+                    setTimeout(() => {
+
+                        const opciones = {
+
+                            margin: 0,
+
+                            filename: `Constancia_${ci}.pdf`,
+
+                            image: { type: 'jpeg', quality: 0.98 },
+
+                            html2canvas: { 
+
+                                scale: 2, 
+
+                                useCORS: true, 
+
+                                logging: false 
+
+                            },
+
+                            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+
+                        };
+
+
+
+                        html2pdf().set(opciones).from(element).save()
+
+                        .then(() => {
+
+                            Swal.fire('¡Éxito!', 'Descarga completada', 'success');
+
+                        })
+
+                        .catch(err => {
+
+                            Swal.fire('Error', 'Hubo un problema al generar el archivo', 'error');
+
+                            console.error(err);
+
+                        });
+
+                    }, 500);
+
+                }
+
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>

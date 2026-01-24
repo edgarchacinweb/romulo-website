@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario Académico | L.N. Don Rómulo Gallegos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --azul-liceo: #1a2a6c; }
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        /* Interfaz de Usuario (Card) */
+        .ui-card { 
+            background: #fff; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 400px; 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-top: 6px solid var(--azul-liceo); 
+        }
+        .ui-card img { width: 70px; margin-bottom: 10px; }
+        .ui-card h2 { font-size: 14px; color: var(--azul-liceo); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin-bottom: 15px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px; 
+            text-align: center; 
+            font-size: 16px; 
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: var(--azul-liceo); }
+
+        .btn-view { 
+            background: var(--azul-liceo); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            border-radius: 8px; 
+            width: 100%; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-transform: uppercase;
+        }
+
+        /* CONTENEDOR PDF - CONFIGURACIÓN HOJA CARTA */
+        #contenedor-horario { 
+            display: none; 
+            background: white; 
+            width: 215.9mm; 
+            height: 279.4mm; 
+            padding: 10mm 15mm; 
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Membrete del PDF */
+        .header { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 10px; min-height: 85px; }
+        .header img { width: 65px; position: absolute; left: 10px; }
+        .header-text { 
+            text-align: center; 
+            font-family: 'Times New Roman', serif; 
+            font-size: 10pt; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            line-height: 1.2; 
+            width: 85%; 
+        }
+        
+        .doc-title { text-align: center; font-family: 'Times New Roman', serif; font-size: 18pt; font-weight: bold; text-decoration: underline; margin: 10px 0; }
+
+        .info-estudiante { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-family: 'Times New Roman', serif; 
+            font-size: 11.5pt; 
+            margin-bottom: 10px; 
+            border-bottom: 2pt solid black; 
+            padding-bottom: 5px; 
+        }
+
+        /* Tabla Horario Principal */
+        .tabla-horario { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1.5pt solid black; margin-bottom: 15px; }
+        .tabla-horario th, .tabla-horario td { border: 1pt solid black; padding: 4px; text-align: center; font-size: 9pt; height: 32px; }
+        
+        .bg-gris { background-color: #f2f2f2; font-weight: bold; text-transform: uppercase; }
+        .receso { background-color: #f2f2f2; font-weight: bold; font-style: italic; font-size: 8.5pt; height: 22px !important; }
+
+        /* Tabla de Profesores Inferior */
+        .seccion-profesores { width: 100%; display: flex; justify-content: flex-start; margin-top: 5px; }
+        .tabla-profes { width: 65%; border-collapse: collapse; border: 1.2pt solid black; }
+        .tabla-profes th, .tabla-profes td { border: 1pt solid black; padding: 5px 10px; text-align: left; font-size: 9pt; }
+        .tabla-profes th { background-color: #f2f2f2; text-align: center; text-transform: uppercase; }
+
+        #btn-descargar { display: none; margin-top: 10px; background: #28a745; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; cursor: pointer; transition: transform 0.2s; }
+        #btn-descargar:hover { transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+    <div class="ui-card">
+        <img src="../src/assets/images/romulo.png" alt="Logo Liceo" onerror="this.src='https://via.placeholder.com/70?text=LOGO'">
+        <h2>Descarga de Horario</h2>
+        <input type="text" id="input_ci" placeholder="Ingresar Cédula del Estudiante">
+        <button class="btn-view" onclick="mostrarHorario()">Visualizar</button>
+    </div>
+
+    <button id="btn-descargar" onclick="descargarHorarioPDF()">↓ DESCARGAR HORARIO (PDF)</button>
+
+    <div id="contenedor-horario">
+        <div class="header">
+            <img src="../src/assets/images/romulo.png" onerror="this.src='https://via.placeholder.com/65'">
+            <div class="header-text">
+                REPÚBLICA BOLIVARIANA DE VENEZUELA<br>
+                MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN<br>
+                LICEO NACIONAL "DON RÓMULO GALLEGOS"
+            </div>
+        </div>
+
+        <div class="doc-title">Horario de Clases</div>
+
+        <table class="info-estudiante">
+            <tr>
+                <td><strong>Cédula:</strong> <span id="ver_ci"></span></td>
+                <td style="text-align: center;"><strong>Año:</strong> _________</td>
+                <td style="text-align: right;"><strong>Sección:</strong> _________</td>
+            </tr>
+        </table>
+
+        <table class="tabla-horario">
+            <thead>
+                <tr class="bg-gris">
+                    <th style="width: 20%;">HORA</th>
+                    <th>LUNES</th>
+                    <th>MARTES</th>
+                    <th>MIÉRCOLES</th>
+                    <th>JUEVES</th>
+                    <th>VIERNES</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="bg-gris">07:00 - 07:40</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="bg-gris">07:40 - 08:20</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr class="receso"><td colspan="6">RECESO (08:20 - 08:25)</td></tr>
+                <tr><td class="bg-gris">08:25 - 09:05</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="bg-gris">09:05 - 09:45</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr class="receso"><td colspan="6">RECESO (09:45 - 10:00)</td></tr>
+                <tr><td class="bg-gris">10:00 - 10:40</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="bg-gris">10:40 - 11:20</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr class="receso"><td colspan="6">RECESO (11:20 - 11:25)</td></tr>
+                <tr><td class="bg-gris">11:25 - 12:05</td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="bg-gris">12:05 - 12:45</td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+
+        <div class="seccion-profesores">
+            <table class="tabla-profes">
+                <thead>
+                    <tr>
+                        <th style="width: 45%;">Asignatura</th>
+                        <th>Profesor(a)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>CASTELLANO</td><td></td></tr>
+                    <tr><td>INGLÉS</td><td></td></tr>
+                    <tr><td>MATEMÁTICA</td><td></td></tr>
+                    <tr><td>EDUCACIÓN FÍSICA</td><td></td></tr>
+                    <tr><td>CIENCIAS NATURALES</td><td></td></tr>
+                    <tr><td>G.H.C</td><td></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function mostrarHorario() {
+            const ci = document.getElementById('input_ci').value.trim();
+            if(!ci) { 
+                Swal.fire('Atención', 'Por favor, ingrese la cédula', 'warning'); 
+                return; 
+            }
+            document.getElementById('ver_ci').innerText = ci;
+            document.getElementById('contenedor-horario').style.display = 'block';
+            document.getElementById('btn-descargar').style.display = 'block';
+            
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        async function descargarHorarioPDF() {
+            const element = document.getElementById('contenedor-horario');
+            const ci = document.getElementById('ver_ci').innerText;
+
+            const opciones = {
+                margin: 0,
+                filename: `Horario_Escolar_${ci}.pdf`,
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            };
+
+            Swal.fire({ title: 'Generando PDF...', didOpen: () => Swal.showLoading() });
+
+            html2pdf().set(opciones).from(element).toPdf().get('pdf').then(function (pdf) {
+                if (pdf.internal.getNumberOfPages() > 1) { 
+                    pdf.deletePage(2); 
+                }
+            }).save().then(() => {
+                Swal.fire('¡Éxito!', 'Horario descargado correctamente.', 'success');
+            });
+        }
+    </script>
+</body>
+</html>

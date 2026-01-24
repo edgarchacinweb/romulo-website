@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Boletines | L.N. Don Rómulo Gallegos</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root { --azul-liceo: #1a2a6c; }
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .ui-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; border-top: 6px solid var(--azul-liceo); }
+        .ui-logo { max-width: 80px; margin-bottom: 15px; }
+        h2 { color: var(--azul-liceo); font-size: 16px; margin-bottom: 20px; text-transform: uppercase; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; text-align: center; }
+        .btn-view { background: var(--azul-liceo); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; font-size: 14px; text-transform: uppercase; }
+
+        #contenedor-boletin { 
+            display: none; 
+            background: white; 
+            width: 215.9mm; 
+            min-height: 279.4mm;
+            padding: 15mm; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            margin-top: 20px;
+        }
+
+        .header { display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 20px; }
+        .header img { width: 70px; position: absolute; left: 0; }
+        .header-text { text-align: center; font-family: 'Times New Roman', serif; font-size: 11pt; font-weight: bold; text-transform: uppercase; line-height: 1.2; }
+        
+        .doc-title { text-align: center; font-family: 'Times New Roman', serif; font-size: 16pt; font-weight: bold; text-decoration: underline; margin: 25px 0; }
+
+        .info-estudiante { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', serif; font-size: 12pt; margin-bottom: 15px; }
+        .info-estudiante td { padding: 5px 0; }
+
+        .tabla-notas { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1.5pt solid black; }
+        .tabla-notas th, .tabla-notas td { border: 1pt solid black; padding: 6px 2px; text-align: center; font-size: 9pt; font-family: Arial, sans-serif; }
+        .materia { width: 35%; text-align: left !important; padding-left: 8px !important; font-weight: bold; }
+        .col-n { width: 8%; }
+        .col-def { width: 12%; font-weight: bold; }
+        .col-ina { width: 13%; font-size: 8pt !important; font-weight: bold; }
+
+        .bg-gris { background-color: #f2f2f2; font-weight: bold; }
+
+        .footer-tabla { width: 320px; border-collapse: collapse; margin-top: 30px; border: 1.5pt solid black; }
+        .footer-tabla td { border: 1pt solid black; padding: 6px; font-size: 10pt; }
+
+        #btn-descargar { display: none; margin-top: 20px; background: #28a745; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="ui-card">
+        <img src="../src/assets/images/romulo.png" class="ui-logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/80';">
+        <h2>PORTAL DE DESCARGA DE BOLETINES</h2>
+        <input type="text" id="input_ci" placeholder="Cédula del Alumno">
+        <button class="btn-view" onclick="mostrarBoletin()">Visualizar Boletín</button>
+    </div>
+
+    <button id="btn-descargar" onclick="descargarPDF()">↓ DESCARGAR ESTE BOLETÍN (PDF)</button>
+
+    <div id="contenedor-boletin">
+        <div class="header">
+            <img src="../src/assets/images/romulo.png" onerror="this.onerror=null; this.src='https://via.placeholder.com/70';">
+            <div class="header-text">
+                REPÚBLICA BOLIVARIANA DE VENEZUELA<br>
+                MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN<br>
+                LICEO NACIONAL "DON RÓMULO GALLEGOS"
+            </div>
+        </div>
+
+        <div class="doc-title">Boletín Informativo de la Actuación del Alumno</div>
+
+        <table class="info-estudiante">
+            <tr>
+                <td colspan="2"><strong>Alumno(a):</strong> ____________________________________________</td>
+                <td style="text-align: right;"><strong>Año:</strong> _________</td>
+            </tr>
+            <tr>
+                <td style="width: 250px;"><strong>C.I. o Escolar:</strong> <span id="ver_ci"></span></td>
+                <td></td>
+                <td style="text-align: right;"><strong>Sección:</strong> _________</td>
+            </tr>
+        </table>
+
+        <table class="tabla-notas">
+            <thead>
+                <tr class="bg-gris">
+                    <th rowspan="2" class="materia">Asignaturas</th>
+                    <th colspan="2">1er Lapso</th>
+                    <th colspan="2">2do Lapso</th>
+                    <th colspan="2">3er Lapso</th>
+                    <th rowspan="2" class="col-def">Calificación Definitiva</th>
+                    <th rowspan="2" class="col-ina">Inasistencias Acumuladas</th>
+                </tr>
+                <tr class="bg-gris">
+                    <th class="col-n">Nota</th><th class="col-n">Inast.</th>
+                    <th class="col-n">Nota</th><th class="col-n">Inast.</th>
+                    <th class="col-n">Nota</th><th class="col-n">Inast.</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td class="materia">CASTELLANO</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">INGLÉS</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">MATEMÁTICA</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">EDUCACIÓN FÍSICA</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">ARTE Y PATRIMONIO</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">CIENCIAS NATURALES</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">GEOGRAFÍA HISTORIA Y CIUDADANÍA</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">ORIENTACIÓN Y CONVIVENCIA</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td class="materia">PARTICIP. EN GRUPOS DE CREACIÓN</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            </tbody>
+        </table>
+
+        <table class="footer-tabla">
+            <tr class="bg-gris"><th colspan="2">Promedios en el Lapso</th></tr>
+            <tr><td style="width: 50%;"><strong>Alumno:</strong></td><td><strong>Sección:</strong></td></tr>
+            <tr style="height: 30px;"><td></td><td></td></tr>
+            <tr><td colspan="2"><strong>Posición en el curso:</strong></td></tr>
+            <tr style="height: 30px;"><td colspan="2"></td></tr>
+        </table>
+    </div>
+
+    <script>
+        function mostrarBoletin() {
+            const ci = document.getElementById('input_ci').value.trim();
+            if(!ci) { 
+                Swal.fire('Atención', 'Por favor, ingresa el número de cédula', 'warning'); 
+                return; 
+            }
+
+            document.getElementById('ver_ci').innerText = ci;
+            document.getElementById('contenedor-boletin').style.display = 'block';
+            document.getElementById('btn-descargar').style.display = 'block';
+            
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        async function descargarPDF() {
+            const element = document.getElementById('contenedor-boletin');
+            const ci = document.getElementById('ver_ci').innerText;
+
+            const opciones = {
+                margin: 5, // Un pequeño margen ayuda a evitar cortes de borde
+                filename: `Boletin_${ci}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, // Bajado a 2 para evitar que se pegue
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true
+                },
+                jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
+            };
+
+            Swal.fire({
+                title: 'Generando PDF',
+                text: 'Esto puede tardar unos segundos...',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                // Pequeña pausa para asegurar que el DOM esté listo
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await html2pdf().set(opciones).from(element).save();
+                
+                Swal.fire('¡Éxito!', 'El boletín se ha descargado.', 'success');
+            } catch (err) {
+                console.error("Error PDF:", err);
+                Swal.fire('Error', 'Hubo un problema al generar el PDF. Verifica tu conexión.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
