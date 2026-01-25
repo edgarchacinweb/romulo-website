@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -155,6 +155,19 @@
                 />
               </div>
 
+              <div class="form-group">
+                <label for="grado">Género *</label>
+                <div class="select-wrapper">
+                  <select id="genero" required>
+                    <option value="" disabled selected>
+                      Seleccione el Género
+                    </option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                  </select>
+                </div>
+              </div>
+
               <div class="form-group full-width checkbox-wrapper">
                 <input type="checkbox" id="hasId" checked />
                 <label for="hasId"
@@ -164,7 +177,7 @@
 
               <div class="form-group full-width" id="idContainer">
                 <label for="cedula">Cédula de Identidad</label>
-                <input type="text" id="cedula" placeholder="V-12345678" />
+                <input type="number" id="cedula" placeholder="12345678" />
               </div>
 
               <div class="form-group">
@@ -246,8 +259,8 @@
                   </p>
 
                   <div class="docs-grid">
-                    <div class="doc-upload">
-                      <label>Partida de Nacimiento *</label>
+                    <div class="doc-upload" id="IdDoc">
+                      <label>Cédula de Identidad *</label>
                       <div
                         class="upload-zone small"
                         onclick="document.getElementById('doc1').click()"
@@ -272,14 +285,40 @@
                         </div>
                       </div>
                     </div>
-
                     <div class="doc-upload">
-                      <label>Notas Certificadas (Año Anterior) *</label>
+                      <label>Partida de Nacimiento *</label>
                       <div
                         class="upload-zone small"
                         onclick="document.getElementById('doc2').click()"
                       >
                         <input type="file" id="doc2" accept=".pdf" hidden />
+                        <div class="upload-content">
+                          <svg
+                            class="upload-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                          <span>Haga clic para cargar</span>
+                          <small>PDF (máx. 10MB)</small>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="doc-upload">
+                      <label>Notas Certificadas *</label>
+                      <div
+                        class="upload-zone small"
+                        onclick="document.getElementById('doc3').click()"
+                      >
+                        <input type="file" id="doc3" accept=".pdf" hidden />
                         <div class="upload-content">
                           <svg
                             class="upload-icon"
@@ -306,8 +345,10 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-submit">
+            <button type="button" class="btn-cancel" id="BtnCancel">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-submit" id="BtnSubmit">
               Registrar Estudiante
             </button>
           </div>

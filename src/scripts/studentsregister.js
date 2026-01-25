@@ -2,10 +2,28 @@ import authorize from "./auth.js";
 
 authorize("representante");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const token = localStorage.getItem("auth") || "";
+  const parentDataResponse = await fetch(
+    `${window.APP_CONFIG.api_url}/people/get`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  console.log(await parentDataResponse.json());
+
   // --- Lógica de Checkbox: Cédula de Identidad ---
   const hasIdCheckbox = document.getElementById("hasId");
   const idInput = document.getElementById("cedula");
+  const idFormDoc = document.getElementById("IdDoc");
+  const btnSubmit = document.getElementById("BtnSubmit");
+  const btnCancel = document.getElementById("BtnCancel");
+  const inscriptionForm = document.getElementById("inscriptionForm");
 
   // Estado inicial
   toggleInputState(idInput, !hasIdCheckbox.checked);
@@ -15,9 +33,19 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleInputState(idInput, !e.target.checked);
     if (e.target.checked) {
       idInput.focus();
+      idFormDoc.style.display = "block";
     } else {
       idInput.value = ""; // Limpiar si se desactiva
+      idFormDoc.style.display = "none";
     }
+  });
+
+  // Registrar nuevo estudiante
+  btnSubmit.addEventListener("click", () => {});
+
+  btnCancel.addEventListener("click", () => {
+    alert("adaas");
+    inscriptionForm.reset();
   });
 
   // --- Lógica de Checkbox: Misma Dirección ---
