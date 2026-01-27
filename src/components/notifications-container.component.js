@@ -37,5 +37,5 @@ class NotificationContainerComponent extends HTMLElement {
 
 customElements.define(
   "notifications-container",
-  NotificationContainerComponent
+  NotificationContainerComponent,
 );

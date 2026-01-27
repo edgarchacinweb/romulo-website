@@ -25,6 +25,7 @@
 }
 
 body {
+  position: relative;
   font-family: var(--font-family);
   background-color: var(--bg-main);
   color: var(--text-dark);
@@ -266,10 +267,25 @@ body {
   min-height: 80px;
 }
 
+.form-phone {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+select {
+  color: #333333 !important;
+  height: 47px;
+}
+
+.phone {
+  flex: 1;
+}
+
 .help-text {
   font-size: 0.75rem;
   color: var(--text-gray);
-  margin-top: 0.5rem;
+  margin: 0.5rem 0;
 }
 
 /* Área de Subida de Foto */
