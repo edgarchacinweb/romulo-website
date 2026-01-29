@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reseña Histórica - Liceo Don Rómulo Gallegos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body, html { 
+            height: 100%; 
+            width: 100%; 
+            background: transparent; 
+            color: white;
+            overflow: hidden; 
+        }
+
+        /* IMAGEN DE FONDO DIFUMINADA */
+        .full-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: url('../../src/assets/images/romu.png') no-repeat center center;
+            background-size: cover;
+            filter: blur(15px) brightness(0.85); 
+            transform: scale(1.1); 
+            z-index: -1;
+        }
+
+        header {
+            padding: 20px 50px;
+            background: transparent;
+        }
+
+        .logo-nav { height: 60px; }
+
+        .scroll-wrapper {
+            height: calc(100vh - 100px);
+            overflow-y: auto;
+            padding: 20px 10%;
+        }
+
+        .content-area {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* AZUL CLARO CON EFECTO DE SOMBREADO/GLOW */
+        h1 { 
+            color: #82aaff; 
+            font-size: 3rem; 
+            margin-bottom: 30px; 
+            font-weight: 800;
+            text-shadow: 0 0 12px rgba(130, 170, 255, 0.6), 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        h2 { 
+            color: #82aaff; 
+            margin-top: 40px; 
+            margin-bottom: 20px; 
+            font-size: 1.8rem;
+            text-shadow: 0 0 8px rgba(130, 170, 255, 0.4);
+        }
+
+        /* Texto blanco limpio con profundidad mínima */
+        p { 
+            margin-bottom: 25px; 
+            font-size: 1.25rem; 
+            line-height: 1.8;
+            color: #ffffff;
+            text-align: justify;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4); 
+        }
+
+        .highlight { 
+            color: #82aaff; 
+            font-weight: bold; 
+            text-shadow: 0 0 8px rgba(130, 170, 255, 0.5);
+        }
+
+        /* Botón azul con sombra de elevación */
+        .btn-regresar {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin: 40px 0;
+            padding: 15px 40px;
+            background: #82aaff;
+            color: #001a33;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: 0.3s ease;
+            box-shadow: 0 5px 20px rgba(130, 170, 255, 0.4);
+        }
+
+        .btn-regresar:hover {
+            background: #ffffff;
+            color: #82aaff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+        }
+
+        /* Estilo del scroll azul */
+        .scroll-wrapper::-webkit-scrollbar { width: 6px; }
+        .scroll-wrapper::-webkit-scrollbar-thumb { background: #82aaff; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="full-background"></div>
+
+    <header>
+        <img src="../../src/assets/images/romulo.png" alt="Logo" class="logo-nav">
+    </header>
+
+    <div class="scroll-wrapper">
+        <main class="content-area">
+            <h1>Reseña Histórica</h1>
+            
+            <p>El <span class="highlight">Liceo “Don Rómulo Gallegos”</span> nace de la visión y el fervor ciudadano de un grupo de jóvenes educadores en el año de <span class="highlight">1984</span>. Este se crea con el nombre de <span class="highlight">Ciclo Combinado “Creación Alayón”</span>, ubicado en la calle San Mateo Barrio Alayón de la ciudad de Maracay.</p>
+
+            <p>Esta institución nace con una población de <span class="highlight">271 alumnos</span> distribuidos en 12 Secciones desde el 1er. Año del Ciclo Básico hasta secciones de 1ero. de Ciencias y Humanidades. El personal Docente estaba conformado por 31 profesores, el Personal Administrativo por 3 secretarios y el personal Obrero por 2 Obreros.</p>
+
+            <p>Bajo la Dirección de la <span class="highlight">Prof. Orlinda Núñez de Caruso</span>, quien lideró con compromiso, la institución creció y se fortaleció. Un año más tarde, la <span class="highlight">Prof. Carmen Gutiérrez de Malvacías</span> asumió la Sub-Dirección para apoyar el crecimiento académico.</p>
+
+            <h2>Evolución Institucional</h2>
+            <p>Se emprendió una incesante lucha por mejorar las condiciones generales, aumentando el personal y solicitando la construcción de una planta física adecuada para la excelencia educativa que hoy nos caracteriza.</p>
+            
+            <a href="index.html" class="btn-regresar">
+                <i class="fas fa-arrow-left"></i> Regresar al Inicio
+            </a>
+        </main>
+    </div>
+
+</body>
+</html>
