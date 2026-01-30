@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -156,7 +156,9 @@
 
           <button class="login-button" id="loginBtn">Iniciar Sesión</button>
 
-          <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+          <a href="/app/cambiar-clave.html" class="forgot-password"
+            >¿Olvidaste tu contraseña?</a
+          >
         </form>
       </div>
     </div>
@@ -205,7 +207,7 @@
                     Email: username,
                     Clave: password,
                   }),
-                }
+                },
               );
 
               const data = await response.json();
@@ -214,15 +216,17 @@
               loader.remove();
 
               const notification = document.createElement(
-                "notification-component"
+                "notification-component",
               );
               notification.setAttribute(
                 "text",
-                response.status == 200 ? "Credenciales correctas" : data.message
+                response.status == 200
+                  ? "Credenciales correctas"
+                  : data.message,
               );
               notification.setAttribute(
                 "type",
-                response.status >= 400 ? "error" : "success"
+                response.status >= 400 ? "error" : "success",
               );
               notificationContainer.appendChild(notification);
 
@@ -236,16 +240,16 @@
                   headers: {
                     "Content-Type": "application/json",
                   },
-                }
+                },
               );
 
               if (responseToken.status != 200) {
                 const tokenErrorNotification = document.createElement(
-                  "notification-component"
+                  "notification-component",
                 );
                 tokenErrorNotification.setAttribute(
                   "text",
-                  "Error al obtener los datos del usuario"
+                  "Error al obtener los datos del usuario",
                 );
                 tokenErrorNotification.setAttribute("type", "error");
                 notificationContainer.appendChild(tokenErrorNotification);
@@ -278,7 +282,7 @@
 
               await customElements.whenDefined("notification-component");
               const warningNotification = document.createElement(
-                "notification-component"
+                "notification-component",
               );
               warningNotification.setAttribute("type", "warning");
               warningNotification.setAttribute("text", warningText);
