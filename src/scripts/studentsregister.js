@@ -3,19 +3,59 @@ import authorize from "./auth.js";
 authorize("representante");
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const loader = document.createElement("loader-spinner");
+  let parentData = {};
   const token = localStorage.getItem("auth") || "";
-  const parentDataResponse = await fetch(
-    `${window.APP_CONFIG.api_url}/people/get`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  );
 
-  console.log(await parentDataResponse.json());
+  try {
+    document.body.appendChild(loader);
+    const parentDataResponse = await fetch(
+      `${window.APP_CONFIG.api_url}/people/get`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    parentData = { ...(await parentDataResponse.json()) };
+    console.log(parentData);
+
+    if (!parentDataResponse.ok) {
+      throw new Error(
+        parentData.message ?? "Error al cargar datos del representante",
+      );
+    }
+
+    const countStudentsResponse = await fetch(
+      `${window.APP_CONFIG.api_url}/students/count/by_parent`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const countStudents = await countStudentsResponse.json();
+
+    if (!countStudentsResponse.ok) throw new Error(countStudents.message);
+
+    parentData["students"] = countStudents;
+  } catch (Error) {
+    console.error(Error.stack);
+    alert(
+      Error.message === "Failed to fetch"
+        ? "Error al cargar los datos del representante"
+        : Error.message,
+    );
+    window.location.href = "/app/representante/inicio/";
+  } finally {
+    loader.remove();
+  }
 
   // --- Lógica de Checkbox: Cédula de Identidad ---
   const hasIdCheckbox = document.getElementById("hasId");
@@ -32,10 +72,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   hasIdCheckbox.addEventListener("change", (e) => {
     toggleInputState(idInput, !e.target.checked);
     if (e.target.checked) {
+      idInput.value = "";
       idInput.focus();
       idFormDoc.style.display = "block";
     } else {
-      idInput.value = ""; // Limpiar si se desactiva
+      idInput.value = `${parentData["Cedula"]}${parentData["students"]["count"] + 1}`; // Limpiar si se desactiva
       idFormDoc.style.display = "none";
     }
   });
@@ -62,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     toggleInputState(addressInput, e.target.checked);
 
     if (e.target.checked) {
-      addressInput.value = "Dirección copiada del representante..."; // Texto simulado
+      addressInput.value = parentData["Direccion"]; // Texto simulado
       addressInput.style.opacity = "0.7";
     } else {
       addressInput.value = "";
