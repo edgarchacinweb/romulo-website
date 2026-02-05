@@ -3,9 +3,65 @@ import authorize from "./auth.js";
 authorize("representante");
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Entradas de formulario
+  const firstNameField = document.getElementById("nombre");
+  const lastNameField = document.getElementById("apellido");
+  const genderField = document.getElementById("genero");
+  const ciField = document.getElementById("cedula");
+  const dateField = document.getElementById("fechaNac");
+  const relationshipField = document.getElementById("parentesco");
+  const gradeField = document.getElementById("grado");
+  const addressField = document.getElementById("direccion");
+  const studentPhotoField = document.getElementById("studentPhoto");
+  const docDniField = document.getElementById("docDni");
+  const docPartidaNacimientoField = document.getElementById(
+    "docPartidaNacimiento",
+  );
+  const docNotasCertificadasField = document.getElementById(
+    "docNotasCertificadas",
+  );
+
+  // Contenedor de notificaciones
+  const notificationsContainer = document.getElementById("notifications");
+
+  // Loader
   const loader = document.createElement("loader-spinner");
-  let parentData = {};
+
+  // Token de autenticación
   const token = localStorage.getItem("auth") || "";
+
+  // Cargando grados académicos dentro del cuadro de selección
+  try {
+    document.body.appendChild(loader);
+    const gradesResponse = await fetch(
+      `${window.APP_CONFIG.api_url}/course/get_all`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const grades = await gradesResponse.json();
+
+    if (!gradesResponse.ok) throw new Error(grades.message);
+
+    gradeField
+      .querySelectorAll(".grade-option")
+      .forEach((opt, index) => (opt.value = grades[index].CursoId));
+  } catch (Error) {
+    console.error(Error.stack);
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", Error.message);
+    notificationsContainer.appendChild(notification);
+  } finally {
+    loader.remove();
+  }
+
+  let parentData = {};
 
   try {
     document.body.appendChild(loader);
@@ -21,7 +77,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     parentData = { ...(await parentDataResponse.json()) };
-    console.log(parentData);
 
     if (!parentDataResponse.ok) {
       throw new Error(
@@ -82,10 +137,146 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Registrar nuevo estudiante
-  btnSubmit.addEventListener("click", () => {});
+  btnSubmit.addEventListener("click", async () => {
+    try {
+      const firstName = firstNameField.value.trim();
+      const lastName = lastNameField.value.trim();
+      const gender = genderField.value;
+      const ci = ciField.value.trim();
+      const date = new Date(dateField.value);
+      const relationship = relationshipField.value;
+      const grade = gradeField.value;
+      const address = addressField.value.trim();
+      const docDni = docDniField.files[0];
+      const docPartidaNacimiento = docPartidaNacimientoField.files[0];
+      const docNotasCertificadas = docNotasCertificadasField.files[0];
+      const studentPhoto = studentPhotoField.files[0];
+
+      // Validaciones de campos
+      if (firstName.length === 0) {
+        firstNameField.focus();
+        throw new Error("Debes introducir el nombre del estudiante.");
+      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(firstName)) {
+        firstNameField.focus();
+        throw new Error("¡Formato de nombre inválido!");
+      } else if (lastName.length === 0) {
+        lastNameField.focus();
+        throw new Error("Debes introducir el apellido del estudiante.");
+      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(lastName)) {
+        lastNameField.focus();
+        throw new Error("¡Formato de apellido inválido!");
+      } else if (gender.length === 0) {
+        genderField.focus();
+        throw new Error("Debes seleccionar el sexo del estudiante.");
+      } else if (ci.length === 0) {
+        ciField.focus();
+        throw new Error(
+          "Debes introducir la cédula de identidad del estudiante.",
+        );
+      } else if (!new RegExp(/^([3-9]\d{7}|\d{9})$/).test(ci)) {
+        ciField.focus();
+        throw new Error("¡Formato de cédula de identidad inválido!");
+      } else if (date == "Invalid Date") {
+        dateField.focus();
+        throw new Error(
+          "¡Debes introducir la fecha de nacimiento del estudiante!",
+        );
+      } else if (relationship.length === 0) {
+        relationshipField.focus();
+        throw new Error("Debes seleccionar un parentesco.");
+      } else if (grade.length === 0) {
+        gradeField.focus();
+        throw new Error("¡Debes seleccionar un grado académico a cursar!");
+      } else if (address.length === 0) {
+        addressField.focus();
+        throw new Error(
+          "¡Debes indicar la dirección de habitación del estudiante!",
+        );
+      } else if (
+        !new RegExp(
+          /^[a-zA-Z0-9À-ÿ\u00f1\u00d1][a-zA-Z0-9À-ÿ\u00f1\u00d1\s\.,#\-\/°\(\)]{4,254}$/,
+        ).test(address)
+      ) {
+        addressField.focus();
+        throw new Error("Formato de dirección de habitación inválido");
+      }
+      if (hasIdCheckbox.checked && !docDni) {
+        docDniField.focus();
+        throw new Error(
+          "Debes cargar una foto legible de la cédula de identidad del estudiante.",
+        );
+      } else if (!docPartidaNacimiento) {
+        docPartidaNacimientoField.focus();
+        throw new Error("Debes cargar la partida de nacimiento del estudiante");
+      } else if (!docNotasCertificadas) {
+        docNotasCertificadasField.focus();
+        throw new Error("Debes cargar las notas certificadas del estudiante");
+      } else if (!studentPhoto) {
+        studentPhotoField.focus();
+        throw new Error("Debes cargar una foto de tipo carnet del estudiante");
+      }
+
+      // Creando FormData para enviar datos
+      document.body.appendChild(loader);
+      const formData = new FormData();
+      formData.append("Nombre", firstName);
+      formData.append("Apellido", lastName);
+      formData.append("Genero", gender);
+      formData.append("Cedula", ci);
+      formData.append(
+        "FechaNacimiento",
+        `${date.getDay()}/${date.getMonth() < 10 ? "0" : ""}${date.getMonth() + 1}/${date.getFullYear()}`,
+      );
+      formData.append("Parentesco", relationship);
+      formData.append("IdCurso", grade);
+      formData.append("IdRepresentante", parentData["DatosPersonaId"]);
+      formData.append("Direccion", address);
+      formData.append("FotoCarnet", studentPhoto);
+      formData.append("DocPartidaNacimiento", docPartidaNacimiento);
+      formData.append("DocNotasCertificadas", docNotasCertificadas);
+      formData.append("DocDni", docDni);
+
+      // Enviando datos al servidor
+      const createStudentResponse = await fetch(
+        `${window.APP_CONFIG.api_url}/students/create`,
+        {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const createStudent = await createStudentResponse.json();
+      if (!createStudentResponse.ok) throw new Error(createStudent.message);
+
+      document.getElementById("inscriptionForm").reset();
+      document
+        .querySelectorAll(".upload-zone, span, .upload-icon")
+        .forEach((elm) => {
+          elm.removeAttribute("style");
+          if (elm.tagName === "SPAN") elm.textContent = "Haga clic para cargar";
+          else if (elm.tagName === "svg")
+            elm.innerHTML = `<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line>`;
+        });
+
+      const notification = document.createElement("notification-component");
+      notification.setAttribute("type", "success");
+      notification.setAttribute("text", createStudent.message);
+      notificationsContainer.appendChild(notification);
+    } catch (Error) {
+      console.error(Error.stack);
+      const notification = document.createElement("notification-component");
+      notification.setAttribute("type", "error");
+      notification.setAttribute("text", Error.message);
+      notificationsContainer.appendChild(notification);
+    } finally {
+      loader.remove();
+    }
+  });
 
   btnCancel.addEventListener("click", () => {
-    alert("adaas");
     inscriptionForm.reset();
   });
 
@@ -149,35 +340,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     zone.addEventListener("click", () => {
       input.click();
     });
-  });
-
-  // --- Manejo del Formulario (Submit) ---
-  const form = document.getElementById("inscriptionForm");
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const submitBtn = document.querySelector(".btn-submit");
-    const originalText = submitBtn.textContent;
-
-    // Simular proceso de carga
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Procesando...";
-    submitBtn.style.opacity = "0.7";
-
-    setTimeout(() => {
-      alert("Estudiante registrado con éxito");
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-      submitBtn.style.opacity = "1";
-      form.reset();
-      // Reset visual de uploads
-      document
-        .querySelectorAll(".upload-zone span")
-        .forEach((s) => (s.textContent = "Haga clic para cargar"));
-      document.querySelectorAll(".upload-zone").forEach((z) => {
-        z.style.borderColor = "";
-        z.style.backgroundColor = "";
-      });
-    }, 1500);
   });
 });

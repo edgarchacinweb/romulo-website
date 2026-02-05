@@ -31,6 +31,11 @@ const sendEmail = async () => {
     );
     notificationsContainer.appendChild(notification);
   } catch (Error) {
+    console.error(Error.stack);
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", Error.message);
+    notificationsContainer.appendChild(notification);
   } finally {
     loader.remove();
   }
