@@ -1,58 +1,74 @@
 :root {
-    --light-color: #FBFBFB;
-    --light-background-color: #F5F5F5;
-    --dark-color: #31393C;
-    --dark-background-color: #212129;
-    --navbar-selected-color: #12151c;
-    --tipography: "Ubuntu";
+  --light-color: #fbfbfb;
+  --light-background-color: #f5f5f5;
+  --dark-color: #31393c;
+  --dark-background-color: #212129;
+  --navbar-selected-color: #12151c;
+  --tipography: "Ubuntu";
+}
+
+@keyframes startPage {
+  0% {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  30% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Font config */
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 300;
-    font-style: normal;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-Light.ttf");
+  font-family: "Ubuntu";
+  font-weight: 300;
+  font-style: normal;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-Light.ttf");
 }
 
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 300;
-    font-style: italic;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-LightItalic.ttf");
+  font-family: "Ubuntu";
+  font-weight: 300;
+  font-style: italic;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-LightItalic.ttf");
 }
 
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 400;
-    font-style: normal;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-Regular.ttf");
+  font-family: "Ubuntu";
+  font-weight: 400;
+  font-style: normal;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-Regular.ttf");
 }
 
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 500;
-    font-style: normal;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-Medium.ttf");
+  font-family: "Ubuntu";
+  font-weight: 500;
+  font-style: normal;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-Medium.ttf");
 }
 
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 600;
-    font-style: italic;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-MediumItalic.ttf");
+  font-family: "Ubuntu";
+  font-weight: 600;
+  font-style: italic;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-MediumItalic.ttf");
 }
 
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 800;
-    font-style: normal;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-Bold.ttf");
+  font-family: "Ubuntu";
+  font-weight: 800;
+  font-style: normal;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-Bold.ttf");
 }
 
 @font-face {
-    font-family: "Ubuntu";
-    font-weight: 800;
-    font-style: italic;
-    src: url("../assets/fonts/Ubuntu/Ubuntu-BoldItalic.ttf");
+  font-family: "Ubuntu";
+  font-weight: 800;
+  font-style: italic;
+  src: url("../assets/fonts/Ubuntu/Ubuntu-BoldItalic.ttf");
 }

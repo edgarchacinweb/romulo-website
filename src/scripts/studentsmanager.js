@@ -2,121 +2,111 @@ import authorize from "./auth.js";
 
 authorize("administrador");
 
-// Datos simulados (Mock Data) basados en la imagen
-const studentsData = [
-  {
-    id: 1,
-    name: "Carlos González",
-    cedula: "V-12345678",
-    img: null, // Si tuvieras imagen, iría la URL aquí
-    type: "Nuevo Ingreso",
-    typeClass: "badge-blue",
-    status: "Completado",
-    statusClass: "badge-green",
-    grade: "10°",
-    age: 16,
-    repName: "María González",
-    repRole: "Docente",
-  },
-  {
-    id: 2,
-    name: "Ana Rodríguez",
-    cedula: "V-87654321",
-    img: null,
-    type: "Reinscripción",
-    typeClass: "badge-purple",
-    status: "Pendiente",
-    statusClass: "badge-yellow",
-    grade: "11°",
-    age: 17,
-    repName: "Pedro Rodríguez",
-    repRole: "Ingeniero",
-  },
-];
+document.addEventListener("DOMContentLoaded", () => {
+  // --- Lógica de Acordeones ---
+  const accordions = document.querySelectorAll(".accordion");
 
-const gridContainer = document.getElementById("students-grid");
-const searchInput = document.getElementById("search-input");
-const cleanBtn = document.getElementById("btn-clean");
+  accordions.forEach((acc) => {
+    const header = acc.querySelector(".accordion-header");
+    header.addEventListener("click", () => {
+      // Toggle de la clase active
+      acc.classList.toggle("active");
+    });
+  });
 
-// Función para generar el HTML de una tarjeta
-function createCardHTML(student) {
-  return `
-        <article class="student-card">
-            <div class="card-body">
-                <div class="card-header-info">
-                    <div class="avatar-placeholder">
-                        <i class="fa-regular fa-id-card"></i>
-                    </div>
-                    <div>
-                        <h4 class="student-name">${student.name}</h4>
-                        <span class="student-id">${student.cedula}</span>
-                        <div class="badges">
-                            <span class="badge ${student.typeClass}">${student.type}</span>
-                            <span class="badge ${student.statusClass}">${student.status}</span>
-                        </div>
-                    </div>
-                </div>
+  // --- Lógica del Modal de Rechazo ---
+  const modal = document.getElementById("rejectModal");
+  const btnRejectList = document.querySelectorAll(".btn-reject");
+  const btnCancel = document.getElementById("cancelReject");
+  const btnConfirm = document.getElementById("confirmReject");
 
-                <div class="info-section">
-                    <span class="info-label">INFORMACIÓN</span>
-                    <p class="info-data">Grado: ${student.grade}</p>
-                    <p class="info-data">Edad: ${student.age}</p>
-                </div>
+  // Elementos del formulario y preview
+  const selectReason = document.getElementById("rejectReason");
+  const textDesc = document.getElementById("rejectDesc");
+  const previewReasonBox = document.getElementById("previewReasonBox");
+  const previewReasonText = document.getElementById("previewReasonText");
+  const previewDescText = document.getElementById("previewDescText");
+  const modalStudentName = document.getElementById("modalStudentName");
+  const previewStudent = document.getElementById("previewStudent");
 
-                <div class="divider"></div>
+  // Abrir Modal
+  btnRejectList.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const studentName = e.currentTarget.getAttribute("data-student");
 
-                <div class="info-section">
-                    <span class="info-label"><i class="fa-regular fa-user"></i> REPRESENTANTE</span>
-                    <p class="info-data">${student.repName}</p>
-                    <p class="sub-data">${student.repRole}</p>
-                </div>
-            </div>
+      // Setear datos
+      modalStudentName.textContent = studentName;
+      previewStudent.textContent = studentName;
 
-            <div class="card-footer">
-                <a href="#" class="btn-details">Ver Detalles</a>
-                <div class="card-actions">
-                    <i class="fa-solid fa-pen action-icon edit" title="Editar"></i>
-                    <i class="fa-regular fa-trash-can action-icon delete" title="Eliminar"></i>
-                </div>
-            </div>
-        </article>
-    `;
-}
+      // Limpiar form
+      selectReason.selectedIndex = 0;
+      textDesc.value = "";
+      updatePreview();
 
-// Función para renderizar tarjetas
-function renderStudents(students) {
-  gridContainer.innerHTML = "";
+      // Mostrar modal
+      modal.classList.add("open");
+    });
+  });
 
-  if (students.length === 0) {
-    gridContainer.innerHTML =
-      '<p style="color:var(--text-secondary); grid-column: 1/-1; text-align:center;">No se encontraron estudiantes.</p>';
-    return;
+  // Cerrar Modal
+  const closeModal = () => modal.classList.remove("open");
+  btnCancel.addEventListener("click", closeModal);
+
+  // Cerrar al hacer click fuera del contenido
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // --- Actualización en Vivo del Preview ---
+
+  function updatePreview() {
+    // Actualizar Motivo
+    const reason = selectReason.value;
+    if (reason) {
+      previewReasonBox.style.display = "block";
+      previewReasonText.textContent = reason;
+    } else {
+      previewReasonBox.style.display = "none";
+    }
+
+    // Actualizar Descripción
+    const desc = textDesc.value;
+    if (desc) {
+      previewDescText.textContent = `"${desc}"`;
+      previewDescText.style.display = "block";
+    } else {
+      previewDescText.style.display = "none";
+    }
   }
 
-  students.forEach((student) => {
-    gridContainer.innerHTML += createCardHTML(student);
+  selectReason.addEventListener("change", updatePreview);
+  textDesc.addEventListener("input", updatePreview);
+
+  // Acción de Confirmar (Simulada)
+  btnConfirm.addEventListener("click", () => {
+    if (textDesc.value.length < 10) {
+      alert(
+        "Por favor ingresa una descripción detallada (mínimo 10 caracteres).",
+      );
+      return;
+    }
+
+    // Simulación de envío
+    const originalText = btnConfirm.textContent;
+    btnConfirm.textContent = "Enviando...";
+    btnConfirm.disabled = true;
+
+    setTimeout(() => {
+      alert("Correo de rechazo enviado exitosamente.");
+      closeModal();
+      btnConfirm.textContent = originalText;
+      btnConfirm.disabled = false;
+    }, 1000);
   });
-}
 
-// Inicializar
-renderStudents(studentsData);
-
-// Funcionalidad de Búsqueda (Filtro simple por nombre)
-searchInput.addEventListener("input", (e) => {
-  const term = e.target.value.toLowerCase();
-  const filtered = studentsData.filter(
-    (s) =>
-      s.name.toLowerCase().includes(term) ||
-      s.cedula.toLowerCase().includes(term)
-  );
-  renderStudents(filtered);
-});
-
-// Botón Limpiar
-cleanBtn.addEventListener("click", () => {
-  searchInput.value = "";
-  document
-    .querySelectorAll("select")
-    .forEach((select) => (select.selectedIndex = 0));
-  renderStudents(studentsData);
+  document.getElementById("BtnBack").addEventListener("click", () => {
+    document.body.style.overflow = "hidden";
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    setTimeout(() => (window.location.href = "/app/admin/dashboard/"), 1000);
+  });
 });
