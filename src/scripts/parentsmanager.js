@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         body: JSON.stringify({
           Rol: "representante",
         }),
-      }
+      },
     );
 
     const parentsData = await parentsResponse.json();
@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 <div class="rep-footer">
                     Registrado: ${new Date(
-                      parent.FechaCreacion
+                      parent.FechaCreacion,
                     ).toLocaleDateString("es-VE")}
                 </div>
             `;
@@ -121,19 +121,52 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   submitBtn.addEventListener("click", async (e) => {
     e.preventDefault();
-    const firstName = firstNameEntry.value;
-    const lastName = lastNameEntry.value;
-    const identity = identityEntry.value;
+    const firstName = firstNameEntry.value.trim();
+    const lastName = lastNameEntry.value.trim();
+    const identity = identityEntry.value.trim();
     const gender = genderEntry.value;
-    const email = emailEntry.value;
+    const email = emailEntry.value.trim();
     const notification = document.createElement("notification-component");
 
+    document.body.appendChild(loader);
     try {
       // Registro de datos
-      document.body.appendChild(loader);
-      //   console.log("asadadaea");
-      if (!firstName || !lastName || !identity || !email)
-        throw new Error("Debes rellenar todos los campos del formulario");
+      if (firstName.length === 0) {
+        firstNameEntry.focus();
+        throw new Error("Debes introducir el nombre del representante");
+      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(firstName)) {
+        firstNameEntry.focus();
+        throw new Error(
+          "El nombre presenta del representante presenta un formato inválido",
+        );
+      } else if (lastName.length === 0) {
+        lastNameEntry.focus();
+        throw new Error("Debes introducir el apellido del representante");
+      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(lastName)) {
+        lastNameEntry.focus();
+        throw new Error(
+          "El apellido del representante presenta un formato inválido",
+        );
+      } else if (identity.length === 0) {
+        identityEntry.focus();
+        throw new Error("Debes introducir la cédula del representante");
+      } else if (!new RegExp(/^([3-9]\d{7}|\d{9})$/).test(identity)) {
+        identityEntry.focus();
+        throw new Error(
+          "La cédula de identidad del representante presenta un formato inválido",
+        );
+      } else if (gender.length === 0) {
+        genderEntry.focus();
+        throw new Error("Debes indicar el género del representante");
+      } else if (email.length === 0) {
+        emailEntry.focus();
+        throw new Error("Debes indicar el correo electrónica del");
+      } else if (!new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)) {
+        emailEntry.focus();
+        throw new Error(
+          "El correo electrónico del representante presenta un formato inválido",
+        );
+      }
 
       const dataResponse = await fetch(
         `${window.APP_CONFIG.api_url}/people/create`,
@@ -149,7 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             Sexo: gender,
             Cedula: identity,
           }),
-        }
+        },
       );
 
       const peopleData = await dataResponse.json();
@@ -173,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             Clave: `V#${identity}`,
             DatosPersonaId: peopleId,
           }),
-        }
+        },
       );
 
       const userData = await userResponse.json();
@@ -223,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       notification.setAttribute("type", "success");
       notification.setAttribute(
         "text",
-        "Representante registrado correctamente"
+        "Representante registrado correctamente",
       );
       parents.push({
         DatosPersona: {
