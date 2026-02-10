@@ -13,6 +13,7 @@ const authorize = async (role) => {
 
   if (data.Rol !== role) {
     window.location.href = "/app/iniciar-sesion.html";
+    localStorage.clear();
   }
 };
 
