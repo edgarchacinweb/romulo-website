@@ -116,7 +116,7 @@ body {
 
 .filters-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
   gap: 1rem;
 }
 
@@ -159,7 +159,14 @@ body {
 }
 
 /* --- Cards --- */
+.cards-flex {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .cards-grid {
+  width: 93%;
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
@@ -387,6 +394,15 @@ body {
 .btn-success:hover {
   background: #16a34a;
   box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4);
+}
+
+.btn-search {
+  background: #009dff;
+  color: white;
+}
+.btn-search:hover {
+  background: #007bff;
+  box-shadow: 0 4px 6px -1px #007bff66;
 }
 
 .btn-danger {
