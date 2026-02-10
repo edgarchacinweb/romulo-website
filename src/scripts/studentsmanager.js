@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loader = document.createElement("loader-spinner");
   const studentCounter = document.getElementById("StudentsCounter");
   const cardsContainer = document.getElementById("CardsContainer");
+  const selectReason = document.querySelector(".rejectReason");
+  const textDesc = document.querySelector(".rejectDesc");
+  const studentName = document.getElementById("modalStudentName");
+  const parentEmail = document.getElementById("modal-email");
   const dateFormat = new Intl.DateTimeFormat("es-VE", {
     weekday: "long",
     year: "numeric",
@@ -38,13 +42,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modal = document.querySelector(".rejectModal");
     const btnRejectList = acc.querySelector(".btn-reject");
     const btnCancel = document.querySelector(".cancelReject");
-    const btnConfirm = document.querySelector(".confirmReject");
-
-    // Elementos del formulario y preview
-    const selectReason = document.querySelector(".rejectReason");
-    const textDesc = document.querySelector(".rejectDesc");
-    const studentName = document.getElementById("modalStudentName");
-    const parentEmail = document.getElementById("modal-email");
 
     // Abrir Modal
     if (btnRejectList) {
@@ -56,6 +53,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         parentEmail.textContent = student["Representante"]["Email"];
 
         // Mostrar modal
+        modal.setAttribute("data-student", student["EstudianteId"]);
+        modal.setAttribute("data-email", student["Representante"]["Email"]);
         modal.classList.add("open");
       });
     }
@@ -69,6 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (e.target === modal) closeModal();
     });
   };
+
   const filterRequests = async () => {
     const searchValue = searchField.value;
     const gradesValue = gradesField.value;
@@ -138,6 +138,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
         studentCard.classList.add("student-card");
+        studentCard.setAttribute("data-id", student["EstudianteId"]);
+        if (!student["Activo"]) studentCard.classList.add("student-reject");
         const cardFooter = `
           <div class="card-footer">
             <button class="btn btn-success">
@@ -494,6 +496,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               const notification = document.createElement(
                 "notification-component",
               );
+
               notification.setAttribute("type", "success");
               notification.setAttribute(
                 "text",
@@ -513,6 +516,81 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           }),
         );
+      });
+
+      const btnConfirm = document.querySelector(".confirmReject");
+      btnConfirm.addEventListener("click", async () => {
+        const confirmation = confirm(
+          "¿Seguro que quieres rechazar la solicitud de inscripción?",
+        );
+
+        if (!confirmation) return;
+        loader.setAttribute("title", "Rechazando solicitud de inscripción...");
+        document.body.appendChild(loader);
+
+        const modal = document.querySelector(".rejectModal");
+
+        try {
+          if (selectReason.value.length === 0) {
+            selectReason.focus();
+            throw new Error("Debes seleccionar un motivo para el rechazo.");
+          } else if (textDesc.value.trim().length < 10) {
+            textDesc.focus();
+            throw new Error(
+              "La descripción debe tener al menos 10 caracteres.",
+            );
+          } else if (textDesc.value.trim().length >= 200) {
+            textDesc.focus();
+            throw new Error(
+              "La descripción no puede tener más de 200 caracteres.",
+            );
+          }
+
+          modal.classList.remove("open");
+
+          const rejectRegistrationResponse = await fetch(
+            `${window.APP_CONFIG.api_url}/students/reject/${modal.getAttribute("data-student")}`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                Email: modal.getAttribute("data-email"),
+                Motivo: selectReason.value,
+                Descripcion: textDesc.value.trim(),
+              }),
+            },
+          );
+
+          if (rejectRegistrationResponse.status !== 204) {
+            const rejectMessage = await rejectRegistrationResponse.json();
+            throw new Error(rejectMessage.message);
+          }
+
+          const notification = document.createElement("notification-component");
+          notification.setAttribute("type", "success");
+          notification.setAttribute(
+            "text",
+            "Solicitud de inscripción rechazada correctamente",
+          );
+          notifications.appendChild(notification);
+          const acc = document.querySelector(
+            `[data-id="${modal.getAttribute("data-student")}"]`,
+          );
+          acc.remove();
+          acc.classList.add("student-reject");
+          cardsContainer.appendChild(acc);
+        } catch (Error) {
+          console.error(Error);
+          const notification = document.createElement("notification-component");
+          notification.setAttribute("type", "error");
+          notification.setAttribute("text", Error.message);
+          notifications.appendChild(notification);
+        } finally {
+          loader.remove();
+        }
       });
     } catch (Error) {
       console.error(Error);
