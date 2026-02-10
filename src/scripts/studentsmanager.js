@@ -373,13 +373,44 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
         cardsContainer.appendChild(studentCard);
 
-        studentCard
-          .querySelectorAll(".btn-download-file")
-          .forEach((btn) =>
-            btn.addEventListener("click", () =>
-              console.log(btn.getAttribute("data-file")),
-            ),
-          );
+        studentCard.querySelectorAll(".btn-download-file").forEach((btn) =>
+          btn.addEventListener("click", async () => {
+            loader.setAttribute("title", "Descargando documento...");
+            document.body.appendChild(loader);
+            let objectUrl = undefined;
+            try {
+              const downloadDocumentResponse = await fetch(
+                `${window.APP_CONFIG.api_url}/docs/get/${btn.getAttribute("data-file")}`,
+                {
+                  method: "GET",
+                },
+              );
+
+              if (!downloadDocumentResponse.ok) {
+                const documentError = await downloadDocumentResponse.json();
+                throw new Error(documentError.message);
+              }
+
+              const downloadDocument = await downloadDocumentResponse.blob();
+              const anchor = document.createElement("a");
+              objectUrl = URL.createObjectURL(downloadDocument);
+              anchor.href = objectUrl;
+              anchor.download = btn.getAttribute("data-file");
+              anchor.click();
+            } catch (Error) {
+              console.error(Error.stack);
+              const notification = document.createElement(
+                "notification-component",
+              );
+              notification.setAttribute("type", "error");
+              notification.setAttribute("text", Error.message);
+              notifications.appendChild(notification);
+            } finally {
+              if (objectUrl) URL.revokeObjectURL(objectUrl);
+              loader.remove();
+            }
+          }),
+        );
       });
     } catch (Error) {
       console.error(Error.message);
