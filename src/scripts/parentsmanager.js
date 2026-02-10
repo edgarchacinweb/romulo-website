@@ -134,15 +134,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (firstName.length === 0) {
         firstNameEntry.focus();
         throw new Error("Debes introducir el nombre del representante");
-      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(firstName)) {
+      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(firstName)) {
         firstNameEntry.focus();
         throw new Error(
-          "El nombre presenta del representante presenta un formato inválido",
+          "El nombre del representante presenta un formato inválido",
         );
       } else if (lastName.length === 0) {
         lastNameEntry.focus();
         throw new Error("Debes introducir el apellido del representante");
-      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(lastName)) {
+      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(lastName)) {
         lastNameEntry.focus();
         throw new Error(
           "El apellido del representante presenta un formato inválido",
@@ -150,18 +150,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else if (identity.length === 0) {
         identityEntry.focus();
         throw new Error("Debes introducir la cédula del representante");
-      } else if (!new RegExp(/^([3-9]\d{7}|\d{9})$/).test(identity)) {
+      } else if (!/^\d{6,10}$/.test(identity)) {
+    
         identityEntry.focus();
         throw new Error(
           "La cédula de identidad del representante presenta un formato inválido",
         );
+        // AGREGA ESTO AQUÍ:
+      } else if (parseInt(identity) === 0) {  
+        identityEntry.focus();                
+        throw new Error(                      
+          "La cédula de identidad no puede ser cero" 
+        );
+
       } else if (gender.length === 0) {
         genderEntry.focus();
         throw new Error("Debes indicar el género del representante");
       } else if (email.length === 0) {
         emailEntry.focus();
-        throw new Error("Debes indicar el correo electrónica del");
-      } else if (!new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)) {
+        throw new Error("Debes indicar el correo electrónico del representante");
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         emailEntry.focus();
         throw new Error(
           "El correo electrónico del representante presenta un formato inválido",
@@ -188,8 +196,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const peopleData = await dataResponse.json();
       console.log(peopleData);
 
-      if (dataResponse.status !== 201) throw new Error(peopleData.message);
+      if (dataResponse.status !== 201 && dataResponse.status !== 200)
+        throw new Error(peopleData.message);
 
+      // Usar ID existente si ya existe, o el nuevo si se creó
       const peopleId = peopleData.id;
 
       const userResponse = await fetch(
@@ -211,17 +221,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const userData = await userResponse.json();
 
-      if (userResponse.status !== 201) throw new Error(userData);
+      if (userResponse.status !== 201) throw new Error(userData.message || userData);
 
       const card = document.createElement("article");
       card.className = "rep-card";
 
-      // Construcción del HTML de la tarjeta
+      // Construcción del HTML de la tarjeta nueva
       card.innerHTML = `
                 <div class="rep-top">
                     <h3>${firstName} ${lastName}</h3>
                     <button class="btn-delete" onclick="deleteRep(${
-                      userData.id
+                      userData.id || userData.UsuarioId // Asegurar compatibilidad
                     })" title="Eliminar">
                         ${icons.trash}
                     </button>
@@ -272,11 +282,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
       console.error(error);
       notification.setAttribute("type", "error");
-      notification.setAttribute("text", error);
+      notification.setAttribute("text", error.message || error);
     } finally {
       loader.remove();
       notificationsContainer.appendChild(notification);
-      repForm.reset();
+      if (notification.getAttribute("type") === "success") {
+          repForm.reset();
+      }
     }
   });
 });
