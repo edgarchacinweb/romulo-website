@@ -24,6 +24,51 @@ document.addEventListener("DOMContentLoaded", async () => {
   const stateField = document.getElementById("StateField");
 
   // Funciones
+  const accordion = (acc, student) => {
+    const headers = acc.querySelectorAll(".accordion-header");
+    const containers = acc.querySelectorAll(".accordion");
+    headers.forEach((header, index) => {
+      header.addEventListener("click", () => {
+        // Toggle de la clase active
+        containers[index].classList.toggle("active");
+      });
+    });
+
+    // --- Lógica del Modal de Rechazo ---
+    const modal = document.querySelector(".rejectModal");
+    const btnRejectList = acc.querySelector(".btn-reject");
+    const btnCancel = document.querySelector(".cancelReject");
+    const btnConfirm = document.querySelector(".confirmReject");
+
+    // Elementos del formulario y preview
+    const selectReason = document.querySelector(".rejectReason");
+    const textDesc = document.querySelector(".rejectDesc");
+    const studentName = document.getElementById("modalStudentName");
+    const parentEmail = document.getElementById("modal-email");
+
+    // Abrir Modal
+    if (btnRejectList) {
+      btnRejectList.addEventListener("click", () => {
+        // Limpiar form
+        selectReason.selectedIndex = 0;
+        textDesc.value = "";
+        studentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
+        parentEmail.textContent = student["Representante"]["Email"];
+
+        // Mostrar modal
+        modal.classList.add("open");
+      });
+    }
+
+    // Cerrar Modal
+    const closeModal = () => modal.classList.remove("open");
+    btnCancel.addEventListener("click", closeModal);
+
+    // Cerrar al hacer click fuera del contenido
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+  };
   const filterRequests = async () => {
     const searchValue = searchField.value;
     const gradesValue = gradesField.value;
@@ -93,6 +138,40 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
         studentCard.classList.add("student-card");
+        const cardFooter = `
+          <div class="card-footer">
+            <button class="btn btn-success">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Aprobar
+            </button>
+            <button
+              class="btn btn-danger btn-reject"
+              data-student="Carlos González"
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+              Rechazar
+            </button>
+          </div>
+        `;
         studentCard.innerHTML = `
           <div class="card-header">
             <div class="student-profile">
@@ -338,41 +417,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
           </div>
 
-          <div class="card-footer">
-            <button class="btn btn-success">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              Aprobar
-            </button>
-            <button
-              class="btn btn-danger btn-reject"
-              data-student="Carlos González"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-              Rechazar
-            </button>
-          </div>
+          ${student["Estado"] === "revision" ? cardFooter : ""}
       `;
         cardsContainer.appendChild(studentCard);
-
+        accordion(studentCard, student);
         studentCard.querySelectorAll(".btn-download-file").forEach((btn) =>
           btn.addEventListener("click", async () => {
             loader.setAttribute("title", "Descargando documento...");
@@ -411,9 +459,63 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           }),
         );
+
+        studentCard.querySelectorAll(".btn-success").forEach((btn) =>
+          btn.addEventListener("click", async () => {
+            loader.setAttribute(
+              "title",
+              "Aprobando solicitud de inscripción...",
+            );
+            document.body.appendChild(loader);
+            try {
+              const confirmation = confirm(
+                "¿Seguro que quieres aprobar la solicitud de ingreso de este estudiante?",
+              );
+
+              if (!confirmation) return;
+
+              const approveResponse = await fetch(
+                `${window.APP_CONFIG.api_url}/students/approve/${student["EstudianteId"]}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+
+              if (approveResponse.status !== 204) {
+                const approveError = await approveResponse.json();
+                throw new Error(approveError.message);
+              }
+
+              studentCard.remove();
+              const notification = document.createElement(
+                "notification-component",
+              );
+              notification.setAttribute("type", "success");
+              notification.setAttribute(
+                "text",
+                `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]} inscrit${student["DatosPersona"]["Sexo"] === "Femenino" ? "a" : "o"} correctamente`,
+              );
+              notifications.appendChild(notification);
+            } catch (Error) {
+              console.error(Error.stack);
+              const notification = document.createElement(
+                "notification-component",
+              );
+              notification.setAttribute("type", "error");
+              notification.setAttribute("text", Error.message);
+              notifications.appendChild(notification);
+            } finally {
+              loader.remove();
+            }
+          }),
+        );
       });
     } catch (Error) {
-      console.error(Error.message);
+      console.error(Error);
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
       notification.setAttribute("text", Error.message);
@@ -497,106 +599,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
   // #endregion
 
-  // --- Lógica de Acordeones ---
-  const accordions = document.querySelectorAll(".accordion");
-
-  accordions.forEach((acc) => {
-    const header = acc.querySelector(".accordion-header");
-    header.addEventListener("click", () => {
-      // Toggle de la clase active
-      acc.classList.toggle("active");
-    });
-  });
-
-  // --- Lógica del Modal de Rechazo ---
-  const modal = document.getElementById("rejectModal");
-  const btnRejectList = document.querySelectorAll(".btn-reject");
-  const btnCancel = document.getElementById("cancelReject");
-  const btnConfirm = document.getElementById("confirmReject");
-
-  // Elementos del formulario y preview
-  const selectReason = document.getElementById("rejectReason");
-  const textDesc = document.getElementById("rejectDesc");
-  const previewReasonBox = document.getElementById("previewReasonBox");
-  const previewReasonText = document.getElementById("previewReasonText");
-  const previewDescText = document.getElementById("previewDescText");
-  const modalStudentName = document.getElementById("modalStudentName");
-  const previewStudent = document.getElementById("previewStudent");
-
-  // Abrir Modal
-  btnRejectList.forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      const studentName = e.currentTarget.getAttribute("data-student");
-
-      // Setear datos
-      modalStudentName.textContent = studentName;
-      previewStudent.textContent = studentName;
-
-      // Limpiar form
-      selectReason.selectedIndex = 0;
-      textDesc.value = "";
-      updatePreview();
-
-      // Mostrar modal
-      modal.classList.add("open");
-    });
-  });
-
-  // Cerrar Modal
-  const closeModal = () => modal.classList.remove("open");
-  btnCancel.addEventListener("click", closeModal);
-
-  // Cerrar al hacer click fuera del contenido
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) closeModal();
-  });
-
   // --- Actualización en Vivo del Preview ---
-
-  function updatePreview() {
-    // Actualizar Motivo
-    const reason = selectReason.value;
-    if (reason) {
-      previewReasonBox.style.display = "block";
-      previewReasonText.textContent = reason;
-    } else {
-      previewReasonBox.style.display = "none";
-    }
-
-    // Actualizar Descripción
-    const desc = textDesc.value;
-    if (desc) {
-      previewDescText.textContent = `"${desc}"`;
-      previewDescText.style.display = "block";
-    } else {
-      previewDescText.style.display = "none";
-    }
-  }
-
-  selectReason.addEventListener("change", updatePreview);
-  textDesc.addEventListener("input", updatePreview);
-
-  // Acción de Confirmar (Simulada)
-  btnConfirm.addEventListener("click", () => {
-    if (textDesc.value.length < 10) {
-      alert(
-        "Por favor ingresa una descripción detallada (mínimo 10 caracteres).",
-      );
-      return;
-    }
-
-    // Simulación de envío
-    const originalText = btnConfirm.textContent;
-    btnConfirm.textContent = "Enviando...";
-    btnConfirm.disabled = true;
-
-    setTimeout(() => {
-      alert("Correo de rechazo enviado exitosamente.");
-      closeModal();
-      btnConfirm.textContent = originalText;
-      btnConfirm.disabled = false;
-    }, 1000);
-  });
 
   document.getElementById("BtnBack").addEventListener("click", () => {
     document.body.style.overflow = "hidden";

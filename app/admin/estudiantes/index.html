@@ -96,7 +96,7 @@
       </div>
     </main>
 
-    <div id="rejectModal" class="modal-overlay">
+    <div class="modal-overlay rejectModal">
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title-group">
@@ -123,14 +123,16 @@
             </svg>
             <div>
               <span class="font-bold">Se enviará un correo a:</span><br />
-              <span class="link">maria.gonzalez@email.com</span>
+              <span class="link" id="modal-email"
+                >maria.gonzalez@email.com</span
+              >
             </div>
           </div>
 
           <div class="form-group">
             <label>Motivo del Rechazo *</label>
             <div class="select-wrapper">
-              <select class="form-control" id="rejectReason">
+              <select class="form-control rejectReason">
                 <option value="" disabled selected>
                   Seleccionar motivo...
                 </option>
@@ -148,49 +150,17 @@
           <div class="form-group">
             <label>Descripción Detallada *</label>
             <textarea
-              class="form-control"
-              id="rejectDesc"
+              class="form-control rejectDesc"
               rows="3"
               placeholder="Proporciona una descripción clara y detallada del motivo del rechazo..."
             ></textarea>
             <span class="helper-text">Mínimo 10 caracteres</span>
           </div>
-
-          <div class="preview-box">
-            <div class="preview-header">
-              <span>Vista previa del mensaje:</span>
-              <div class="preview-actions">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              </div>
-            </div>
-            <div class="preview-content">
-              <strong>Solicitud de Inscripción Rechazada</strong><br /><br />
-              Estimado/a representante,<br />
-              Lamentamos informarle que la solicitud de inscripción de
-              <strong id="previewStudent">Carlos González</strong> ha sido
-              rechazada.<br /><br />
-              <span id="previewReasonBox" style="display: none">
-                <strong>Motivo:</strong> <span id="previewReasonText"></span>
-              </span>
-              <div id="previewDescText" class="italic-text"></div>
-              <br />Para más información, contáctenos.
-            </div>
-          </div>
         </div>
 
         <div class="modal-footer">
-          <button class="btn btn-outline" id="cancelReject">Cancelar</button>
-          <button class="btn btn-danger" id="confirmReject">
+          <button class="btn btn-outline cancelReject">Cancelar</button>
+          <button class="btn btn-danger confirmReject">
             Rechazar y Enviar Email
           </button>
         </div>
