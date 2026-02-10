@@ -11,6 +11,7 @@ class NotificationContainerComponent extends HTMLElement {
           position: fixed;
           top: 0;
           left: 0;
+          z-index: 1000;
           width: 100vw;
           min-height: 100vw;
           display: flex;
@@ -37,5 +38,5 @@ class NotificationContainerComponent extends HTMLElement {
 
 customElements.define(
   "notifications-container",
-  NotificationContainerComponent
+  NotificationContainerComponent,
 );

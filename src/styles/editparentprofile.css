@@ -1,0 +1,432 @@
+/* Variables y Reset */
+:root {
+  --primary-color: #4a4e9b; /* Color púrpura/azul principal */
+  --secondary-color: #2c3078; /* Azul más oscuro para títulos */
+  --accent-blue: #3b40a1; /* Color de la barra lateral del título */
+  --text-dark: #1f2937;
+  --text-gray: #6b7280;
+  --text-light-gray: #9ca3af;
+  --bg-main: #f9fafb;
+  --bg-white: #ffffff;
+  --input-border: #e5e7eb;
+  --input-bg-readonly: #e5e7eb;
+  --danger: #ef4444;
+  --success: #10b981;
+  --font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --transition-speed: 0.3s;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  position: relative;
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  line-height: 1.5;
+}
+
+/* Animaciones Globales */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn var(--transition-speed) ease-in;
+}
+.fade-in-up {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Header */
+.main-header {
+  display: flex;
+  align-items: flex-start;
+  padding: 1.5rem 2rem;
+  background-color: var(--bg-white);
+  border-bottom: 1px solid var(--input-border);
+}
+
+.back-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-right: 1rem;
+  color: var(--text-gray);
+  transition:
+    color var(--transition-speed),
+    transform var(--transition-speed);
+}
+
+.back-button:hover {
+  color: var(--text-dark);
+  transform: translateX(-3px);
+}
+
+.header-title h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.header-title p {
+  color: var(--text-gray);
+  font-size: 0.875rem;
+}
+
+/* Layout Principal */
+.container {
+  max-width: 1024px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  background-color: var(--bg-white);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden; /* Para contener el banner */
+}
+
+/* Banner de Información */
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  /* Degradado similar a la imagen */
+  background: linear-gradient(
+    135deg,
+    rgba(74, 78, 155, 0.1) 0%,
+    rgba(249, 250, 255, 1) 100%
+  );
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin: 1.5rem 1.5rem 2rem 1.5rem;
+  border: 1px solid rgba(74, 78, 155, 0.2);
+}
+
+.info-icon {
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.info-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--secondary-color);
+}
+
+.info-content p {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+}
+
+/* Secciones del Formulario */
+.form-section {
+  padding: 0 1.5rem 2rem 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--input-border);
+}
+
+.form-section:last-of-type {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Decoración de línea vertical azul */
+.section-title::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 1.25rem;
+  background-color: var(--accent-blue);
+  margin-right: 0.75rem;
+  border-radius: 2px;
+}
+
+.section-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-gray);
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
+  padding-left: 1rem; /* Alinear con el texto del título */
+}
+
+/* Grids y Layouts de Campos */
+.personal-info-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+.readonly-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos de Campos (Inputs, Labels) */
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.input-field {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  background-color: var(--bg-white);
+  transition: all var(--transition-speed);
+}
+
+.input-field::placeholder {
+  color: var(--text-light-gray);
+}
+
+/* Efectos de Foco en Inputs */
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(74, 78, 155, 0.1);
+}
+
+/* Campos de Solo Lectura */
+.input-field.readonly {
+  background-color: var(--input-bg-readonly);
+  color: var(--text-gray);
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+.input-field.readonly:focus {
+  box-shadow: none;
+}
+
+.textarea-field {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-phone {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+select {
+  color: #333333 !important;
+  height: 47px;
+}
+
+.phone {
+  flex: 1;
+}
+
+.help-text {
+  font-size: 0.75rem;
+  color: var(--text-gray);
+  margin: 0.5rem 0;
+}
+
+/* Área de Subida de Foto */
+.photo-upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.photo-preview {
+  width: 120px;
+  height: 120px;
+  background-color: var(--input-bg-readonly);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  border: 2px dashed var(--input-border);
+  transition: all var(--transition-speed);
+  background-size: cover;
+  background-position: center;
+}
+
+.photo-upload-area:hover .photo-preview {
+  border-color: var(--primary-color);
+}
+
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* Campos de Contraseña con Toggle */
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper .input-field {
+  width: 100%;
+  padding-right: 40px; /* Espacio para el icono del ojo */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-gray);
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-speed);
+  border-radius: 50%;
+}
+
+.toggle-password:hover {
+  color: var(--primary-color);
+  background-color: rgba(74, 78, 155, 0.1);
+}
+
+.hidden {
+  display: none;
+}
+
+/* Botones de Acción */
+.form-actions {
+  padding: 0 1.5rem 2rem 1.5rem;
+  display: flex;
+  gap: 1rem;
+  border-top: 1px solid var(--input-border);
+  padding-top: 2rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all var(--transition-speed) ease-in-out;
+  border: 1px solid transparent;
+}
+
+/* Efectos de Botones */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.btn-outline {
+  background-color: var(--bg-white);
+  color: var(--text-dark);
+  border-color: var(--input-border);
+}
+
+.btn-outline:hover {
+  border-color: var(--text-gray);
+  background-color: #f3f4f6;
+}
+
+/* Responsive Media Queries */
+@media (min-width: 768px) {
+  .personal-info-grid {
+    grid-template-columns: 200px 1fr; /* Foto izquierda, datos derecha */
+    align-items: start;
+  }
+
+  .readonly-fields {
+    grid-template-columns: 1fr 1fr; /* 2 columnas para los datos */
+  }
+
+  .photo-upload-area {
+    align-items: flex-start;
+  }
+
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}

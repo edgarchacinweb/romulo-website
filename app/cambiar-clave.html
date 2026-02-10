@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recuperación de Cuenta Futurista</title>
+
+    <!-- Estilos CSS -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/cambiarclave.css" />
+
+    <!-- Componentes -->
+    <script
+      src="/src/components/loader.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notifications-container.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notification.component.js"
+      type="module"
+      defer
+    ></script>
+  </head>
+  <body>
+    <notifications-container id="notifications"></notifications-container>
+    <div class="background-glow"></div>
+
+    <main class="card-container">
+      <div class="logo-flex">
+        <div class="logo-container">
+          <img
+            src="/src/assets/images/romulo.webp"
+            alt="Logo Liceo Nacional Rómulo Gallego"
+            class="logo"
+          />
+        </div>
+      </div>
+
+      <section id="step-email" class="form-step active">
+        <h1>Recuperar Contraseña</h1>
+        <p class="description">
+          Ingresa tu correo electrónico para recibir un código de verificación
+        </p>
+
+        <form id="form-email">
+          <div class="input-group">
+            <span class="input-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                ></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </span>
+            <input
+              type="email"
+              id="email"
+              placeholder="tu@correo.com"
+              required
+              autocomplete="off"
+            />
+          </div>
+          <button type="submit" class="btn-primary" id="SendEmailBtn">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Enviar Código
+          </button>
+        </form>
+        <p class="footer-text">
+          Te enviaremos un código de 6 dígitos a tu correo electrónico
+        </p>
+      </section>
+
+      <section id="step-code" class="form-step hidden">
+        <h1>Verificar Código</h1>
+        <p class="description">
+          Ingresa el código de 6 dígitos que recibiste en <br /><span
+            id="user-email-display"
+            class="highlight-text"
+            >correo@correo.com</span
+          >
+        </p>
+
+        <form id="form-code">
+          <div class="input-group">
+            <span class="input-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="otp-code"
+              placeholder="000000"
+              maxlength="6"
+              required
+              autocomplete="off"
+              style="letter-spacing: 0.5em; text-align: center"
+            />
+          </div>
+
+          <div class="pagination-dots">
+            <span class="dot"></span><span class="dot"></span
+            ><span class="dot"></span><span class="dot"></span
+            ><span class="dot"></span><span class="dot"></span>
+          </div>
+
+          <button type="submit" class="btn-primary" id="VerifyCodeBtn">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+              <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+            Verificar Código
+          </button>
+        </form>
+        <p class="footer-text click-action" id="NewOtpCode">
+          ¿No recibiste el código? <a href="#">Solicitar uno nuevo</a>
+        </p>
+      </section>
+
+      <section id="step-password" class="form-step hidden">
+        <h1>Nueva Contraseña</h1>
+        <p class="description">
+          Crea una nueva contraseña segura para tu cuenta
+        </p>
+
+        <form id="form-password">
+          <div class="input-group">
+            <span class="input-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input
+              type="password"
+              id="new-pass"
+              placeholder="Nueva contraseña"
+              required
+            />
+            <span class="input-action toggle-pass">
+              <svg
+                class="eye-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </span>
+          </div>
+
+          <div class="input-group">
+            <span class="input-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </span>
+            <input
+              type="password"
+              id="confirm-pass"
+              placeholder="Confirmar contraseña"
+              required
+            />
+            <span class="input-action toggle-pass">
+              <svg
+                class="eye-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </span>
+          </div>
+
+          <button type="submit" class="btn-primary">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Cambiar Contraseña
+          </button>
+        </form>
+      </section>
+
+      <section id="step-success" class="form-step hidden success-state">
+        <div class="success-icon-container">
+          <div class="success-circle">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+        </div>
+        <h1 class="text-success">¡Contraseña Cambiada!</h1>
+        <p class="description">
+          Tu contraseña ha sido actualizada exitosamente. Ya puedes iniciar
+          sesión con tu nueva contraseña.
+        </p>
+
+        <button id="btn-login" class="btn-success">
+          Ir al Inicio de Sesión
+        </button>
+      </section>
+    </main>
+
+    <script src="/src/scripts/config.js" type="module"></script>
+    <script src="/src/scripts/cambiarclave.js" type="module"></script>
+  </body>
+</html>

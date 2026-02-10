@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       headers: {
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 
   if (registrationTermResponse.ok) {
@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!startDate || !endDate) {
         notification.setAttribute(
           "text",
-          "Por favor, selecciona una fecha de inicio y una fecha de fin."
+          "Por favor, selecciona una fecha de inicio y una fecha de fin.",
         );
         notificationContainer.appendChild(notification);
         return;
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (endDate < startDate) {
         notification.setAttribute(
           "text",
-          "La fecha de fin no puede ser anterior a la fecha de inicio."
+          "La fecha de fin no puede ser anterior a la fecha de inicio.",
         );
         endDateInput.focus();
         notificationContainer.appendChild(notification);
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (diffenceInMilliseconds < dayInMilliseconds * 7) {
         notification.setAttribute(
           "text",
-          "Debes establecer al menos 7 días de período de inscripción"
+          "Debes establecer al menos 7 días de período de inscripción",
         );
         startDateInput.focus();
         notificationContainer.appendChild(notification);
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             FechaInicio: date1.toString(),
             FechaFin: date2.toString(),
           }),
-        }
+        },
       );
 
       const resultQuery = await response.json();
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       notification.setAttribute(
         "text",
-        "Período de inscripción asignado correctamente."
+        "Período de inscripción asignado correctamente.",
       );
 
       loader.remove();

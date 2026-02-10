@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -30,6 +30,7 @@
     ></script>
   </head>
   <body>
+    <notifications-container id="notifications"></notifications-container>
     <nav class="sidebar">
       <div class="logo-container">
         <div class="logo-icon">
@@ -119,7 +120,7 @@
           </a>
         </li>
         <li>
-          <a href="#">
+          <a href="/app/representante/editar-perfil/">
             <svg
               viewBox="0 0 24 24"
               fill="none"
@@ -139,7 +140,7 @@
         </li>
       </ul>
 
-      <div class="logout">
+      <div class="logout" id="logout">
         <a href="">
           <svg
             viewBox="0 0 24 24"
@@ -165,7 +166,7 @@
           <p>Gestiona la Información académica de tus representados</p>
         </div>
 
-        <div id="students-grid" class="cards-grid"></div>
+        <section class="card__container" id="card-container"></section>
       </div>
     </main>
 

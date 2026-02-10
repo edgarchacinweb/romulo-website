@@ -1,13 +1,33 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema de Inscripción Estudiantil</title>
+
+    <!-- Estilos CSS -->
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/studentsregister.css" />
+
+    <!-- Componentes -->
+    <script
+      src="/src/components/loader.component.js"
+      type="module"
+      refer
+    ></script>
+    <script
+      src="/src/components/notifications-container.component.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="/src/components/notification.component.js"
+      type="module"
+      defer
+    ></script>
   </head>
   <body>
+    <notifications-container id="notifications"></notifications-container>
     <header class="main-header">
       <div class="header-content">
         <div class="logo-area">
@@ -142,7 +162,6 @@
                   type="text"
                   id="nombre"
                   placeholder="Ingrese el nombre"
-                  required
                 />
               </div>
               <div class="form-group">
@@ -151,8 +170,20 @@
                   type="text"
                   id="apellido"
                   placeholder="Ingrese el apellido"
-                  required
                 />
+              </div>
+
+              <div class="form-group">
+                <label for="grado">Género *</label>
+                <div class="select-wrapper">
+                  <select id="genero">
+                    <option value="" disabled selected>
+                      Seleccione el Género
+                    </option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                  </select>
+                </div>
               </div>
 
               <div class="form-group full-width checkbox-wrapper">
@@ -164,26 +195,36 @@
 
               <div class="form-group full-width" id="idContainer">
                 <label for="cedula">Cédula de Identidad</label>
-                <input type="text" id="cedula" placeholder="V-12345678" />
+                <input type="number" id="cedula" placeholder="12345678" />
               </div>
 
               <div class="form-group">
                 <label for="fechaNac">Fecha de Nacimiento *</label>
-                <input type="date" id="fechaNac" required />
+                <input
+                  type="date"
+                  id="fechaNac"
+                  min="2010-01-01"
+                  max="2020-12-31"
+                />
               </div>
               <div class="form-group">
                 <label for="parentesco"
                   >Parentesco con el Representante *</label
                 >
                 <div class="select-wrapper">
-                  <select id="parentesco" required>
+                  <select id="parentesco">
                     <option value="" disabled selected>
                       Seleccione el parentesco
                     </option>
-                    <option value="hijo">Hijo/a</option>
-                    <option value="sobrino">Sobrino/a</option>
-                    <option value="nieto">Nieto/a</option>
-                    <option value="otro">Otro</option>
+                    <option value="Madre">Madre</option>
+                    <option value="Padre">Padre</option>
+                    <option value="Abuelo/a">Abuelo/a</option>
+                    <option value="Tío/a">Tío/a</option>
+                    <option value="Hermano/a">Hermano/a</option>
+                    <option value="Padrastro">Padrastro</option>
+                    <option value="Madrastra">Madrastra</option>
+                    <option value="Tutor Legal">Tutor Legal</option>
+                    <option value="Otro">Otro</option>
                   </select>
                 </div>
               </div>
@@ -191,15 +232,15 @@
               <div class="form-group full-width">
                 <label for="grado">Grado a Cursar *</label>
                 <div class="select-wrapper">
-                  <select id="grado" required>
+                  <select id="grado">
                     <option value="" disabled selected>
                       Seleccione el grado
                     </option>
-                    <option value="1">1er Año</option>
-                    <option value="2">2do Año</option>
-                    <option value="3">3er Año</option>
-                    <option value="4">4to Año</option>
-                    <option value="5">5to Año</option>
+                    <option class="grade-option" value="1">1er Año</option>
+                    <option class="grade-option" value="2">2do Año</option>
+                    <option class="grade-option" value="3">3er Año</option>
+                    <option class="grade-option" value="4">4to Año</option>
+                    <option class="grade-option" value="5">5to Año</option>
                   </select>
                 </div>
               </div>
@@ -217,7 +258,6 @@
                   id="direccion"
                   rows="3"
                   placeholder="Ingrese la dirección completa"
-                  required
                 ></textarea>
               </div>
               <div class="form-group full-width checkbox-wrapper">
@@ -246,13 +286,38 @@
                   </p>
 
                   <div class="docs-grid">
+                    <div class="doc-upload" id="IdDoc">
+                      <label>Cédula de Identidad *</label>
+                      <div class="upload-zone small">
+                        <input type="file" id="docDni" accept=".pdf" hidden />
+                        <div class="upload-content">
+                          <svg
+                            class="upload-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                          <span>Haga clic para cargar</span>
+                          <small>PDF (máx. 10MB)</small>
+                        </div>
+                      </div>
+                    </div>
                     <div class="doc-upload">
                       <label>Partida de Nacimiento *</label>
-                      <div
-                        class="upload-zone small"
-                        onclick="document.getElementById('doc1').click()"
-                      >
-                        <input type="file" id="doc1" accept=".pdf" hidden />
+                      <div class="upload-zone small">
+                        <input
+                          type="file"
+                          id="docPartidaNacimiento"
+                          accept=".pdf"
+                          hidden
+                        />
                         <div class="upload-content">
                           <svg
                             class="upload-icon"
@@ -274,12 +339,14 @@
                     </div>
 
                     <div class="doc-upload">
-                      <label>Notas Certificadas (Año Anterior) *</label>
-                      <div
-                        class="upload-zone small"
-                        onclick="document.getElementById('doc2').click()"
-                      >
-                        <input type="file" id="doc2" accept=".pdf" hidden />
+                      <label>Notas Certificadas *</label>
+                      <div class="upload-zone small">
+                        <input
+                          type="file"
+                          id="docNotasCertificadas"
+                          accept=".pdf"
+                          hidden
+                        />
                         <div class="upload-content">
                           <svg
                             class="upload-icon"
@@ -306,8 +373,10 @@
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn-cancel">Cancelar</button>
-            <button type="submit" class="btn-submit">
+            <button type="button" class="btn-cancel" id="BtnCancel">
+              Cancelar
+            </button>
+            <button type="button" class="btn-submit" id="BtnSubmit">
               Registrar Estudiante
             </button>
           </div>

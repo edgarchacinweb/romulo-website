@@ -57,15 +57,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const startDate = new Date(termItem["FechaInicio"]);
         const endDate = new Date(termItem["FechaFin"]);
         console.log(startDate, endDate);
+        console.log(termItem["FechaCreacion"]);
 
         item.innerHTML = `
           <td class="font-bold">${startDate.getFullYear()} - ${endDate.getFullYear()}</td>
           <td><span class="badge ${index === 0 ? "active" : "inactive"}">${
-          index === 0 ? "Activo" : "Inactivo"
-        }</span></td>
-          <td class="text-muted">${dateFormat.format(
-            new Date(termItem["FechaCreacion"])
-          )}</td>
+            index === 0 ? "Activo" : "Inactivo"
+          }</span></td>
+          <td class="text-muted">${termItem["FechaCreacion"]}</td>
         `;
 
         termContainer.appendChild(item);
@@ -83,13 +82,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Crear período de inscripción
   const registrationTermStatus = document.createElement(
-    "notification-component"
+    "notification-component",
   );
   loader.setAttribute("title", "Registrando nuevo período escolar...");
 
   btnCreate.addEventListener("click", () => {
     const confirmation = confirm(
-      "¿Seguro que quieres crear este período escolar?"
+      "¿Seguro que quieres crear este período escolar?",
     );
 
     if (!confirmation) return;
@@ -126,12 +125,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         registrationTermStatus.setAttribute(
           "text",
-          "Nuevo período escolar registrado correctamente"
+          "Nuevo período escolar registrado correctamente",
         );
 
         termContainer.insertBefore(
           newSchoolTermElement,
-          termContainer.firstElementChild
+          termContainer.firstElementChild,
         );
       })
       .catch((error) => {
