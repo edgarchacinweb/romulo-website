@@ -27,7 +27,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnSubmit = document.getElementById("BtnSubmit");
 
   // Icono de la previsualización de la foto de perfil
-  const uploadIcon = photoPreview.querySelector(".upload-icon");
+  // Verificamos que photoPreview exista para evitar errores si el DOM cambia
+  const uploadIcon = photoPreview ? photoPreview.querySelector(".upload-icon") : null;
 
   // Contenedor de notificaciones
   const notificationsContainer = document.getElementById("notifications");
@@ -75,28 +76,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     const parentUserData = await parentUserDataResponse.json();
 
     // Cargando foto de perfil
-    const profilePhotoResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "image/webp",
+    try {
+        const profilePhotoResponse = await fetch(
+        `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp`,
+        {
+            method: "GET",
+            headers: {
+            "Content-Type": "image/webp",
+            },
         },
-      },
-    );
+        );
 
-    if (profilePhotoResponse.ok) {
-      const profilePhoto = await profilePhotoResponse.blob();
-      const parentProfilePhoto = URL.createObjectURL(profilePhoto);
-      photoPreview.style.backgroundImage = `url(${parentProfilePhoto})`;
-      uploadIcon.style.display = "none";
+        if (profilePhotoResponse.ok) {
+        const profilePhoto = await profilePhotoResponse.blob();
+        const parentProfilePhoto = URL.createObjectURL(profilePhoto);
+        if (photoPreview) {
+            photoPreview.style.backgroundImage = `url(${parentProfilePhoto})`;
+            if (uploadIcon) uploadIcon.style.display = "none";
+        }
+        }
+    } catch (e) {
+        console.warn("No se pudo cargar la foto o no existe", e);
     }
 
     // Cargando datos en los campos del formulario
     firstNameField.value = parentData["Nombre"] ?? "";
     lastNameField.value = parentData["Apellido"] ?? "";
     identityField.value = `V-${parentData["Cedula"]}` ?? "";
-    genderField.value = parentData["Sexo"] ?? "";
+    
+    // --- CORRECCIÓN DEL GÉNERO ---
+    const sexoRecibido = parentData["Sexo"] ?? "";
+    genderField.value = sexoRecibido;
+
+    // Verificación de seguridad: Si el valor no se puso (porque el HTML está mal), lo forzamos
+    if (genderField.value !== sexoRecibido && sexoRecibido) {
+        console.warn("Corrigiendo error de HTML en selector de género...");
+        // Buscamos la opción que tenga el TEXTO igual al género (ej: "Femenino")
+        Array.from(genderField.options).forEach(option => {
+            if (option.text === sexoRecibido || option.label === sexoRecibido) {
+                genderField.value = option.value;
+            }
+        });
+    }
+    // -----------------------------
+
     emailField.value = parentUserData["Email"] ?? "";
     occupationField.value = parentData["Ocupacion"] ?? "";
     addressField.value = parentData["Direccion"] ?? "";
@@ -108,6 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     loader.remove();
   } catch (error) {
+    console.error(error);
     alert("Ocurrió un error al cargar los datos del representante...");
     window.location.href = "/app/representante/inicio/";
     return;
@@ -249,38 +273,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Funcionalidad: Previsualización de Foto de Perfil ---
   const photoInput = document.getElementById("photoUploadInput");
 
-  photoInput.addEventListener("change", function (e) {
-    const file = e.target.files[0];
+  if (photoInput) {
+      photoInput.addEventListener("change", function (e) {
+        const file = e.target.files[0];
 
-    if (file) {
-      // Validar tamaño (Ej: 5MB mencionado en el diseño)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("El archivo es demasiado grande. El tamaño máximo es 5MB.");
-        this.value = ""; // Limpiar el input
-        return;
-      }
+        if (file) {
+          // Validar tamaño (Ej: 5MB mencionado en el diseño)
+          if (file.size > 5 * 1024 * 1024) {
+            alert("El archivo es demasiado grande. El tamaño máximo es 5MB.");
+            this.value = ""; // Limpiar el input
+            return;
+          }
 
-      // Validar tipo de imagen simple
-      if (!file.type.startsWith("image/")) {
-        alert(
-          "Por favor seleccione un archivo de imagen válido (JPG, PNG, GIF).",
-        );
-        this.value = "";
-        return;
-      }
+          // Validar tipo de imagen simple
+          if (!file.type.startsWith("image/")) {
+            alert(
+              "Por favor seleccione un archivo de imagen válido (JPG, PNG, GIF).",
+            );
+            this.value = "";
+            return;
+          }
 
-      const reader = new FileReader();
+          const reader = new FileReader();
 
-      reader.onload = function (event) {
-        // Ocultar el icono de subida por defecto
-        uploadIcon.style.display = "none";
-        // Establecer la imagen como fondo del contenedor de previsualización
-        photoPreview.style.backgroundImage = `url('${event.target.result}')`;
-      };
+          reader.onload = function (event) {
+            // Ocultar el icono de subida por defecto
+            if (uploadIcon) uploadIcon.style.display = "none";
+            // Establecer la imagen como fondo del contenedor de previsualización
+            if (photoPreview) photoPreview.style.backgroundImage = `url('${event.target.result}')`;
+          };
 
-      reader.readAsDataURL(file);
-    }
-  });
+          reader.readAsDataURL(file);
+        }
+      });
+  }
 
   // --- Funcionalidad: Alternar Visibilidad de Contraseña ---
   const togglePasswordButtons = document.querySelectorAll(".toggle-password");
@@ -296,19 +322,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (input.type === "password") {
         input.type = "text";
-        eyeOpen.classList.add("hidden");
-        eyeClosed.classList.remove("hidden");
+        if (eyeOpen) eyeOpen.classList.add("hidden");
+        if (eyeClosed) eyeClosed.classList.remove("hidden");
         this.setAttribute("aria-label", "Ocultar contraseña");
       } else {
         input.type = "password";
-        eyeOpen.classList.remove("hidden");
-        eyeClosed.classList.add("hidden");
+        if (eyeOpen) eyeOpen.classList.remove("hidden");
+        if (eyeClosed) eyeClosed.classList.add("hidden");
         this.setAttribute("aria-label", "Mostrar contraseña");
       }
     });
   });
-
-  // --- Efecto extra: Animación suave al hacer scroll (opcional) ---
-  // Se podría implementar IntersectionObserver para animar secciones al entrar en pantalla,
-  // pero las animaciones CSS de entrada (fade-in-up) al cargar ya cubren la petición de efectos.
 });

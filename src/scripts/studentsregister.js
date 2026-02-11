@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Entradas de formulario
   const firstNameField = document.getElementById("nombre");
   const lastNameField = document.getElementById("apellido");
-  const genderField = document.getElementById("genero");
+  const genderField = document.getElementById("");
   const ciField = document.getElementById("cedula");
   const dateField = document.getElementById("fechaNac");
   const relationshipField = document.getElementById("parentesco");
@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const formData = new FormData();
       formData.append("Nombre", firstName);
       formData.append("Apellido", lastName);
-      formData.append("Genero", gender);
+      formData.append("", gender);
       formData.append("Cedula", ci);
       formData.append(
         "FechaNacimiento",
