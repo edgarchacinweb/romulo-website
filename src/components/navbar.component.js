@@ -16,8 +16,7 @@ class NavbarComponent extends HTMLElement {
         <div class="navigation__container">
             <section class="navigation__account">
                 <a href="./app/inscripcion-selector.html" class="navigation__link">
-                    <img src="./src/assets/icons/users-plus.svg" class="navigation__icon" />
-                    <span class="navigation__text">Inscribirse</span>
+                    
                 </a>
                 <a href="./app/iniciar-sesion.html" class="navigation__link">
                     <img src="./src/assets/icons/login.svg" class="navigation__icon" />
