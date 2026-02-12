@@ -114,19 +114,31 @@
                   />
                 </div>
 
-                <div class="form-group">
-                  <label for="telefono">Teléfono</label>
-                  <input
-                    type="tel"
-                    id="telefono"
-                    name="telefono"
-                    placeholder="XXXX-XXXXXXX"
-                    class="form-input"
-                  />
+                <div class="telefono-group">
+                  <div class="form-group prefijo-field">
+                    <label for="telefono">Teléfono</label>
+                    <select id="prefijo" name="prefijo" class="form-select">
+                      <option value="0412">0412</option>
+                      <option value="0414">0414</option>
+                      <option value="0416">0416</option>
+                      <option value="0422">0422</option>
+                      <option value="0424">0424</option>
+                      <option value="0416">0426</option>
+                    </select>
+                  </div>
+                  <div class="form-group telefono-field">
+                    <input
+                      type="tel"
+                      id="telefono"
+                      name="telefono"
+                      placeholder="XXXXXXX"
+                      class="form-input"
+                    />
+                  </div>
                 </div>
 
                 <div class="form-group">
-                  <label for="ocupacion">Ocupación</label>
+                  <label for="ocupacion">Especialidad</label>
                   <input
                     type="text"
                     id="ocupacion"
@@ -136,11 +148,27 @@
                   />
                 </div>
 
-                <div class="form-group">
-                  <label for="materia">Materia</label>
-                  <select id="materia" name="materia" class="form-select">
-                    <option>Cargando...</option>
-                  </select>
+                <div class="materia-group">
+                  <div class="form-group materia-field">
+                    <label for="materia">Materia</label>
+                    <select id="materia" name="materia" class="form-select">
+                      <option>Cargando...</option>
+                    </select>
+                  </div>
+                  <div id="agregar-materia">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      stroke="currentColor"
+                      fill="currentColor"
+                      height="24"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M10 13h-4v-1h4v1zm2.318-4.288l3.301 3.299-4.369.989 1.068-4.288zm11.682-5.062l-7.268 7.353-3.401-3.402 7.267-7.352 3.402 3.401zm-6 8.916v.977c0 4.107-6 2.457-6 2.457s1.518 6-2.638 6h-7.362v-20h14.056l1.977-2h-18.033v24h10.189c3.163 0 9.811-7.223 9.811-9.614v-3.843l-2 2.023z"/>
+                    </svg>
+                  </div>
+                  <div class="materias-seleccionadas">
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -150,6 +178,20 @@
                     id="correo"
                     name="correo"
                     placeholder="ejemplo@correo.com"
+                    class="form-input"
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="horas">Cantidad de horas semanales</label>
+                  <input
+                    type="number"
+                    id="horas"
+                    name="horas"
+                    min="20"
+                    max="40"
+                    value="20"
+                    placeholder="Horas de clase a la semana"
                     class="form-input"
                   />
                 </div>
@@ -228,19 +270,9 @@
 
               <!-- Lista de Docentes -->
               <div id="teacher-list">
-                <!-- ======================= -->
-                <!-- Componente Tarjeta Docente (Inicio) -->
-                <!-- ======================= -->
-                
-                <!-- ======================= -->
-                <!-- Componente Tarjeta Docente (Fin) -->
-                <!-- ======================= -->
-
-                <!-- Aquí se podrían agregar más docentes dinámicamente -->
               </div>
             </div>
           </div>
-          <!-- Fin Columna Derecha -->
         </div>
       </main>
     </div>
@@ -249,3 +281,4 @@
     <script src="/src/scripts/teachermanager.js" type="module" defer></script>
   </body>
 </html>
+
