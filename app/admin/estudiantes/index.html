@@ -5,11 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestión de Inscripciones</title>
 
-    <!-- Estilos CSS -->
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/studentsmanager.css" />
 
-    <!-- Components Web -->
     <script src="/src/components/loader.component.js" type="module"></script>
     <script
       src="/src/components/notification.component.js"
@@ -79,13 +77,13 @@
           <select class="form-control" id="SectionsField">
             <option value="">Todas las secciones</option>
           </select>
+          
           <select class="form-control" id="StateField">
-         <option value="revision">En Revisión</option>
-         <option value="inscrito">Inscrito</option>
-         <option value="retirado">Retirado</option>
-         <option value="graduado">Graduado</option>
-  
-  <option value="rechazado">Rechazados</option>
+            <option value="revision">En Revisión</option>
+            <option value="inscrito">Inscrito</option>
+            <option value="retirado">Retirado</option>
+            <option value="graduado">Graduado</option>
+            <option value="rechazado">Rechazados</option>
           </select>
         </div>
         <p class="results-count">
@@ -164,6 +162,46 @@
           <button class="btn btn-outline cancelReject">Cancelar</button>
           <button class="btn btn-danger confirmReject">
             Rechazar y Enviar Email
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay" id="editStatusModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <div style="background:#e0f2fe; color:#0284c7; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </div>
+            <div>
+              <h3>Cambiar Estado</h3>
+              <p id="editStudentName">Nombre del Estudiante</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Seleccionar Nuevo Estado</label>
+            <div class="select-wrapper">
+              <select class="form-control" id="newStatusSelect">
+                <option value="inscrito">Inscrito</option>
+                <option value="retirado">Retirado</option>
+                <option value="graduado">Graduado</option>
+                <option value="revision">En Revisión</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline" id="cancelEditBtn">Cancelar</button>
+          <button class="btn" style="background-color: #0284c7; color: white;" id="confirmEditBtn">
+            Guardar Cambios
           </button>
         </div>
       </div>

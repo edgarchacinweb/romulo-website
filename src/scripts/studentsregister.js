@@ -5,17 +5,8 @@ authorize("representante");
 document.addEventListener("DOMContentLoaded", async () => {
   // --- 1. Variables y Elementos ---
   const urlParams = new URLSearchParams(window.location.search);
-  const editId = urlParams.get("edit_id"); // Detectamos si estamos editando
+  const editId = urlParams.get("edit_id"); 
   
-  // --- DIAGNÓSTICO (Esto te dirá si el código funciona) ---
-  if (editId) {
-      console.log("✅ ID de edición encontrado:", editId);
-      // alert("📝 MODO EDICIÓN DETECTADO: " + editId); // Descomenta si necesitas ver la alerta
-  } else {
-      console.log("ℹ️ Modo registro normal (Sin ID)");
-  }
-  // -------------------------------------------------------
-
   const firstNameField = document.getElementById("nombre");
   const lastNameField = document.getElementById("apellido");
   const genderField = document.getElementById("genero");
@@ -38,16 +29,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   let parentData = {};
 
-  // --- 2. Carga Inicial (Grados y Representante) ---
   try {
     document.body.appendChild(loader);
+
+    // --- 2. VALIDACIÓN DE PERIODO (NUEVO) ---
+    // Si NO estamos editando, verificamos si el proceso está abierto
+    if (!editId) {
+        const checkPeriodResponse = await fetch(`${window.APP_CONFIG.api_url}/students/check_period`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!checkPeriodResponse.ok) {
+            // Bloquear visualmente el formulario
+            const mainContainer = document.querySelector(".container") || document.body;
+            mainContainer.innerHTML = `
+                <div style="text-align:center; padding: 80px 20px; background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: 50px auto;">
+                    <div style="font-size: 50px; margin-bottom: 20px;">⚠️</div>
+                    <h2 style="color: #dc3545; margin-bottom: 15px;">Proceso de Inscripción Cerrado</h2>
+                    <p style="color: #666; line-height: 1.6;">Actualmente no hay periodos de inscripción activos en el sistema. Por favor, esté atento a los comunicados oficiales del Liceo.</p>
+                    <a href="/app/representante/inicio/" style="display:inline-block; margin-top:25px; padding: 12px 25px; background: #007bff; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">Volver al Inicio</a>
+                </div>
+            `;
+            loader.remove();
+            return; // Detener ejecución
+        }
+    }
+
+    // --- 3. Carga Inicial (Grados y Representante) ---
     
     // Cargar Grados
     const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const grades = await gradesResponse.json();
-    document.querySelectorAll(".grade-option").forEach((opt, index) => opt.value = grades[index].CursoId);
+    document.querySelectorAll(".grade-option").forEach((opt, index) => {
+        if(grades[index]) opt.value = grades[index].CursoId;
+    });
 
     // Cargar Representante
     const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
@@ -61,13 +78,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const countData = await countResponse.json();
     parentData["students"] = countData;
 
-    // --- 3. MODO EDICIÓN: SI HAY ID, CARGAMOS DATOS ---
+    // --- 4. MODO EDICIÓN: CARGAR DATOS ---
     if (editId) {
-        // Cambiar título y botón visualmente
         if(formTitle) formTitle.textContent = "Corregir Inscripción";
         btnSubmit.textContent = "Guardar Correcciones";
         
-        // Obtener datos del estudiante
         const studentResponse = await fetch(`${window.APP_CONFIG.api_url}/students/get/${editId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -75,9 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!studentResponse.ok) throw new Error("No se pudo cargar la información del estudiante");
         
         const student = await studentResponse.json();
-        console.log("Datos del estudiante recibidos:", student); // Para ver en consola
 
-        // Rellenar campos (Aseguramos que student.DatosPersona existe)
         if (student.DatosPersona) {
             firstNameField.value = student.DatosPersona.Nombre || "";
             lastNameField.value = student.DatosPersona.Apellido || "";
@@ -85,16 +98,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             ciField.value = student.DatosPersona.Cedula || "";
             addressField.value = student.DatosPersona.Direccion || "";
             
-            // Ajustar checkbox de cédula
             if (student.DatosPersona.Cedula) {
                 hasIdCheckbox.checked = true;
                 idFormDoc.style.display = "block";
             }
         }
 
-        // Rellenar fecha
         if (student.FechaNacimiento) {
-            // Intentamos convertir la fecha de forma segura
             const birthDate = new Date(student.FechaNacimiento);
             if (!isNaN(birthDate)) {
                 const yyyy = birthDate.getFullYear();
@@ -105,13 +115,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         relationshipField.value = student.Parentesco || "";
-        if (student.Curso) {
-            gradeField.value = student.Curso.CursoId || "";
-        }
+        if (student.Curso) gradeField.value = student.Curso.CursoId || "";
 
-        // Mostrar aviso sobre archivos
-        const uploadZones = document.querySelectorAll(".upload-zone span");
-        uploadZones.forEach(span => {
+        document.querySelectorAll(".upload-zone span").forEach(span => {
             span.textContent = "Archivo cargado (Suba otro para reemplazar)";
             span.style.color = "#0056b3";
             span.style.fontWeight = "bold";
@@ -119,16 +125,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
   } catch (err) {
-    console.error("Error cargando datos:", err);
-    const notification = document.createElement("notification-component");
-    notification.setAttribute("type", "error");
-    notification.setAttribute("text", "Error cargando datos: " + err.message);
-    notificationsContainer.appendChild(notification);
+    console.error("Error:", err);
   } finally {
     loader.remove();
   }
 
-  // --- 4. Lógica de UI (Checkboxes) ---
+  // --- 5. Lógica de UI ---
   toggleInputState(idInput, !hasIdCheckbox.checked);
   hasIdCheckbox.addEventListener("change", (e) => {
     toggleInputState(idInput, !e.target.checked);
@@ -153,19 +155,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   function toggleInputState(el, disabled) {
-    el.disabled = disabled;
-    el.style.opacity = disabled ? "0.6" : "1";
+    if(el) {
+        el.disabled = disabled;
+        el.style.opacity = disabled ? "0.6" : "1";
+    }
   }
 
-  // --- 5. ENVÍO DEL FORMULARIO (Crear O Actualizar) ---
+  // --- 6. ENVÍO DEL FORMULARIO ---
   btnSubmit.addEventListener("click", async () => {
     try {
-      // Validaciones básicas
       if (!firstNameField.value.trim()) throw new Error("Falta el nombre");
       if (!lastNameField.value.trim()) throw new Error("Falta el apellido");
-      if (!genderField.value) throw new Error("Falta el género");
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
-      if (!gradeField.value) throw new Error("Falta el grado");
 
       document.body.appendChild(loader);
       const formData = new FormData();
@@ -175,18 +176,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       formData.append("Genero", genderField.value);
       formData.append("Cedula", ciField.value.trim());
       
-      // Formato fecha DD/MM/YYYY
-      const dateParts = dateField.value.split('-'); // YYYY-MM-DD
+      const dateParts = dateField.value.split('-'); 
       formData.append("FechaNacimiento", `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`);
       
       formData.append("Parentesco", relationshipField.value);
       formData.append("IdCurso", gradeField.value);
       formData.append("Direccion", addressField.value.trim());
       
-      // Solo en modo creación necesitamos ID del representante
       if (!editId) formData.append("IdRepresentante", parentData["DatosPersonaId"]);
 
-      // Archivos
       const filesMap = {
           "FotoCarnet": "studentPhoto",
           "DocDni": "docDni",
@@ -196,28 +194,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       for (const [key, id] of Object.entries(filesMap)) {
           const fileInput = document.getElementById(id);
-          if (fileInput.files[0]) {
+          if (fileInput && fileInput.files[0]) {
               formData.append(key, fileInput.files[0]);
           } else if (!editId && key !== "DocDni") {
-              // Si es creación, exigimos archivos. Si es edición, son opcionales (se mantienen los viejos)
               throw new Error(`Falta cargar: ${key}`);
           }
       }
 
-      // --- DECISIÓN CRÍTICA: ¿CREAR O ACTUALIZAR? ---
-      let url, method;
-      
-      if (editId) {
-          // MODO CORRECCIÓN (PUT)
-          console.log("Enviando actualización para ID:", editId);
-          url = `${window.APP_CONFIG.api_url}/students/correct_application/${editId}`;
-          method = "PUT";
-      } else {
-          // MODO CREACIÓN (POST)
-          console.log("Enviando registro nuevo");
-          url = `${window.APP_CONFIG.api_url}/students/create`;
-          method = "POST";
-      }
+      let url = editId ? `${window.APP_CONFIG.api_url}/students/correct_application/${editId}` : `${window.APP_CONFIG.api_url}/students/create`;
+      let method = editId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method: method,
@@ -228,7 +213,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const resData = await response.json();
       if (!response.ok) throw new Error(resData.message);
 
-      // Éxito
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "success");
       notification.setAttribute("text", resData.message);
@@ -239,7 +223,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }, 2000);
 
     } catch (err) {
-      console.error(err);
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
       notification.setAttribute("text", err.message);
