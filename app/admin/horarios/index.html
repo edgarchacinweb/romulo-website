@@ -92,29 +92,24 @@
           <div class="form-group">
             <label>Grado Estudiantil</label>
             <div class="select-wrapper">
-              <select>
-                <option>Seleccionar grado</option>
-                <option>1er Año</option>
-                <option>2do Año</option>
+              <select id="gradeField">
+                <option>Cargando...</option>
               </select>
             </div>
           </div>
           <div class="form-group">
             <label>Sección</label>
             <div class="select-wrapper">
-              <select>
-                <option>Seleccionar sección</option>
-                <option>A</option>
-                <option>B</option>
+              <select id="sectionField" disabled>
+                <option>Cargando...</option>
               </select>
             </div>
           </div>
           <div class="form-group">
             <label>Período Escolar</label>
             <div class="select-wrapper">
-              <select>
-                <option>Seleccionar período</option>
-                <option>2025-2026</option>
+              <select id="termField">
+                <option>Cargando...</option>
               </select>
             </div>
           </div>
@@ -147,7 +142,7 @@
         </p>
       </div>
 
-      <div id="results-container" class="hidden schedule-container">
+      <!-- <div id="results-container" class="hidden schedule-container">
         <section class="card">
           <div class="card-header border-bottom">
             <div class="icon-title">
@@ -450,7 +445,7 @@
             </button>
           </div>
         </footer>
-      </div>
+      </div> -->
     </main>
 
     <script src="/src/scripts/config.js" type="module"></script>
