@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentsData = await studentsDataResponse.json();
     if (!studentsDataResponse.ok) throw new Error(studentsData.message);
 
-    // 4. Generar Tarjetas
+    console.log(studentsData);
     studentsData.forEach((student) => {
       const card = document.createElement("div");
       const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";

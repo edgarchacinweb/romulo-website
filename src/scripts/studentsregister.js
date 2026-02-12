@@ -68,16 +68,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         gradeField.appendChild(option);
     });
 
-    const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    parentData = await parentResponse.json();
-    
-    const countResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${parentData.DatosPersonaId || parentData.id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-    const countData = await countResponse.json();
-    parentData["students"] = countData;
+    if (
+      !parentData["Telefono"] ||
+      !parentData["Ocupacion"] ||
+      !parentData["Direccion"]
+    ) {
+      alert(
+        'Primero termina de llenar los datos de tu perfil en la opción "Editar Perfil"',
+      );
+      window.location.href = "/app/representante/editar-perfil";
+      return;
+    }
+
+    const countStudents = await countStudentsResponse.json();
 
     // --- 4. MODO EDICIÓN: AUTO-LLENADO ---
     if (editId) {
