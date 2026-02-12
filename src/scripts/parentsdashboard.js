@@ -22,13 +22,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("auth");
 
   try {
-    // 1. Verificar si hay periodo de inscripción abierto y obtener su ID
+    // 1. Verificar si hay periodo de inscripción abierto
     let activeEnrollmentPeriod = null;
     try {
         const periodResponse = await fetch(`${window.APP_CONFIG.api_url}/students/check_period`);
         if (periodResponse.ok) {
             activeEnrollmentPeriod = await periodResponse.json();
-            // activeEnrollmentPeriod.periodoEscolarId contiene el ID del periodo activo
         }
     } catch (e) { console.log("No hay periodo activo"); }
 
@@ -69,18 +68,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       const birthdate = new Date(student.FechaNacimiento);
       const estado = student.EstadoEstudiante.Estado; 
       const currentGrade = parseInt(student.Curso.Grado);
-      const currentPeriodId = student.Curso.PeriodoEscolarId; // Este es el periodo donde está inscrito
+      const currentPeriodId = student.Curso.PeriodoEscolarId; 
       
       card.classList.add("card");
 
-      // --- LÓGICA DE BOTONES ---
       let actionButtonsHTML = "";
 
+      // --- LÓGICA DE BOTÓN DE CORRECCIÓN (RECHAZADO) ---
       if (estado === "rechazado") {
         actionButtonsHTML = `
           <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
-             <a href="/app/representante/inscripcion/?edit_id=${student.EstudianteId}" 
+             <a href="/app/representante/inscripcion/" 
                 class="btn-edit"
+                data-id="${student.EstudianteId}"
                 style="display: block; width: 100%; padding: 10px; background-color: #dc3545; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: bold; cursor: pointer;">
                 <i class="fas fa-edit"></i> Corregir Solicitud
              </a>
@@ -88,10 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
       } 
-      // LÓGICA CORREGIDA: Solo mostramos reinscripción si:
-      // 1. Hay un periodo abierto (activeEnrollmentPeriod no es null)
-      // 2. El estudiante está "inscrito" (aprobado)
-      // 3. El periodo abierto es DIFERENTE al periodo actual del estudiante (Evita reinscribir en el mismo año)
+      // --- LÓGICA DE REINSCRIPCIÓN ---
       else if (
           estado === "inscrito" && 
           currentGrade < 6 && 
@@ -99,8 +96,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           activeEnrollmentPeriod.open === true &&
           activeEnrollmentPeriod.periodoEscolarId !== currentPeriodId 
       ) {
-         const nextGrade = currentGrade + 1;
-         actionButtonsHTML = `
+          const nextGrade = currentGrade + 1;
+          actionButtonsHTML = `
           <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
              <button class="btn-reinscribe" 
                 data-id="${student.EstudianteId}" 
@@ -111,7 +108,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
       }
-      // ------------------------
 
       card.innerHTML = `
             <section class="card__student">
@@ -123,11 +119,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                   onerror="this.src='/src/assets/default-avatar.png'"
                 />
               </div>
-
               <h3 class="card__name">${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}</h3>
               <span class="card__identity">V-${student.DatosPersona.Cedula}</span>
             </section>
-
             <section class="card__data card__data--${gender}">
               <div class="card__section">
                 <div class="card__field">
@@ -145,7 +139,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                   <span class="field__content">${calcularEdadExacta(birthdate)} años</span>
                 </div>
               </div>
-
               <div class="card__section">
                 <div class="card__field">
                   <div class="field__title">
@@ -162,7 +155,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                   <span class="field__content">${student.Curso.Seccion}</span>
                 </div>
               </div>
-              
               <div class="card__section">
                 <div class="card__field card__field--${estado} field__state">
                   <div class="field__title">
@@ -179,6 +171,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       cardContainer.appendChild(card);
 
+      // --- LISTENER PARA CORREGIR (LocalStorage) ---
+      const editBtn = card.querySelector(".btn-edit");
+      if (editBtn) {
+        editBtn.addEventListener("click", (e) => {
+          e.preventDefault(); // Evitamos navegación inmediata
+          const studentId = editBtn.getAttribute("data-id");
+          // Guardamos el ID para que el formulario lo lea
+          localStorage.setItem("id_estudiante_rechazado", studentId);
+          window.location.href = editBtn.getAttribute("href");
+        });
+      }
+
+      // --- LISTENER PARA REINSCRIBIR ---
       const reinscribeBtn = card.querySelector(".btn-reinscribe");
       if(reinscribeBtn) {
           reinscribeBtn.addEventListener("click", async () => {
@@ -189,7 +194,6 @@ document.addEventListener("DOMContentLoaded", async () => {
              if (!confirmAction) return;
 
              try {
-                // Buscamos curso por grado
                 const courseRes = await fetch(`${window.APP_CONFIG.api_url}/course/get_by_grade/${nextGrade}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -197,7 +201,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if(!courseRes.ok) throw new Error("No se encontró el curso para el siguiente año.");
                 const courseData = await courseRes.json();
                 
-                // Enviamos Reinscripción
                 const response = await fetch(`${window.APP_CONFIG.api_url}/students/reinscribe`, {
                     method: "POST",
                     headers: {
@@ -218,7 +221,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     alert("Error: " + result.message);
                 }
              } catch (error) {
-                 console.error(error);
                  alert("No se pudo procesar: " + error.message);
              }
           });
@@ -229,10 +231,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error(Error.stack);
   }
 
+  // Cerrar sesión
   document.getElementById("logout")?.addEventListener("click", (event) => {
     event.preventDefault();
-    const confirmation = confirm("¿Segur@ que quieres cerrar sesión?");
-    if (confirmation) {
+    if (confirm("¿Segur@ que quieres cerrar sesión?")) {
       localStorage.clear();
       window.location.href = "/app/iniciar-sesion.html";
     }

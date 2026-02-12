@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const addressField = document.getElementById("direccion");
   
   const hasIdCheckbox = document.getElementById("hasId");
-  const idInput = document.getElementById("cedula");
   const idFormDoc = document.getElementById("IdDoc");
   
   const btnSubmit = document.getElementById("BtnSubmit");
@@ -32,141 +31,151 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     document.body.appendChild(loader);
 
-    // --- 2. VALIDACIÓN DE PERIODO (NUEVO) ---
-    // Si NO estamos editando, verificamos si el proceso está abierto
+    // --- 2. VALIDACIÓN DE PERIODO ---
     if (!editId) {
         const checkPeriodResponse = await fetch(`${window.APP_CONFIG.api_url}/students/check_period`, {
             headers: { Authorization: `Bearer ${token}` }
         });
 
         if (!checkPeriodResponse.ok) {
-            // Bloquear visualmente el formulario
             const mainContainer = document.querySelector(".container") || document.body;
             mainContainer.innerHTML = `
                 <div style="text-align:center; padding: 80px 20px; background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: 50px auto;">
                     <div style="font-size: 50px; margin-bottom: 20px;">⚠️</div>
                     <h2 style="color: #dc3545; margin-bottom: 15px;">Proceso de Inscripción Cerrado</h2>
-                    <p style="color: #666; line-height: 1.6;">Actualmente no hay periodos de inscripción activos en el sistema. Por favor, esté atento a los comunicados oficiales del Liceo.</p>
+                    <p style="color: #666; line-height: 1.6;">No hay periodos activos actualmente.</p>
                     <a href="/app/representante/inicio/" style="display:inline-block; margin-top:25px; padding: 12px 25px; background: #007bff; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">Volver al Inicio</a>
                 </div>
             `;
             loader.remove();
-            return; // Detener ejecución
+            return;
         }
     }
 
-    // --- 3. Carga Inicial (Grados y Representante) ---
+    // --- 3. CARGA INICIAL DE DATOS (Grados y Representante) ---
     
-    // Cargar Grados
+    // Cargamos los grados primero para que el select esté listo antes de pre-rellenar
     const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const grades = await gradesResponse.json();
-    document.querySelectorAll(".grade-option").forEach((opt, index) => {
-        if(grades[index]) opt.value = grades[index].CursoId;
+    
+    gradeField.innerHTML = '<option value="" disabled selected>Seleccione el año</option>';
+    grades.forEach(g => {
+        const option = document.createElement("option");
+        option.value = g.CursoId;
+        option.textContent = `${g.Grado}° Año`;
+        gradeField.appendChild(option);
     });
 
-    // Cargar Representante
     const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     parentData = await parentResponse.json();
     
-    const countResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent`, {
+    const countResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${parentData.DatosPersonaId || parentData.id}`, {
         headers: { Authorization: `Bearer ${token}` }
     });
     const countData = await countResponse.json();
     parentData["students"] = countData;
 
-    // --- 4. MODO EDICIÓN: CARGAR DATOS ---
+    // --- 4. MODO EDICIÓN: AUTO-LLENADO ---
     if (editId) {
-        if(formTitle) formTitle.textContent = "Corregir Inscripción";
+        console.log("Iniciando carga de datos para corrección...");
+        if(formTitle) formTitle.textContent = "Corregir Solicitud de Inscripción";
         btnSubmit.textContent = "Guardar Correcciones";
         
         const studentResponse = await fetch(`${window.APP_CONFIG.api_url}/students/get/${editId}`, {
             headers: { Authorization: `Bearer ${token}` }
         });
         
-        if (!studentResponse.ok) throw new Error("No se pudo cargar la información del estudiante");
+        if (!studentResponse.ok) throw new Error("No se pudo obtener la información del servidor");
         
         const student = await studentResponse.json();
+        console.log("Datos recibidos:", student);
 
-        if (student.DatosPersona) {
-            firstNameField.value = student.DatosPersona.Nombre || "";
-            lastNameField.value = student.DatosPersona.Apellido || "";
-            genderField.value = student.DatosPersona.Sexo || "";
-            ciField.value = student.DatosPersona.Cedula || "";
-            addressField.value = student.DatosPersona.Direccion || "";
-            
-            if (student.DatosPersona.Cedula) {
-                hasIdCheckbox.checked = true;
-                idFormDoc.style.display = "block";
-            }
-        }
-
-        if (student.FechaNacimiento) {
-            const birthDate = new Date(student.FechaNacimiento);
-            if (!isNaN(birthDate)) {
-                const yyyy = birthDate.getFullYear();
-                const mm = String(birthDate.getMonth() + 1).padStart(2, '0');
-                const dd = String(birthDate.getDate()).padStart(2, '0');
-                dateField.value = `${yyyy}-${mm}-${dd}`;
-            }
-        }
-
+        // Mapeo de datos (Ajustado a tu Backend)
+        firstNameField.value = student.Nombre || "";
+        lastNameField.value = student.Apellido || "";
+        genderField.value = student.Genero || "";
+        ciField.value = student.Cedula || "";
+        addressField.value = student.Direccion || "";
         relationshipField.value = student.Parentesco || "";
-        if (student.Curso) gradeField.value = student.Curso.CursoId || "";
+        
+        // Asignar el Grado
+        if (student.IdCurso) {
+            gradeField.value = student.IdCurso;
+        }
 
+        // Formateo de Fecha de Nacimiento para el input type="date" (YYYY-MM-DD)
+        if (student.FechaNacimiento) {
+            let dateVal = student.FechaNacimiento;
+            // Si la fecha viene de Postgres como DD/MM/YYYY, la convertimos
+            if (dateVal.includes('/')) {
+                const [d, m, y] = dateVal.split('/');
+                dateVal = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+            } else if (dateVal.includes(' ')) {
+                // Si viene con timestamp, cortamos solo la fecha
+                dateVal = dateVal.split(' ')[0];
+            }
+            dateField.value = dateVal.substring(0, 10);
+        }
+
+        // Si tiene cédula, mostramos el campo
+        if (student.Cedula) {
+            hasIdCheckbox.checked = true;
+            idFormDoc.style.display = "block";
+            ciField.disabled = false;
+            ciField.style.opacity = "1";
+        }
+
+        // Mensaje visual para documentos
         document.querySelectorAll(".upload-zone span").forEach(span => {
-            span.textContent = "Archivo cargado (Suba otro para reemplazar)";
+            span.textContent = "Archivo cargado previamente (Suba uno nuevo para reemplazar)";
             span.style.color = "#0056b3";
             span.style.fontWeight = "bold";
         });
     }
 
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Error crítico en carga:", err);
   } finally {
-    loader.remove();
+    if (loader) loader.remove();
   }
 
-  // --- 5. Lógica de UI ---
-  toggleInputState(idInput, !hasIdCheckbox.checked);
+  // --- 5. Lógica de Interfaz ---
   hasIdCheckbox.addEventListener("change", (e) => {
-    toggleInputState(idInput, !e.target.checked);
-    idFormDoc.style.display = e.target.checked ? "block" : "none";
-    if (e.target.checked) {
-        idInput.value = "";
-        idInput.focus();
+    const isChecked = e.target.checked;
+    ciField.disabled = !isChecked;
+    ciField.style.opacity = isChecked ? "1" : "0.6";
+    idFormDoc.style.display = isChecked ? "block" : "none";
+    
+    if (isChecked) {
+        ciField.value = "";
+        ciField.focus();
     } else if (!editId) { 
-        idInput.value = `${parentData["Cedula"]}${parentData["students"]["count"] + 1}`;
+        ciField.value = `${parentData.Cedula}${ (parentData.students?.count || 0) + 1 }`;
     }
   });
 
   document.getElementById("sameAddress").addEventListener("change", (e) => {
     if (e.target.checked) {
-        addressField.value = parentData["Direccion"];
+        addressField.value = parentData.Direccion || "";
         addressField.readOnly = true;
     } else {
-        if (!editId) addressField.value = "";
         addressField.readOnly = false;
+        if (!editId) addressField.value = "";
         addressField.focus();
     }
   });
 
-  function toggleInputState(el, disabled) {
-    if(el) {
-        el.disabled = disabled;
-        el.style.opacity = disabled ? "0.6" : "1";
-    }
-  }
-
   // --- 6. ENVÍO DEL FORMULARIO ---
-  btnSubmit.addEventListener("click", async () => {
+  btnSubmit.addEventListener("click", async (e) => {
+    e.preventDefault();
     try {
-      if (!firstNameField.value.trim()) throw new Error("Falta el nombre");
-      if (!lastNameField.value.trim()) throw new Error("Falta el apellido");
-      if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
+      if (!firstNameField.value.trim() || !lastNameField.value.trim() || !dateField.value) {
+          throw new Error("Por favor completa los campos obligatorios.");
+      }
 
       document.body.appendChild(loader);
       const formData = new FormData();
@@ -176,33 +185,36 @@ document.addEventListener("DOMContentLoaded", async () => {
       formData.append("Genero", genderField.value);
       formData.append("Cedula", ciField.value.trim());
       
-      const dateParts = dateField.value.split('-'); 
-      formData.append("FechaNacimiento", `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`);
+      const [y, m, d] = dateField.value.split('-');
+      formData.append("FechaNacimiento", `${d}/${m}/${y}`);
       
       formData.append("Parentesco", relationshipField.value);
       formData.append("IdCurso", gradeField.value);
       formData.append("Direccion", addressField.value.trim());
       
-      if (!editId) formData.append("IdRepresentante", parentData["DatosPersonaId"]);
+      if (!editId) {
+          formData.append("IdRepresentante", parentData.DatosPersonaId || parentData.id);
+      }
 
       const filesMap = {
           "FotoCarnet": "studentPhoto",
           "DocDni": "docDni",
           "DocPartidaNacimiento": "docPartidaNacimiento",
-          "DocNotasCertificadas": "docNotasCertificadas"
+          "DocNotasCertificadas": "notas"
       };
 
-      for (const [key, id] of Object.entries(filesMap)) {
-          const fileInput = document.getElementById(id);
+      for (const [key, elementId] of Object.entries(filesMap)) {
+          const fileInput = document.getElementById(elementId);
           if (fileInput && fileInput.files[0]) {
               formData.append(key, fileInput.files[0]);
-          } else if (!editId && key !== "DocDni") {
-              throw new Error(`Falta cargar: ${key}`);
           }
       }
 
-      let url = editId ? `${window.APP_CONFIG.api_url}/students/correct_application/${editId}` : `${window.APP_CONFIG.api_url}/students/create`;
-      let method = editId ? "PUT" : "POST";
+      const url = editId 
+        ? `${window.APP_CONFIG.api_url}/students/correct_application/${editId}` 
+        : `${window.APP_CONFIG.api_url}/students/create`;
+      
+      const method = editId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method: method,
@@ -215,7 +227,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "success");
-      notification.setAttribute("text", resData.message);
+      notification.setAttribute("text", "¡Cambios guardados exitosamente!");
       notificationsContainer.appendChild(notification);
       
       setTimeout(() => {
@@ -228,20 +240,40 @@ document.addEventListener("DOMContentLoaded", async () => {
       notification.setAttribute("text", err.message);
       notificationsContainer.appendChild(notification);
     } finally {
-      loader.remove();
+      if (loader) loader.remove();
     }
   });
 
   // Visual de Inputs de archivo
+ // --- VISUAL DE INPUTS DE ARCHIVO (CORREGIDO) ---
   document.querySelectorAll('input[type="file"]').forEach((input) => {
+    // 1. Detectar cuando el usuario selecciona un archivo
     input.addEventListener("change", (e) => {
       const fileName = e.target.files[0]?.name;
       const zone = input.closest(".upload-zone");
       if (fileName && zone) {
+        // Cambiamos el texto "Haga clic..." por el nombre del archivo
         zone.querySelector("span").textContent = fileName;
+        // Cambiamos el borde a verde para indicar éxito
         zone.style.borderColor = "#28a745";
+        zone.style.backgroundColor = "#f0fff4";
+        // Cambiamos el icono a un check
+        const icon = zone.querySelector("svg");
+        if(icon) icon.style.color = "#28a745";
       }
     });
-    input.closest(".upload-zone")?.addEventListener("click", () => input.click());
+
+    // 2. EL PUENTE: Al hacer clic en la zona punteada, activamos el input oculto
+    const zone = input.closest(".upload-zone");
+    if (zone) {
+      zone.addEventListener("click", (e) => {
+        // Evitamos que el clic se dispare doble si le dan directo al input (poco probable pero posible)
+        if (e.target !== input) {
+            input.click();
+        }
+      });
+      // Cambiamos el cursor para que se vea que es clicable
+      zone.style.cursor = "pointer"; 
+    }
   });
-});
+}); // <--- Fin del DOMContentLoaded
