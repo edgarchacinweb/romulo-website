@@ -22,7 +22,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("auth");
 
   try {
-    // Cargando datos del representante
+    // 1. Verificar si hay periodo de inscripción abierto y obtener su ID
+    let activeEnrollmentPeriod = null;
+    try {
+        const periodResponse = await fetch(`${window.APP_CONFIG.api_url}/students/check_period`);
+        if (periodResponse.ok) {
+            activeEnrollmentPeriod = await periodResponse.json();
+            // activeEnrollmentPeriod.periodoEscolarId contiene el ID del periodo activo
+        }
+    } catch (e) { console.log("No hay periodo activo"); }
+
+    // 2. Cargando datos del representante
     const parentDataResponse = await fetch(
       `${window.APP_CONFIG.api_url}/people/get`,
       {
@@ -37,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const parentData = await parentDataResponse.json();
     if (!parentDataResponse.ok) throw new Error(parentData.message);
 
-    // Cargando datos de los representados
+    // 3. Cargando datos de los hijos
     const studentsDataResponse = await fetch(
       `${window.APP_CONFIG.api_url}/students/by_parent/${parentData.DatosPersonaId}`,
       {
@@ -52,34 +62,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentsData = await studentsDataResponse.json();
     if (!studentsDataResponse.ok) throw new Error(studentsData.message);
 
+    // 4. Generar Tarjetas
     studentsData.forEach((student) => {
       const card = document.createElement("div");
       const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
       const birthdate = new Date(student.FechaNacimiento);
-      const estado = student.EstadoEstudiante.Estado; // 'revision', 'inscrito', 'rechazado'
-
-      // --- LÓGICA DEL BOTÓN DE EDITAR ---
-      let actionButtonHTML = "";
+      const estado = student.EstadoEstudiante.Estado; 
+      const currentGrade = parseInt(student.Curso.Grado);
+      const currentPeriodId = student.Curso.PeriodoEscolarId; // Este es el periodo donde está inscrito
       
+      card.classList.add("card");
+
+      // --- LÓGICA DE BOTONES ---
+      let actionButtonsHTML = "";
+
       if (estado === "rechazado") {
-        // Si está rechazado, mostramos botón para ir a editar
-        // Nota: Enviamos el ID en la URL para saber a quién editar
-        actionButtonHTML = `
+        actionButtonsHTML = `
           <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
              <a href="/app/representante/inscripcion/?edit_id=${student.EstudianteId}" 
                 class="btn-edit"
-                style="display: block; width: 100%; padding: 10px; background-color: #343a40; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: bold;">
-                 Corregir Solicitud
+                style="display: block; width: 100%; padding: 10px; background-color: #dc3545; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: bold; cursor: pointer;">
+                <i class="fas fa-edit"></i> Corregir Solicitud
              </a>
-             <small style="display:block; text-align:center; color: #ffffff; margin-top:5px;">Verifique su correo para ver el motivo.</small>
+             <small style="display:block; text-align:center; color: #666; margin-top:5px;">Revise su correo para ver el motivo.</small>
+          </div>
+        `;
+      } 
+      // LÓGICA CORREGIDA: Solo mostramos reinscripción si:
+      // 1. Hay un periodo abierto (activeEnrollmentPeriod no es null)
+      // 2. El estudiante está "inscrito" (aprobado)
+      // 3. El periodo abierto es DIFERENTE al periodo actual del estudiante (Evita reinscribir en el mismo año)
+      else if (
+          estado === "inscrito" && 
+          currentGrade < 6 && 
+          activeEnrollmentPeriod && 
+          activeEnrollmentPeriod.open === true &&
+          activeEnrollmentPeriod.periodoEscolarId !== currentPeriodId 
+      ) {
+         const nextGrade = currentGrade + 1;
+         actionButtonsHTML = `
+          <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
+             <button class="btn-reinscribe" 
+                data-id="${student.EstudianteId}" 
+                data-next="${nextGrade}"
+                style="display: block; width: 100%; padding: 10px; background-color: #6366f1; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                <i class="fas fa-graduation-cap"></i> Reinscribir a ${nextGrade}° Año
+             </button>
           </div>
         `;
       }
-      // ----------------------------------
+      // ------------------------
 
-      card.classList.add("card");
       card.innerHTML = `
-                  <section class="card__student">
+            <section class="card__student">
               <div class="card__image card__image--${gender}">
                 <img
                   class="card__photo"
@@ -138,26 +173,65 @@ document.addEventListener("DOMContentLoaded", async () => {
                   </div>
                 </div>
               </div>
-
-              ${actionButtonHTML}
-
             </section>
+            ${actionButtonsHTML}
       `;
 
       cardContainer.appendChild(card);
+
+      const reinscribeBtn = card.querySelector(".btn-reinscribe");
+      if(reinscribeBtn) {
+          reinscribeBtn.addEventListener("click", async () => {
+             const nextGrade = reinscribeBtn.getAttribute("data-next");
+             const studentId = reinscribeBtn.getAttribute("data-id");
+
+             const confirmAction = confirm(`¿Confirma que desea solicitar la reinscripción para ${nextGrade}° Año?`);
+             if (!confirmAction) return;
+
+             try {
+                // Buscamos curso por grado
+                const courseRes = await fetch(`${window.APP_CONFIG.api_url}/course/get_by_grade/${nextGrade}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                if(!courseRes.ok) throw new Error("No se encontró el curso para el siguiente año.");
+                const courseData = await courseRes.json();
+                
+                // Enviamos Reinscripción
+                const response = await fetch(`${window.APP_CONFIG.api_url}/students/reinscribe`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        EstudianteId: studentId,
+                        NuevoCursoId: courseData.CursoId 
+                    })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.reload(); 
+                } else {
+                    alert("Error: " + result.message);
+                }
+             } catch (error) {
+                 console.error(error);
+                 alert("No se pudo procesar: " + error.message);
+             }
+          });
+      }
     });
+
   } catch (Error) {
     console.error(Error.stack);
-    const notification = document.createElement("notification-component");
-    notification.setAttribute("type", "Error");
-    notification.setAttribute("error", Error.message);
-    notificationsContainer.appendChild(notification);
   }
 
   document.getElementById("logout")?.addEventListener("click", (event) => {
     event.preventDefault();
     const confirmation = confirm("¿Segur@ que quieres cerrar sesión?");
-
     if (confirmation) {
       localStorage.clear();
       window.location.href = "/app/iniciar-sesion.html";
