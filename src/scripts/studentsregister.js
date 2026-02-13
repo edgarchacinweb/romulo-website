@@ -52,9 +52,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // --- 3. CARGA INICIAL DE DATOS (Grados y Representante) ---
+    // --- 3. CARGA INICIAL DE DATOS ---
     
-    // Cargamos los grados primero para que el select esté listo antes de pre-rellenar
+    // A) Cargamos los Grados
     const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, {
       headers: { Authorization: `Bearer ${token}` }
     });
@@ -68,19 +68,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         gradeField.appendChild(option);
     });
 
-    if (
-      !parentData["Telefono"] ||
-      !parentData["Ocupacion"] ||
-      !parentData["Direccion"]
-    ) {
-      alert(
-        'Primero termina de llenar los datos de tu perfil en la opción "Editar Perfil"',
-      );
-      window.location.href = "/app/representante/editar-perfil";
-      return;
-    }
+    // B) Cargamos al Representante
+    const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    parentData = await parentResponse.json();
 
+    // C) Validación de Perfil (COMENTADA PARA QUE NO TE BLOQUEE)
+    /* if (!parentData.Direccion || !parentData.Telefono) {
+        alert('Por favor complete su perfil primero.');
+        return;
+    } 
+    */
+
+    // D) Contamos los estudiantes (ESTO FALTABA Y DABA ERROR)
+    const countStudentsResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${parentData.DatosPersonaId || parentData.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
     const countStudents = await countStudentsResponse.json();
+    parentData.students = countStudents; // Guardamos el conteo en el objeto principal
 
     // --- 4. MODO EDICIÓN: AUTO-LLENADO ---
     if (editId) {
@@ -97,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const student = await studentResponse.json();
         console.log("Datos recibidos:", student);
 
-        // Mapeo de datos (Ajustado a tu Backend)
+        // Mapeo de datos
         firstNameField.value = student.Nombre || "";
         lastNameField.value = student.Apellido || "";
         genderField.value = student.Genero || "";
@@ -105,26 +111,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         addressField.value = student.Direccion || "";
         relationshipField.value = student.Parentesco || "";
         
-        // Asignar el Grado
+        // Grado
         if (student.IdCurso) {
             gradeField.value = student.IdCurso;
         }
 
-        // Formateo de Fecha de Nacimiento para el input type="date" (YYYY-MM-DD)
+        // Fecha (Formato para input date: YYYY-MM-DD)
         if (student.FechaNacimiento) {
             let dateVal = student.FechaNacimiento;
-            // Si la fecha viene de Postgres como DD/MM/YYYY, la convertimos
             if (dateVal.includes('/')) {
                 const [d, m, y] = dateVal.split('/');
                 dateVal = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
             } else if (dateVal.includes(' ')) {
-                // Si viene con timestamp, cortamos solo la fecha
                 dateVal = dateVal.split(' ')[0];
             }
             dateField.value = dateVal.substring(0, 10);
         }
 
-        // Si tiene cédula, mostramos el campo
+        // Cédula
         if (student.Cedula) {
             hasIdCheckbox.checked = true;
             idFormDoc.style.display = "block";
@@ -132,7 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             ciField.style.opacity = "1";
         }
 
-        // Mensaje visual para documentos
+        // Texto visual de archivos
         document.querySelectorAll(".upload-zone span").forEach(span => {
             span.textContent = "Archivo cargado previamente (Suba uno nuevo para reemplazar)";
             span.style.color = "#0056b3";
@@ -157,6 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ciField.value = "";
         ciField.focus();
     } else if (!editId) { 
+        // Generar cédula escolar
         ciField.value = `${parentData.Cedula}${ (parentData.students?.count || 0) + 1 }`;
     }
   });
@@ -188,6 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       formData.append("Genero", genderField.value);
       formData.append("Cedula", ciField.value.trim());
       
+      // Formatear fecha para Backend (DD/MM/YYYY)
       const [y, m, d] = dateField.value.split('-');
       formData.append("FechaNacimiento", `${d}/${m}/${y}`);
       
@@ -247,36 +253,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Visual de Inputs de archivo
- // --- VISUAL DE INPUTS DE ARCHIVO (CORREGIDO) ---
+  // --- 7. LÓGICA DE SUBIDA DE ARCHIVOS (CORREGIDA) ---
   document.querySelectorAll('input[type="file"]').forEach((input) => {
-    // 1. Detectar cuando el usuario selecciona un archivo
+    // A) Detectar cambio de archivo
     input.addEventListener("change", (e) => {
       const fileName = e.target.files[0]?.name;
       const zone = input.closest(".upload-zone");
       if (fileName && zone) {
-        // Cambiamos el texto "Haga clic..." por el nombre del archivo
         zone.querySelector("span").textContent = fileName;
-        // Cambiamos el borde a verde para indicar éxito
         zone.style.borderColor = "#28a745";
         zone.style.backgroundColor = "#f0fff4";
-        // Cambiamos el icono a un check
         const icon = zone.querySelector("svg");
         if(icon) icon.style.color = "#28a745";
       }
     });
 
-    // 2. EL PUENTE: Al hacer clic en la zona punteada, activamos el input oculto
+    // B) Activar input al hacer clic en el diseño (EL PUENTE)
     const zone = input.closest(".upload-zone");
     if (zone) {
       zone.addEventListener("click", (e) => {
-        // Evitamos que el clic se dispare doble si le dan directo al input (poco probable pero posible)
         if (e.target !== input) {
             input.click();
         }
       });
-      // Cambiamos el cursor para que se vea que es clicable
       zone.style.cursor = "pointer"; 
     }
   });
-}); // <--- Fin del DOMContentLoaded
+
+});

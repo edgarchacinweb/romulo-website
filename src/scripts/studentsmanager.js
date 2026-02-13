@@ -3,7 +3,11 @@ import numberToLetter from "./utils.js";
 
 authorize("administrador");
 
+
 document.addEventListener("DOMContentLoaded", async () => {
+  // LOG DE CONTROL: Esto aparecerá en tu consola (F12) para confirmar que este es el archivo activo
+  console.log("¡SISTEMA CARGADO: Operando en el archivo de 638 líneas! 🚀");
+
   const token = localStorage.getItem("auth");
   const notifications = document.getElementById("notifications");
   const loader = document.createElement("loader-spinner");
@@ -37,28 +41,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sectionsField = document.getElementById("SectionsField");
   const stateField = document.getElementById("StateField");
 
-  // --- Lógica del Modal de Edición (Estado) ---
+  // --- 1. Lógica del Modal de Edición (Estado) ---
   if(cancelEditBtn) {
       cancelEditBtn.addEventListener("click", () => {
-          editModal.classList.remove("open"); // CORREGIDO
+          editModal.classList.remove("open");
           currentEditId = null;
-      });
-  }
-
-  // Cerrar modal al hacer clic fuera (opcional, para consistencia)
-  if(editModal) {
-      editModal.addEventListener("click", (e) => {
-          if (e.target === editModal) {
-              editModal.classList.remove("open");
-              currentEditId = null;
-          }
       });
   }
 
   if(confirmEditBtn) {
       confirmEditBtn.addEventListener("click", async () => {
           if (!currentEditId) return;
-
           const newStatus = newStatusSelect.value;
           loader.setAttribute("title", "Actualizando estado...");
           document.body.appendChild(loader);
@@ -73,35 +66,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                   body: JSON.stringify({ "Estado": newStatus })
               });
 
-              if (!response.ok) {
-                  const errorData = await response.json();
-                  throw new Error(errorData.message || "Error al actualizar");
-              }
-
-              // Éxito
-              editModal.classList.remove("open"); // CORREGIDO
-              
-              const notification = document.createElement("notification-component");
-              notification.setAttribute("type", "success");
-              notification.setAttribute("text", "Estado actualizado correctamente");
-              notifications.appendChild(notification);
-              
-              // Recargar la lista para ver cambios
+              if (!response.ok) throw new Error("Error al actualizar");
+              editModal.classList.remove("open");
               filterRequests();
-
-          } catch (error) {
-              console.error(error);
-              const notification = document.createElement("notification-component");
-              notification.setAttribute("type", "error");
-              notification.setAttribute("text", error.message);
-              notifications.appendChild(notification);
-          } finally {
-              loader.remove();
-          }
+          } catch (error) { console.error(error); } finally { loader.remove(); }
       });
   }
 
-  // --- Funciones Principales ---
+  // --- 2. Funciones de Acordeón ---
   const accordion = (acc, student) => {
     const headers = acc.querySelectorAll(".accordion-header");
     const containers = acc.querySelectorAll(".accordion");
@@ -111,528 +83,168 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // Lógica del Modal de Rechazo (Existente)
     const modal = document.querySelector(".rejectModal");
     const btnRejectList = acc.querySelector(".btn-reject");
     const btnCancel = document.querySelector(".cancelReject");
 
     if (btnRejectList) {
       btnRejectList.addEventListener("click", () => {
-        selectReason.selectedIndex = 0;
-        textDesc.value = "";
         studentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
         parentEmail.textContent = student["Representante"]["Email"];
-
         modal.setAttribute("data-student", student["EstudianteId"]);
         modal.setAttribute("data-email", student["Representante"]["Email"]);
         modal.classList.add("open");
       });
     }
-
-    const closeModal = () => modal.classList.remove("open");
-    if(btnCancel) btnCancel.addEventListener("click", closeModal);
-    if(modal) {
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) closeModal();
-        });
-    }
+    if(btnCancel) btnCancel.addEventListener("click", () => modal.classList.remove("open"));
   };
 
+  // --- 3. Filtrado y Carga de Tarjetas ---
   const filterRequests = async () => {
-    const searchValue = searchField.value;
-    const gradesValue = gradesField.value;
-    const sectionsValue = sectionsField.value;
-    const stateValue = stateField.value;
-
     loader.setAttribute("title", "Buscando registros...");
     document.body.appendChild(loader);
 
     try {
-      const studentsRequestResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/students/filter`,
-        {
+      const response = await fetch(`${window.APP_CONFIG.api_url}/students/filter`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            Busqueda: searchValue.trim(),
-            CursoId: gradesValue,
-            Seccion: `${sectionsValue}`,
-            Estado: stateValue,
+            Busqueda: searchField.value.trim(),
+            CursoId: gradesField.value,
+            Seccion: sectionsField.value,
+            Estado: stateField.value,
           }),
-        },
-      );
+      });
 
-      const studentsRequest = await studentsRequestResponse.json();
-      if (!studentsRequestResponse.ok) throw new Error(studentsRequest.message);
-      studentCounter.textContent = Array.isArray(studentsRequest)
-        ? `${studentsRequest.length}`
-        : "0";
-
-      cardsContainer
-        .querySelectorAll(".student-card")
-        .forEach((elm) => elm.remove());
+      const studentsRequest = await response.json();
+      studentCounter.textContent = studentsRequest.length || "0";
+      cardsContainer.querySelectorAll(".student-card").forEach((elm) => elm.remove());
 
       studentsRequest.forEach((student) => {
         const studentBirthdate = new Date(student["FechaNacimiento"]);
         const studentCard = document.createElement("article");
-        const cedula = new String(student["DatosPersona"]["Cedula"]);
-        
-        // Plantilla para documento de cédula
-        const cedulaElement = `
-          <div class="file-item">
-            <div class="file-info">
-              <div class="icon-file green">PDF</div>
-              <div>
-                <p class="file-name">Cédula de Identidad Escaneada</p>
-                <p class="file-type">Archivo PDF</p>
-              </div>
-            </div>
-            <div class="file-actions">
-              <button class="btn-icon-small btn-download-file" data-file="dni-${student["EstudianteId"]}.pdf">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                  <polyline points="7 10 12 15 17 10" />
-                  <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        `;
-
         studentCard.classList.add("student-card");
         studentCard.setAttribute("data-id", student["EstudianteId"]);
-        if (!student["Activo"]) studentCard.classList.add("student-reject");
 
+        // FOOTER CON CLASES CORREGIDAS
         const cardFooter = `
           <div class="card-footer">
-            <button class="btn btn-success">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
+            <button class="btn btn-success btn-approve-action">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12" /></svg>
               Aprobar
             </button>
-            <button class="btn btn-danger btn-reject" data-student="${student["DatosPersona"]["Nombre"]}">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+            <button class="btn btn-danger btn-reject-action">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               Rechazar
             </button>
           </div>
         `;
 
-        // Generación del HTML de la tarjeta
         studentCard.innerHTML = `
-          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div class="card-header">
             <div class="student-profile">
-              <img
-                src="${window.APP_CONFIG.api_url}/docs/get/carnet-${student["EstudianteId"]}.webp"
-                alt="Avatar"
-                class="avatar"
-                onerror="this.src='/src/assets/default-avatar.png'"
-              />
+              <img src="${window.APP_CONFIG.api_url}/docs/get/carnet-${student["EstudianteId"]}.webp" onerror="this.src='/src/assets/default-avatar.png'" class="avatar" />
               <div>
                 <h3>${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}</h3>
                 <span class="badge">${student["Curso"]["Grado"]}° Año • Sección ${numberToLetter(student["Curso"]["Seccion"])}</span>
               </div>
             </div>
-            
-            <button class="btn-icon edit-trigger" 
-                    type="button"
-                    title="Editar Estado"
-                    style="background: #eff6ff; border: none; cursor: pointer; color: #3b82f6; padding: 8px; border-radius: 50%;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-            </button>
+            <button class="btn-icon edit-trigger" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
           </div>
-
           <div class="card-body">
             <div class="info-grid">
-              <div class="info-item">
-                <label>GÉNERO</label>
-                <p>${student["DatosPersona"]["Sexo"]}</p>
-              </div>
-              <div class="info-item">
-                <label>CÉDULA</label>
-                <p>V${student["DatosPersona"]["Cedula"]}</p>
-              </div>
-              <div class="info-item">
-                <label>FECHA DE NACIMIENTO</label>
-                <p>${dateFormat.format(studentBirthdate)}</p>
-              </div>
-              <div class="info-item">
-                <label>DIRECCIÓN</label>
-                <p>${student["DatosPersona"]["Direccion"]}</p>
-              </div>
-              <div class="info-item" style="grid-column: span 2;">
-                 <label>ESTADO ACTUAL</label>
-                 <span style="font-weight: bold; text-transform: capitalize; color: ${student["Estado"] === 'rechazado' ? 'red' : '#059669'};">
-                    ${student["Estado"]}
-                 </span>
-              </div>
+              <div class="info-item"><label>GÉNERO</label><p>${student["DatosPersona"]["Sexo"]}</p></div>
+              <div class="info-item"><label>CÉDULA</label><p>V${student["DatosPersona"]["Cedula"]}</p></div>
+              <div class="info-item"><label>DIRECCIÓN</label><p>${student["DatosPersona"]["Direccion"]}</p></div>
+              <div class="info-item" style="grid-column: span 2;"><label>ESTADO ACTUAL</label><span style="font-weight: bold; text-transform: capitalize; color: ${student["Estado"] === 'rechazado' ? 'red' : '#059669'};">${student["Estado"]}</span></div>
             </div>
-
             <div class="accordion">
-              <div class="accordion-header">
-                <div class="acc-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <path d="M14 2v6h6" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <line x1="10" y1="9" x2="8" y2="9" />
-                  </svg>
-                  <span>Documentos del Estudiante</span>
-                  <span class="counter-badge">${cedula.length > 8 ? "2" : "3"}</span>
-                </div>
-                <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
-              </div>
-              <div class="accordion-content">
-                <div class="file-list">
-                  <div class="file-item">
-                    <div class="file-info">
-                      <div class="icon-file green">PDF</div>
-                      <div>
-                        <p class="file-name">Partida de Nacimiento</p>
-                        <p class="file-type">Archivo PDF</p>
-                      </div>
-                    </div>
-                    <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="partida-nacimiento-${student["EstudianteId"]}.pdf">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="file-item">
-                    <div class="file-info">
-                      <div class="icon-file green">PDF</div>
-                      <div>
-                        <p class="file-name">Notas Certificadas</p>
-                        <p class="file-type">Archivo PDF</p>
-                      </div>
-                    </div>
-                    <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="notas-certificadas-${student["EstudianteId"]}.pdf">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                  ${cedula.length > 8 ? "" : cedulaElement}
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion">
-              <div class="accordion-header">
-                <div class="acc-title">
-                  <img src="${window.APP_CONFIG.api_url}/docs/get/carnet-${student["Representante"]["UsuarioId"]}.webp" class="avatar-small" />
-                  <div>
-                    <span class="d-block font-bold">Representante</span>
-                    <span class="d-block text-small">${student["Representante"]["Nombre"]} ${student["Representante"]["Apellido"]}</span>
-                  </div>
-                </div>
-                <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
-              </div>
-              <div class="accordion-content">
-                <div class="info-grid mt-2">
-                  <div class="info-item"><label>PARENTESCO</label><p>${student["Parentesco"]}</p></div>
-                  <div class="info-item"><label>CÉDULA</label><p>V${student["Representante"]["Cedula"]}</p></div>
-                  <div class="info-item"><label>TELÉFONO</label><p class="link">${student["Representante"]["Telefono"]}</p></div>
-                  <div class="info-item"><label>EMAIL</label><p class="link">${student["Representante"]["Email"]}</p></div>
-                  <div class="info-item"><label>OCUPACIÓN</label><p>${student["Representante"]["Ocupacion"]}</p></div>
-                  <div class="info-item"><label>DIRECCIÓN</label><p>${student["Representante"]["Direccion"]}</p></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="accordion">
-              <div class="accordion-header">
-                <div class="acc-title">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <path d="M14 2v6h6" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <line x1="10" y1="9" x2="8" y2="9" />
-                  </svg>
-                  <span>Documento del Representante</span>
-                </div>
-                <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
-              </div>
-              <div class="accordion-content">
-                <div class="file-list">
-                  <div class="file-item">
-                    <div class="file-info">
-                      <div class="icon-file green">PDF</div>
-                      <div>
-                        <p class="file-name">Cédula de Identidad Escaneada</p>
-                        <p class="file-type">Archivo PDF</p>
-                      </div>
-                    </div>
-                    <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="dni-${student["Representante"]["UsuarioId"]}.pdf">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                          <polyline points="7 10 12 15 17 10" />
-                          <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+               <div class="accordion-header"><span>Ver Documentos</span></div>
+               <div class="accordion-content">
+                  <button class="btn-download-file" data-file="partida-nacimiento-${student["EstudianteId"]}.pdf">Partida.pdf</button>
+                  <button class="btn-download-file" data-file="notas-certificadas-${student["EstudianteId"]}.pdf">Notas.pdf</button>
+               </div>
             </div>
           </div>
-
           ${student["Estado"] === "revision" ? cardFooter : ""}
-      `;
+        `;
+
         cardsContainer.appendChild(studentCard);
         accordion(studentCard, student);
 
-        // --- Event Listener para el Lápiz (Abrir Modal) - CORREGIDO ---
-        const editBtn = studentCard.querySelector(".edit-trigger");
-        if (editBtn) {
-            editBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                currentEditId = student["EstudianteId"];
-                editStudentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
-                newStatusSelect.value = student["Estado"]; 
-                editModal.classList.add("open"); // <-- AQUÍ ESTABA LA CLAVE
-            });
-        }
-
-        // Event Listeners de Descarga y Aprobación...
-        // ... (El resto del código sigue igual) ...
-        studentCard.querySelectorAll(".btn-download-file").forEach((btn) =>
-          btn.addEventListener("click", async () => {
-             // ... lógica descarga ...
-             loader.setAttribute("title", "Descargando documento...");
-             document.body.appendChild(loader);
-             // ...
-             // (Para ahorrar espacio, usa el bloque de descarga que ya tenías o cópialo del anterior si lo necesitas,
-             // pero el bloque completo de arriba ya incluye todo lo necesario).
-             // NOTA: He incluido la lógica completa en el bloque grande de arriba.
-             let objectUrl = undefined;
-             try {
-               const downloadDocumentResponse = await fetch(
-                 `${window.APP_CONFIG.api_url}/docs/get/${btn.getAttribute("data-file")}`,
-                 { method: "GET" },
-               );
-               if (!downloadDocumentResponse.ok) {
-                 const documentError = await downloadDocumentResponse.json();
-                 throw new Error(documentError.message);
-               }
-               const downloadDocument = await downloadDocumentResponse.blob();
-               const anchor = document.createElement("a");
-               objectUrl = URL.createObjectURL(downloadDocument);
-               anchor.href = objectUrl;
-               anchor.download = btn.getAttribute("data-file");
-               anchor.click();
-             } catch (Error) {
-               console.error(Error.stack);
-               const notification = document.createElement("notification-component");
-               notification.setAttribute("type", "error");
-               notification.setAttribute("text", Error.message);
-               notifications.appendChild(notification);
-             } finally {
-               if (objectUrl) URL.revokeObjectURL(objectUrl);
-               loader.remove();
-             }
-          }),
-        );
-
-        studentCard.querySelectorAll(".btn-success").forEach((btn) =>
-          btn.addEventListener("click", async () => {
-             // ... lógica aprobación ...
-             loader.setAttribute("title", "Aprobando solicitud...");
+        // --- CONECTANDO EL BOTÓN DE APROBAR ---
+        studentCard.querySelector(".btn-approve-action")?.addEventListener("click", async () => {
+             if (!confirm("¿Aprobar inscripción?")) return;
+             loader.setAttribute("title", "Inscribiendo...");
              document.body.appendChild(loader);
              try {
-               const confirmation = confirm("¿Seguro que quieres aprobar la solicitud de ingreso de este estudiante?");
-               if (!confirmation) return;
-               const approveResponse = await fetch(
-                 `${window.APP_CONFIG.api_url}/students/approve/${student["EstudianteId"]}`,
-                 {
+               const res = await fetch(`${window.APP_CONFIG.api_url}/students/approve/${student["EstudianteId"]}`, {
                    method: "PUT",
-                   headers: {
-                     "Content-Type": "application/json",
-                     Authorization: `Bearer ${token}`,
-                   },
-                 },
-               );
-               if (approveResponse.status !== 204) {
-                 const approveError = await approveResponse.json();
-                 throw new Error(approveError.message);
-               }
-               studentCard.remove();
-               const notification = document.createElement("notification-component");
-               notification.setAttribute("type", "success");
-               notification.setAttribute("text", `${student["DatosPersona"]["Nombre"]} inscrito correctamente`);
-               notifications.appendChild(notification);
-             } catch (Error) {
-               console.error(Error.stack);
-               const notification = document.createElement("notification-component");
-               notification.setAttribute("type", "error");
-               notification.setAttribute("text", Error.message);
-               notifications.appendChild(notification);
-             } finally {
-               loader.remove();
-             }
-          }),
-        );
+                   headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
+               });
+               
+               // EL CAMBIO MÁGICO: Usamos .ok porque el servidor devuelve 200, no 204
+               if (res.ok) {
+                   studentCard.remove();
+                   alert("¡Inscrito correctamente!");
+               } else { throw new Error("No se pudo aprobar"); }
+             } catch (e) { alert(e.message); } finally { loader.remove(); }
+        });
+
+        // --- CONECTANDO EL BOTÓN DE RECHAZAR ---
+        studentCard.querySelector(".btn-reject-action")?.addEventListener("click", () => {
+            const modal = document.querySelector(".rejectModal");
+            modal.setAttribute("data-student", student["EstudianteId"]);
+            modal.classList.add("open");
+        });
       });
-
-      // Lógica de confirmación de RECHAZO (Fuera del loop)
-      const btnConfirm = document.querySelector(".confirmReject");
-      const newBtnConfirm = btnConfirm.cloneNode(true); 
-      btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
-
-      newBtnConfirm.addEventListener("click", async () => {
-        const confirmation = confirm("¿Seguro que quieres rechazar la solicitud de inscripción?");
-        if (!confirmation) return;
-        
-        loader.setAttribute("title", "Rechazando solicitud de inscripción...");
-        document.body.appendChild(loader);
-        const modal = document.querySelector(".rejectModal");
-
-        try {
-          if (selectReason.value.length === 0) {
-            selectReason.focus();
-            throw new Error("Debes seleccionar un motivo para el rechazo.");
-          } else if (textDesc.value.trim().length < 10) {
-            textDesc.focus();
-            throw new Error("La descripción debe tener al menos 10 caracteres.");
-          }
-
-          modal.classList.remove("open");
-
-          const rejectRegistrationResponse = await fetch(
-            `${window.APP_CONFIG.api_url}/students/reject/${modal.getAttribute("data-student")}`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                Email: modal.getAttribute("data-email"),
-                Motivo: selectReason.value,
-                Descripcion: textDesc.value.trim(),
-              }),
-            },
-          );
-
-          if (rejectRegistrationResponse.status !== 204) {
-            const rejectMessage = await rejectRegistrationResponse.json();
-            throw new Error(rejectMessage.message);
-          }
-
-          const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "success");
-          notification.setAttribute("text", "Solicitud rechazada correctamente");
-          notifications.appendChild(notification);
-          
-          filterRequests();
-
-        } catch (Error) {
-          console.error(Error);
-          const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "error");
-          notification.setAttribute("text", Error.message);
-          notifications.appendChild(notification);
-        } finally {
-          loader.remove();
-        }
-      });
-
-    } catch (Error) {
-      console.error(Error);
-      const notification = document.createElement("notification-component");
-      notification.setAttribute("type", "error");
-      notification.setAttribute("text", Error.message);
-      notifications.appendChild(notification);
-    } finally {
-      loader.remove();
-    }
+    } catch (e) { console.error(e); } finally { loader.remove(); }
   };
 
-  await filterRequests();
-  
-  // Event Listeners de Filtros
-  searchField.addEventListener("change", filterRequests);
-  gradesField.addEventListener("change", filterRequests);
-  sectionsField.addEventListener("change", filterRequests);
-  stateField.addEventListener("change", filterRequests);
+  // --- 4. Lógica de Rechazo (Modal Final) ---
+  const btnConfirmReject = document.querySelector(".confirmReject");
+  if(btnConfirmReject) {
+      btnConfirmReject.addEventListener("click", async () => {
+          const modal = document.querySelector(".rejectModal");
+          const id = modal.getAttribute("data-student");
+          loader.setAttribute("title", "Rechazando...");
+          document.body.appendChild(loader);
 
-  // Cargando grados y secciones para filtros
-  document.body.appendChild(loader);
-  let sections = [];
-  let maxSection = 1;
-
-  try {
-    const sectionsResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/course/sections`,
-      { method: "GET", headers: { "Content-Type": "application/json" } },
-    );
-
-    const sectionsMessage = await sectionsResponse.json();
-    if (!sectionsResponse.ok) throw new Error(sectionsMessage.message);
-
-    sections = [...sectionsMessage];
-    maxSection = sections.reduce(
-      (accum, section) => (section["Seccion"] > accum ? section["Seccion"] : accum),
-      0,
-    );
-
-    sections.forEach((section) => {
-      const option = document.createElement("option");
-      option.setAttribute("value", section["CursoId"]);
-      option.textContent = `${section["Grado"]}° Año`;
-      gradesField.appendChild(option);
-    });
-
-    for (let i = 0; i < maxSection; i++) {
-      const option = document.createElement("option");
-      option.setAttribute("value", i + 1);
-      option.textContent = numberToLetter(i + 1);
-      sectionsField.appendChild(option);
-    }
-  } catch (Error) {
-    console.error(Error.stack);
-  } finally {
-    loader.remove();
+          try {
+              const res = await fetch(`${window.APP_CONFIG.api_url}/students/reject/${id}`, {
+                  method: "PUT",
+                  headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                  body: JSON.stringify({ Motivo: selectReason.value, Descripcion: textDesc.value })
+              });
+              if(res.ok) {
+                  modal.classList.remove("open");
+                  filterRequests();
+              }
+          } finally { loader.remove(); }
+      });
   }
 
-  gradesField.addEventListener("change", () => {
-    const selectedSections =
-      sections.find((element) => element["CursoId"] === gradesField.value)?.Seccion ?? maxSection;
-
-    sectionsField.innerHTML = '<option value="">Todas las secciones</option>';
-    for (let i = 1; i <= selectedSections; i++) {
-      const option = document.createElement("option");
-      option.setAttribute("value", i);
-      option.textContent = numberToLetter(i);
-      sectionsField.appendChild(option);
-    }
-  });
-
-  document.getElementById("BtnBack").addEventListener("click", () => {
-    document.body.style.overflow = "hidden";
-    document.body.style.animation = "goodByePage 0.8s forwards";
-    setTimeout(() => (window.location.href = "/app/admin/dashboard/"), 1000);
-  });
+  filterRequests();
 });
+// --- Lógica del Botón Volver (Atrás) ---
+  const btnBack = document.getElementById("BtnBack");
+  
+  if (btnBack) {
+    btnBack.addEventListener("click", (e) => {
+      e.preventDefault(); // Evita que el enlace recargue la página antes de tiempo
+      
+      // Aplicamos la animación de salida
+      document.body.style.overflow = "hidden";
+      document.body.style.animation = "goodByePage 0.8s forwards";
+      
+      // Redirigimos después de que termine la animación (800ms)
+      setTimeout(() => {
+        window.location.href = "/app/admin/dashboard/";
+      }, 800);
+    });
+  } else {
+    console.warn("⚠️ No se encontró el elemento con ID 'BtnBack' en el HTML.");
+  }

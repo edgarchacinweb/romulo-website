@@ -1,10 +1,16 @@
 import authorize from "./auth.js";
 
+// 1. Autorización
 authorize("representante");
 
+// 2. Función auxiliar para edad (Corregida para evitar NaN)
 function calcularEdadExacta(fechaNacimiento) {
+  if (!fechaNacimiento) return "0";
   const hoy = new Date();
   const nacimiento = new Date(fechaNacimiento);
+  
+  if (isNaN(nacimiento.getTime())) return "0";
+
   let edad = hoy.getFullYear() - nacimiento.getFullYear();
   const diferenciaMeses = hoy.getMonth() - nacimiento.getMonth();
   if (
@@ -22,16 +28,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("auth");
 
   try {
-    // 1. Verificar si hay periodo de inscripción abierto
+    // --- 1. Verificar si hay periodo de inscripción abierto ---
     let activeEnrollmentPeriod = null;
     try {
         const periodResponse = await fetch(`${window.APP_CONFIG.api_url}/students/check_period`);
         if (periodResponse.ok) {
             activeEnrollmentPeriod = await periodResponse.json();
         }
-    } catch (e) { console.log("No hay periodo activo"); }
+    } catch (e) { console.log("No hay periodo activo o error de conexión"); }
 
-    // 2. Cargando datos del representante
+    // --- 2. Cargando datos del representante ---
     const parentDataResponse = await fetch(
       `${window.APP_CONFIG.api_url}/people/get`,
       {
@@ -44,11 +50,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     const parentData = await parentDataResponse.json();
-    if (!parentDataResponse.ok) throw new Error(parentData.message);
+    if (!parentDataResponse.ok) throw new Error(parentData.message || "Error al obtener representante");
 
-    // 3. Cargando datos de los hijos
+    // --- 3. Cargando datos de los hijos ---
     const studentsDataResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/students/by_parent/${parentData.DatosPersonaId}`,
+      `${window.APP_CONFIG.api_url}/students/by_parent/${parentData.DatosPersonaId || parentData.id}`,
       {
         method: "GET",
         headers: {
@@ -59,28 +65,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     const studentsData = await studentsDataResponse.json();
-    if (!studentsDataResponse.ok) throw new Error(studentsData.message);
+    if (!studentsDataResponse.ok) throw new Error(studentsData.message || "Error al obtener estudiantes");
 
-    console.log(studentsData);
-    studentsData.forEach((student) => {
+    console.log("Estudiantes cargados:", studentsData);
+
+    // --- 4. Renderizado de Tarjetas ---
+    cardContainer.innerHTML = ""; 
+
+    if (studentsData.length === 0) {
+        cardContainer.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No tienes estudiantes registrados aún.</p>';
+    }
+
+    // Usamos (student, index) para poder calcular la sección automáticamente
+    studentsData.forEach((student, index) => {
       const card = document.createElement("div");
-      const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
-      const birthdate = new Date(student.FechaNacimiento);
-      const estado = student.EstadoEstudiante.Estado; 
-      const currentGrade = parseInt(student.Curso.Grado);
-      const currentPeriodId = student.Curso.PeriodoEscolarId; 
-      
       card.classList.add("card");
 
+      // A. LÓGICA DE SECCIÓN AUTOMÁTICA (Cada 30 alumnos)
+      let seccionAuto = "A";
+      if (index >= 30 && index < 60) seccionAuto = "B";
+      else if (index >= 60) seccionAuto = "C";
+
+      // B. PROCESAMIENTO DE FECHA Y EDAD (Evita NaN)
+      const fechaOrigen = student.FechaNacimiento || (student.DatosPersona ? student.DatosPersona.FechaNacimiento : null);
+      const birthdate = new Date(fechaOrigen);
+      const esFechaValida = !isNaN(birthdate.getTime());
+
+      const fechaFormateada = esFechaValida 
+        ? `${birthdate.getDate().toString().padStart(2, '0')}/${(birthdate.getMonth() + 1).toString().padStart(2, '0')}/${birthdate.getFullYear()}`
+        : "No registrada";
+
+      const edadTexto = esFechaValida ? `${calcularEdadExacta(fechaOrigen)} años` : "0 años";
+
+      // C. DATOS RESTANTES
+      const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
+      const estado = student.EstadoEstudiante ? student.EstadoEstudiante.Estado : "desconocido"; 
+      const currentGrade = student.Curso ? parseInt(student.Curso.Grado) : 0;
+      const currentPeriodId = student.Curso ? student.Curso.PeriodoEscolarId : null; 
+      
       let actionButtonsHTML = "";
 
-      // --- LÓGICA DE BOTÓN DE CORRECCIÓN (RECHAZADO) ---
+      // --- LÓGICA: BOTÓN DE CORRECCIÓN (Si fue rechazado) ---
       if (estado === "rechazado") {
         actionButtonsHTML = `
           <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
-             <a href="/app/representante/inscripcion/" 
+             <a href="/app/representante/inscripcion/?edit_id=${student.EstudianteId}" 
                 class="btn-edit"
-                data-id="${student.EstudianteId}"
                 style="display: block; width: 100%; padding: 10px; background-color: #dc3545; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: bold; cursor: pointer;">
                 <i class="fas fa-edit"></i> Corregir Solicitud
              </a>
@@ -88,7 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
       } 
-      // --- LÓGICA DE REINSCRIPCIÓN ---
+      // --- LÓGICA: BOTÓN DE REINSCRIPCIÓN ---
       else if (
           estado === "inscrito" && 
           currentGrade < 6 && 
@@ -109,6 +139,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
       }
 
+      // --- HTML DE LA TARJETA ---
       card.innerHTML = `
             <section class="card__student">
               <div class="card__image card__image--${gender}">
@@ -120,8 +151,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 />
               </div>
               <h3 class="card__name">${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}</h3>
-              <span class="card__identity">V-${student.DatosPersona.Cedula}</span>
+              <span class="card__identity">V-${student.DatosPersona.Cedula || "Escolar"}</span>
             </section>
+            
             <section class="card__data card__data--${gender}">
               <div class="card__section">
                 <div class="card__field">
@@ -129,32 +161,34 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <svg class="field__icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     <h4 class="field__legend">Nacimiento</h4>
                   </div>
-                  <span class="field__content">${birthdate.getDate()}/${birthdate.getMonth() + 1}/${birthdate.getFullYear()}</span>
+                  <span class="field__content">${fechaFormateada}</span>
                 </div>
                 <div class="card__field">
                   <div class="field__title">
                     <svg class="field__icon" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <h4 class="field__legend">Edad</h4>
                   </div>
-                  <span class="field__content">${calcularEdadExacta(birthdate)} años</span>
+                  <span class="field__content">${edadTexto}</span>
                 </div>
               </div>
+
               <div class="card__section">
                 <div class="card__field">
                   <div class="field__title">
                     <svg class="field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
                     <h4 class="field__legend">Grado</h4>
                   </div>
-                  <span class="field__content">${student.Curso.Grado}° Año</span>
+                  <span class="field__content">${student.Curso ? student.Curso.Grado : "?"}° Año</span>
                 </div>
                 <div class="card__field">
                   <div class="field__title">
                     <svg class="field__icon" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                     <h4 class="field__legend">Sección</h4>
                   </div>
-                  <span class="field__content">${student.Curso.Seccion}</span>
+                  <span class="field__content">Sección ${seccionAuto}</span>
                 </div>
               </div>
+
               <div class="card__section">
                 <div class="card__field card__field--${estado} field__state">
                   <div class="field__title">
@@ -170,18 +204,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
 
       cardContainer.appendChild(card);
-
-      // --- LISTENER PARA CORREGIR (LocalStorage) ---
-      const editBtn = card.querySelector(".btn-edit");
-      if (editBtn) {
-        editBtn.addEventListener("click", (e) => {
-          e.preventDefault(); // Evitamos navegación inmediata
-          const studentId = editBtn.getAttribute("data-id");
-          // Guardamos el ID para que el formulario lo lea
-          localStorage.setItem("id_estudiante_rechazado", studentId);
-          window.location.href = editBtn.getAttribute("href");
-        });
-      }
 
       // --- LISTENER PARA REINSCRIBIR ---
       const reinscribeBtn = card.querySelector(".btn-reinscribe");
@@ -221,6 +243,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     alert("Error: " + result.message);
                 }
              } catch (error) {
+                 console.error(error);
                  alert("No se pudo procesar: " + error.message);
              }
           });
@@ -228,7 +251,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
   } catch (Error) {
-    console.error(Error.stack);
+    console.error(Error);
+    cardContainer.innerHTML = `<p style="color:red; text-align:center;">Error al cargar datos: ${Error.message}</p>`;
   }
 
   // Cerrar sesión
