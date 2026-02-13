@@ -9,7 +9,19 @@ const scheduleContainer = document.getElementById("results-container");
 const scheduleCard = document.createElement("section");
 let scheduleBlocks = [];
 let subjects = [];
+let teachers = [];
 scheduleCard.classList.add("card");
+
+const calcMinutesDifferences = (time1, time2) => {
+  const [hours1, minutes1] = time1.split(":");
+  const [hours2, minutes2] = time2.split(":");
+  const completeDate1 = new Date();
+  const completeDate2 = new Date();
+  completeDate1.setHours(parseInt(hours1), parseInt(minutes1));
+  completeDate2.setHours(parseInt(hours2), parseInt(minutes2));
+
+  return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
+};
 
 const filter = async (grade, section, term) => {
   const loader = document.createElement("loader-spinner");
@@ -60,7 +72,6 @@ const filter = async (grade, section, term) => {
       `
       );
     }, '<option value="">Sin asignar</option>');
-    console.log(options);
 
     const scheduleBlocksResponse = await fetch(
       `${window.APP_CONFIG.api_url}/schedule/blocks`,
@@ -80,6 +91,10 @@ const filter = async (grade, section, term) => {
     scheduleBlocks = [...scheduleBlocksAnswer];
 
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
+      const minutes = calcMinutesDifferences(
+        item["HoraInicio"],
+        item["HoraFin"],
+      );
       return (
         prev +
         `
@@ -87,31 +102,59 @@ const filter = async (grade, section, term) => {
               <strong>Bloque ${index + 1}</strong>
               <span>${item["HoraInicio"]} - ${item["HoraFin"]}</span>
             </div>
-            <div class="grid-cell">
-              <select class="select-pill">
+            ${
+              minutes > 15
+                ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
+              <select class="select-pill Lunes">
                 ${options}
               </select>
             </div>
-            <div class="grid-cell">
-              <select class="select-pill">
+            <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
+              <select class="select-pill Martes">
                 ${options}
               </select>
             </div>
-            <div class="grid-cell">
-              <select class="select-pill">
+            <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
+              <select class="select-pill Miércoles">
                 ${options}
               </select>
             </div>
-            <div class="grid-cell">
-              <select class="select-pill">
+            <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
+              <select class="select-pill Jueves">
                 ${options}
               </select>
             </div>
-            <div class="grid-cell">
-              <select class="select-pill">
+            <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
+              <select class="select-pill Viernes">
                 ${options}
               </select>
+            </div>`
+                : `<div class="grid-cell">
+              <select class="select-pill" disabled>
+                <option value="">Receso</option>
+              </select>
             </div>
+            <div class="grid-cell">
+              <select class="select-pill" disabled>
+                <option value="">Receso</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill" disabled>
+                <option value="">Receso</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill" disabled>
+                <option value="">Receso</option>
+              </select>
+            </div>
+            <div class="grid-cell">
+              <select class="select-pill" disabled>
+                <option value="">Receso</option>
+              </select>
+            </div>`
+            }
       `
       );
     }, "");
@@ -181,27 +224,16 @@ const filter = async (grade, section, term) => {
             </p>
           </div>
 
-          <div class="table-list">
+          <div class="table-list" id="table-list">
             <div class="table-header">
               <span>Materia</span>
               <span>Docente Asignado</span>
-            </div>
-
-            <div class="table-row">
-              <div class="materia-cell">
-                <span class="dot bg-blue"></span> Matemáticas
-              </div>
-              <div class="select-wrapper full-width">
-                <select class="select-gray">
-                  <option>Prof. García López</option>
-                </select>
-              </div>
             </div>
           </div>
         </section>
 
         <footer class="action-footer card">
-          <span class="text-muted">Todos los cambios están guardados</span>
+          <div></div>
           <div class="footer-buttons">
             <button class="btn btn-outline">
               <svg
@@ -243,6 +275,70 @@ const filter = async (grade, section, term) => {
         </footer>
     `;
     scheduleContainer.appendChild(scheduleCard);
+
+    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+    scheduleBlocks.forEach((sb) => {
+      const id = sb["BloqueHorarioId"];
+      const row = document.querySelectorAll(`[data-row="${id}"]`);
+      row.forEach((r, index) => {
+        const data = schedule.find(
+          (s) => s["BloqueHorarioId"] === id && s["Dia"] == days[index],
+        );
+
+        if (data) {
+          const select = r.querySelector(`.${days[index]}`);
+          select
+            .querySelector(`[value="${data["MateriaId"]}"`)
+            .setAttribute("selected", "");
+        }
+      });
+    });
+
+    const assignedSubjects = Array.from(
+      new Set(schedule.map((s) => s["MateriaId"])),
+    );
+
+    const teachersResponse = await fetch(
+      `${window.APP_CONFIG.api_url}/teacher/list`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const teachersAnswer = await teachersResponse.json();
+    if (!teachersResponse.ok) throw new Error(teachersAnswer.message);
+
+    teachers = [...teachersAnswer];
+
+    const tableList = document.getElementById("table-list");
+
+    assignedSubjects.forEach((subject) => {
+      const subjectName = subjects.find((s) => s["MateriaId"] === subject)[
+        "Nombre"
+      ];
+      const tableItem = document.createElement("div");
+      tableItem.classList.add("table-row");
+      const teachersList = teachers.filter((t) =>
+        t["Materias"].find((m) => m["MateriaId"] === subject),
+      );
+
+      tableItem.innerHTML = `
+      <div class="materia-cell">
+        ${subjectName}
+      </div>
+        <div class="select-wrapper full-width">
+        <select class="select-gray">
+          ${teachersList.reduce((prev, current) => prev + `<option value="${current["DocenteId"]}">${current["DatosPersona"]["Nombre"]} ${current["DatosPersona"]["Apellido"]}</option>`, "")}
+        </select>
+      </div>
+      `;
+
+      tableList.appendChild(tableItem);
+    });
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
