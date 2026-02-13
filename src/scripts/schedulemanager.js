@@ -10,6 +10,7 @@ const scheduleCard = document.createElement("section");
 let scheduleBlocks = [];
 let subjects = [];
 let teachers = [];
+let schedule = [];
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -21,6 +22,35 @@ const calcMinutesDifferences = (time1, time2) => {
   completeDate2.setHours(parseInt(hours2), parseInt(minutes2));
 
   return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
+};
+
+const renderTeacherSelector = (assignedSubjects) => {
+  const tableList = document.getElementById("table-list");
+  tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
+
+  assignedSubjects.forEach((subject) => {
+    const subjectName = subjects.find((s) => s["MateriaId"] === subject)[
+      "Nombre"
+    ];
+    const tableItem = document.createElement("div");
+    tableItem.classList.add("table-row");
+    const teachersList = teachers.filter((t) =>
+      t["Materias"].find((m) => m["MateriaId"] === subject),
+    );
+
+    tableItem.innerHTML = `
+      <div class="materia-cell">
+        ${subjectName}
+      </div>
+        <div class="select-wrapper full-width">
+        <select class="select-gray">
+          ${teachersList.reduce((prev, current) => prev + `<option value="${current["DocenteId"]}">${current["DatosPersona"]["Nombre"]} ${current["DatosPersona"]["Apellido"]}</option>`, "")}
+        </select>
+      </div>
+      `;
+
+    tableList.appendChild(tableItem);
+  });
 };
 
 const filter = async (grade, section, term) => {
@@ -45,8 +75,10 @@ const filter = async (grade, section, term) => {
       },
     );
 
-    const schedule = await scheduleResponse.json();
-    if (!scheduleResponse.ok) throw new Error(schedule.message);
+    const scheduleAnswer = await scheduleResponse.json();
+    if (!scheduleResponse.ok) throw new Error(scheduleAnswer.message);
+
+    schedule = [...scheduleAnswer];
 
     const subjectsResponse = await fetch(
       `${window.APP_CONFIG.api_url}/subject/list`,
@@ -105,27 +137,27 @@ const filter = async (grade, section, term) => {
             ${
               minutes > 15
                 ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill Lunes">
+              <select class="select-pill select-subject Lunes">
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill Martes">
+              <select class="select-pill select-subject Martes">
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill Miércoles">
+              <select class="select-pill select-subject Miércoles">
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill Jueves">
+              <select class="select-pill select-subject Jueves">
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill Viernes">
+              <select class="select-pill select-subject Viernes">
                 ${options}
               </select>
             </div>`
@@ -294,10 +326,6 @@ const filter = async (grade, section, term) => {
       });
     });
 
-    const assignedSubjects = Array.from(
-      new Set(schedule.map((s) => s["MateriaId"])),
-    );
-
     const teachersResponse = await fetch(
       `${window.APP_CONFIG.api_url}/teacher/list`,
       {
@@ -314,31 +342,21 @@ const filter = async (grade, section, term) => {
 
     teachers = [...teachersAnswer];
 
-    const tableList = document.getElementById("table-list");
+    let assignedSubjects = Array.from(
+      new Set(schedule.map((s) => s["MateriaId"])),
+    );
 
-    assignedSubjects.forEach((subject) => {
-      const subjectName = subjects.find((s) => s["MateriaId"] === subject)[
-        "Nombre"
-      ];
-      const tableItem = document.createElement("div");
-      tableItem.classList.add("table-row");
-      const teachersList = teachers.filter((t) =>
-        t["Materias"].find((m) => m["MateriaId"] === subject),
-      );
+    renderTeacherSelector(assignedSubjects);
 
-      tableItem.innerHTML = `
-      <div class="materia-cell">
-        ${subjectName}
-      </div>
-        <div class="select-wrapper full-width">
-        <select class="select-gray">
-          ${teachersList.reduce((prev, current) => prev + `<option value="${current["DocenteId"]}">${current["DatosPersona"]["Nombre"]} ${current["DatosPersona"]["Apellido"]}</option>`, "")}
-        </select>
-      </div>
-      `;
-
-      tableList.appendChild(tableItem);
-    });
+    const selectPills = document.querySelectorAll(".select-subject");
+    selectPills.forEach((select) =>
+      select.addEventListener("change", () => {
+        assignedSubjects = Array.from(
+          new Set(Array.from(selectPills).map((sp) => sp.value)),
+        ).filter((a) => a !== "");
+        renderTeacherSelector(assignedSubjects);
+      }),
+    );
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
