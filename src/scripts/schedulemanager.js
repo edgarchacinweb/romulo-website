@@ -284,7 +284,7 @@ const filter = async (grade, section, term) => {
               </svg>
               Exportar PDF
             </button>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" id="btn-submit">
               <svg
                 width="18"
                 height="18"
@@ -357,6 +357,16 @@ const filter = async (grade, section, term) => {
         renderTeacherSelector(assignedSubjects);
       }),
     );
+
+    document.getElementById("btn-submit").addEventListener("click", () => {
+      const errorLoader = document.createElement("loader-spinner");
+      errorLoader.setAttribute("title", "Guardando horario");
+      document.body.appendChild(errorLoader);
+      setTimeout(() => {
+        errorLoader.remove();
+        alert("Error al guardar datos del horario: Error de BBDD");
+      }, 5000);
+    });
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
