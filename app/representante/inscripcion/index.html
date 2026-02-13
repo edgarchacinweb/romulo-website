@@ -5,15 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema de Inscripción Estudiantil</title>
 
-    <!-- Estilos CSS -->
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/studentsregister.css" />
 
-    <!-- Componentes -->
     <script
       src="/src/components/loader.component.js"
       type="module"
-      refer
+      defer
     ></script>
     <script
       src="/src/components/notifications-container.component.js"
@@ -157,26 +155,28 @@
 
             <div class="form-grid">
               <div class="form-group">
-                <label for="nombre">Nombre *</label>
+                <label for="nombre">Nombre</label>
                 <input
                   type="text"
                   id="nombre"
+                  name="nombre" 
                   placeholder="Ingrese el nombre"
                 />
               </div>
               <div class="form-group">
-                <label for="apellido">Apellido *</label>
+                <label for="apellido">Apellido</label>
                 <input
                   type="text"
                   id="apellido"
+                  name="apellido"
                   placeholder="Ingrese el apellido"
                 />
               </div>
 
               <div class="form-group">
-                <label for="grado">Género *</label>
+                <label for="genero">Género</label>
                 <div class="select-wrapper">
-                  <select id="genero">
+                  <select id="genero" name="genero">
                     <option value="" disabled selected>
                       Seleccione el Género
                     </option>
@@ -186,33 +186,34 @@
                 </div>
               </div>
 
-              <div class="form-group full-width checkbox-wrapper">
+              <div class="form-group full-width checkbox-wrapper" style="display: none;">
                 <input type="checkbox" id="hasId" checked />
                 <label for="hasId"
                   >El estudiante posee cédula de identidad</label
                 >
-              </div>
+              </div> 
 
               <div class="form-group full-width" id="idContainer">
                 <label for="cedula">Cédula de Identidad</label>
-                <input type="number" id="cedula" placeholder="12345678" />
+                <input type="number" id="cedula" name="cedula" placeholder="12345678" />
               </div>
 
               <div class="form-group">
-                <label for="fechaNac">Fecha de Nacimiento *</label>
+                <label for="fechaNac">Fecha de Nacimiento</label>
                 <input
                   type="date"
                   id="fechaNac"
+                  name="fechaNac"
                   min="2010-01-01"
                   max="2020-12-31"
                 />
               </div>
               <div class="form-group">
                 <label for="parentesco"
-                  >Parentesco con el Representante *</label
+                  >Parentesco</label
                 >
                 <div class="select-wrapper">
-                  <select id="parentesco">
+                  <select id="parentesco" name="parentesco">
                     <option value="" disabled selected>
                       Seleccione el parentesco
                     </option>
@@ -230,9 +231,9 @@
               </div>
 
               <div class="form-group full-width">
-                <label for="grado">Grado a Cursar *</label>
+                <label for="grado">Grado a Cursar</label>
                 <div class="select-wrapper">
-                  <select id="grado">
+                  <select id="grado" name="grado">
                     <option value="" disabled selected>
                       Seleccione el grado
                     </option>
@@ -253,9 +254,10 @@
               </div>
 
               <div class="form-group full-width">
-                <label for="direccion">Dirección de Habitación *</label>
+                <label for="direccion">Dirección de Habitación</label>
                 <textarea
                   id="direccion"
+                  name="direccion"
                   rows="3"
                   placeholder="Ingrese la dirección completa"
                 ></textarea>
@@ -287,7 +289,7 @@
 
                   <div class="docs-grid">
                     <div class="doc-upload" id="IdDoc">
-                      <label>Cédula de Identidad *</label>
+                      <label>Cédula de Identidad</label>
                       <div class="upload-zone small">
                         <input type="file" id="docDni" accept=".pdf" hidden />
                         <div class="upload-content">
@@ -310,7 +312,7 @@
                       </div>
                     </div>
                     <div class="doc-upload">
-                      <label>Partida de Nacimiento *</label>
+                      <label>Partida de Nacimiento</label>
                       <div class="upload-zone small">
                         <input
                           type="file"
@@ -339,7 +341,7 @@
                     </div>
 
                     <div class="doc-upload">
-                      <label>Notas Certificadas *</label>
+                      <label>Notas Certificadas</label>
                       <div class="upload-zone small">
                         <input
                           type="file"

@@ -1,14 +1,16 @@
 import authorize from "./auth.js";
 
+// 1. Autorización
 authorize("representante");
 
+// 2. Elementos Globales
 const loader = document.createElement("loader-spinner");
-document.body.appendChild(loader);
-
+const notificationsContainer = document.getElementById("notifications");
 const token = localStorage.getItem("auth") ?? "";
 
+// 3. Inicialización
 document.addEventListener("DOMContentLoaded", async () => {
-  // Campos del formulario
+  // --- REFERENCIAS AL DOM (Asegúrate que coincidan con tu HTML) ---
   const photoPreview = document.getElementById("photoPreview");
   const photoField = document.getElementById("photoUploadInput");
   const firstNameField = document.getElementById("firstNameField");
@@ -17,298 +19,248 @@ document.addEventListener("DOMContentLoaded", async () => {
   const identityUploadField = document.getElementById("IdentityUploadInput");
   const genderField = document.getElementById("genderField");
   const emailField = document.getElementById("emailField");
+  
+  // Campos editables importantes
   const phoneField = document.getElementById("phoneField");
   const phonePrefixField = document.getElementById("phonePrefixField");
   const occupationField = document.getElementById("occupationField");
-  const addressField = document.getElementById("addressField");
+  const addressField = document.getElementById("addressField"); // ID debe ser 'addressField' en el HTML
+  
+  // Contraseñas
   const currentPasswordField = document.getElementById("current-password");
   const newPasswordField = document.getElementById("new-password");
   const confirmPasswordField = document.getElementById("confirm-password");
+  
   const btnSubmit = document.getElementById("BtnSubmit");
+  const uploadIcon = photoPreview ? photoPreview.querySelector(".upload-icon") : null;
 
-  // Icono de la previsualización de la foto de perfil
-  const uploadIcon = photoPreview.querySelector(".upload-icon");
-
-  // Contenedor de notificaciones
-  const notificationsContainer = document.getElementById("notifications");
-
-  const loadedUserData = {
-    Telefono: "",
-    Ocupacion: "",
-    Direccion: "",
-    Clave: "",
-  };
-
-  // Cargando datos del representante
+  // --- A. CARGA INICIAL DE DATOS ---
+  document.body.appendChild(loader);
   try {
-    // Obteniendo datos
-    const parentDataResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/people/get`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
+    // 1. Obtener Datos Personales
+    const parentDataResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
 
-    if (!parentDataResponse.ok) throw Error();
+    if (!parentDataResponse.ok) throw Error("Error al cargar datos personales");
     const parentData = await parentDataResponse.json();
-    loadedUserData["Telefono"] = parentData["Telefono"] ?? "";
-    loadedUserData["Ocupacion"] = parentData["Ocupacion"] ?? "";
-    loadedUserData["Direccion"] = parentData["Direccion"] ?? "";
-
-    // Cargando datos del usuario
-    const parentUserDataResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/user/get`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    if (!parentUserDataResponse.ok) throw Error();
+    
+    // 2. Obtener Datos de Usuario (Email)
+    const parentUserDataResponse = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
+    if (!parentUserDataResponse.ok) throw Error("Error al cargar usuario");
     const parentUserData = await parentUserDataResponse.json();
 
-    // Cargando foto de perfil
-    const profilePhotoResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "image/webp",
-        },
-      },
-    );
+    // 3. Cargar Foto de Perfil
+    try {
+        const profilePhotoResponse = await fetch(
+        `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp`,
+        { method: "GET", headers: { "Content-Type": "image/webp" } });
 
-    if (profilePhotoResponse.ok) {
-      const profilePhoto = await profilePhotoResponse.blob();
-      const parentProfilePhoto = URL.createObjectURL(profilePhoto);
-      photoPreview.style.backgroundImage = `url(${parentProfilePhoto})`;
-      uploadIcon.style.display = "none";
+        if (profilePhotoResponse.ok) {
+            const profilePhoto = await profilePhotoResponse.blob();
+            if (photoPreview) {
+                photoPreview.style.backgroundImage = `url(${URL.createObjectURL(profilePhoto)})`;
+                if (uploadIcon) uploadIcon.style.display = "none";
+            }
+        }
+    } catch (e) { console.warn("No se pudo cargar la foto de perfil previa"); }
+
+    // 4. Llenar los campos visuales
+    if(firstNameField) firstNameField.value = parentData["Nombre"] ?? "";
+    if(lastNameField) lastNameField.value = parentData["Apellido"] ?? "";
+    if(identityField) identityField.value = `V-${parentData["Cedula"]}` ?? "";
+    if(emailField) emailField.value = parentUserData["Email"] ?? "";
+    
+    // Asignación directa de Ocupación y Dirección
+    if(occupationField) occupationField.value = parentData["Ocupacion"] || "";
+    if(addressField) addressField.value = parentData["Direccion"] || "";
+
+    // Género
+    if(genderField) {
+        const sexoRecibido = parentData["Sexo"] ?? "";
+        genderField.value = sexoRecibido;
+        // Fix para selects que no coinciden en value/text
+        if (genderField.value !== sexoRecibido && sexoRecibido) {
+            Array.from(genderField.options).forEach(opt => {
+                if (opt.text === sexoRecibido) genderField.value = opt.value;
+            });
+        }
     }
 
-    // Cargando datos en los campos del formulario
-    firstNameField.value = parentData["Nombre"] ?? "";
-    lastNameField.value = parentData["Apellido"] ?? "";
-    identityField.value = `V-${parentData["Cedula"]}` ?? "";
-    genderField.value = parentData["Sexo"] ?? "";
-    emailField.value = parentUserData["Email"] ?? "";
-    occupationField.value = parentData["Ocupacion"] ?? "";
-    addressField.value = parentData["Direccion"] ?? "";
+    // Teléfono (Separar prefijo y número)
+    if(phoneField && phonePrefixField) {
+        const phone = parentData["Telefono"] ?? "";
+        const parts = phone.split("-");
+        if (parts.length === 2) {
+            phonePrefixField.value = parts[0];
+            phoneField.value = parts[1];
+        } else {
+            phonePrefixField.value = "0412";
+            phoneField.value = phone; 
+        }
+    }
 
-    const phone = parentData["Telefono"] ?? "";
-    const [prefix, phoneNumber] = phone.split("-");
-    phonePrefixField.value = prefix || "0412";
-    phoneField.value = phoneNumber ?? "";
-
-    loader.remove();
   } catch (error) {
-    alert("Ocurrió un error al cargar los datos del representante...");
-    window.location.href = "/app/representante/inicio/";
-    return;
+    console.error(error);
+    const notif = document.createElement("notification-component");
+    notif.setAttribute("text", "Error cargando perfil. Recargue la página.");
+    notif.setAttribute("type", "error");
+    notificationsContainer.appendChild(notif);
+  } finally {
+    loader.remove();
   }
 
-  // -- Guardando datos del representante
-  btnSubmit.addEventListener("click", async (event) => {
-    event.preventDefault();
-    loader.setAttribute("title", "Actualizando perfil...");
-    document.body.appendChild(loader);
+  // --- B. GUARDADO DE DATOS (LOGICA BLINDADA) ---
+  if(btnSubmit) {
+      btnSubmit.addEventListener("click", async (event) => {
+        event.preventDefault();
+        document.body.appendChild(loader); // Mostrar loader
 
-    try {
-      const newUserData = {
-        Telefono: `${phonePrefixField.value}-${phoneField.value}`,
-        Ocupacion: occupationField.value.trim(),
-        Direccion: addressField.value.trim(),
-        Clave: newPasswordField.value.trim(),
-      };
+        try {
+          const formData = new FormData();
+          let hasChanges = false;
 
-      const filteredData = Object.fromEntries(
-        Object.entries(newUserData).filter(
-          ([key, value]) => value !== loadedUserData[key],
-        ),
-      );
+          // 1. OBTENER VALORES ACTUALES
+          const telValue = phoneField ? phoneField.value.trim() : "";
+          const occValue = occupationField ? occupationField.value.trim() : "";
+          const addrValue = addressField ? addressField.value.trim() : "";
+          const passValue = newPasswordField ? newPasswordField.value.trim() : "";
 
-      if (
-        Object.keys(filteredData).length === 0 &&
-        !photoField.files[0] &&
-        !identityUploadField.files[0]
-      ) {
-        throw new Error("No hay campos que actualizar");
-      } else if (
-        filteredData.Clave &&
-        currentPasswordField.value.trim().length === 0
-      ) {
-        throw new Error("Debes indicar la clave actual");
-      } else if (
-        filteredData.Telefono &&
-        !new RegExp(/^(0412|0414|0416|0422|0424|0426)-\d{7}$/).test(
-          filteredData["Telefono"],
-        )
-      ) {
-        phoneField.focus();
-        throw new Error("El número de teléfono presenta un formato inválido.");
-      } else if (
-        filteredData.Ocupacion &&
-        (filteredData.Ocupacion.length < 3 ||
-          !new RegExp(
-            /^[a-zA-ZÀ-ÿ\u00f1\u00d1]+(\s?[a-zA-ZÀ-ÿ\u00f1\u00d1\.\-]+)*$/,
-          ).test(filteredData.Ocupacion))
-      ) {
-        occupationField.focus();
-        throw new Error("La ocupación presenta un formato inválido.");
-      } else if (
-        filteredData.Direccion &&
-        (filteredData.Direccion.length < 5 ||
-          !new RegExp(
-            /^[a-zA-Z0-9À-ÿ\u00f1\u00d1][a-zA-Z0-9À-ÿ\u00f1\u00d1\s\.,#\-\/°\(\)]{4,254}$/,
-          ).test(filteredData.Direccion))
-      ) {
-        addressField.focus();
-        throw new Error(
-          "La dirección de habitación presenta un formato incorrecto.",
-        );
-      } else if (
-        filteredData.Clave &&
-        confirmPasswordField.value.trim().length === 0
-      ) {
-        throw new Error(
-          "Debes escribir otra vez la contraseña a modo de confirmación",
-        );
-      } else if (
-        filteredData.Clave &&
-        !new RegExp(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&._-])[A-Za-z\d$@$!%*?&._-]{8,}$/,
-        ).test(filteredData.Clave)
-      ) {
-        newPasswordField.focus();
-        throw new Error(
-          "Formato de contraseña inválido. Debe contener al menos 1 letra minúscula, 1 letrea mayúscula y 1 símbolo",
-        );
-      }
+          // 2. VALIDACIONES LOCALES
+          if (telValue && !/^\d{7}$/.test(telValue)) throw new Error("El teléfono debe tener 7 dígitos numéricos");
+          if (occValue && occValue.length < 3) throw new Error("La ocupación es demasiado corta");
+          if (addrValue && addrValue.length < 5) throw new Error("La dirección es demasiado corta");
+          
+          // Validación Contraseña
+          if (passValue) {
+              if (!currentPasswordField.value.trim()) throw new Error("Para cambiar la clave, indique su contraseña actual");
+              if (passValue !== confirmPasswordField.value.trim()) throw new Error("Las nuevas contraseñas no coinciden");
+              // Regex fuerte
+              if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&._-])[A-Za-z\d$@$!%*?&._-]{8,}$/.test(passValue)) {
+                  throw new Error("La contraseña debe tener: Mayúscula, minúscula, número y símbolo.");
+              }
+              formData.append("Clave", passValue);
+              formData.append("VClave", currentPasswordField.value.trim());
+              formData.append("RClave", confirmPasswordField.value.trim());
+              hasChanges = true;
+          }
 
-      // Agrupando datos en un objeto FormData
-      const formData = new FormData();
-      if (photoField.files[0]) formData.append("Foto", photoField.files[0]);
-      if (identityUploadField.files[0])
-        formData.append("DNI", identityUploadField.files[0]);
-      if (currentPasswordField.value.trim().length > 0)
-        formData.append("VClave", currentPasswordField.value.trim());
-      if (confirmPasswordField.value.trim().length > 0)
-        formData.append("RClave", confirmPasswordField.value.trim());
-      Object.entries(newUserData).forEach(([key, value]) => {
-        if (value) formData.append(key, value);
+          // 3. CONSTRUIR FORMDATA (Enviar siempre que tengan valor)
+          
+          if (telValue) {
+              const fullPhone = `${phonePrefixField.value}-${telValue}`;
+              formData.append("Telefono", fullPhone);
+              hasChanges = true;
+          }
+          
+          if (occValue) {
+              formData.append("Ocupacion", occValue);
+              hasChanges = true;
+          }
+          
+          if (addrValue) {
+              formData.append("Direccion", addrValue);
+              hasChanges = true;
+          }
+
+          // Archivos
+          if (photoField && photoField.files[0]) {
+              formData.append("Foto", photoField.files[0]);
+              hasChanges = true;
+          }
+          if (identityUploadField && identityUploadField.files[0]) {
+              formData.append("DNI", identityUploadField.files[0]);
+              hasChanges = true;
+          }
+
+          // Validar si hay algo que enviar
+          if (!hasChanges) {
+              throw new Error("No hay cambios para guardar.");
+          }
+
+          // --- DEBUG EN CONSOLA (Para ver qué se envía) ---
+          console.log("--- ENVIANDO AL SERVIDOR ---");
+          for (let pair of formData.entries()) {
+              console.log(pair[0] + ': ' + pair[1]); 
+          }
+
+          // 4. PETICIÓN AL SERVIDOR
+          const response = await fetch(`${window.APP_CONFIG.api_url}/user/parent/update`, {
+            method: "PATCH",
+            body: formData,
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.message || "Error del servidor al guardar.");
+          }
+
+          // 5. ÉXITO
+          const notif = document.createElement("notification-component");
+          notif.setAttribute("text", "¡Datos actualizados correctamente!");
+          notif.setAttribute("type", "success");
+          notificationsContainer.appendChild(notif);
+
+          // Recargar para ver cambios
+          setTimeout(() => window.location.reload(), 1500);
+
+        } catch (e) {
+          console.error(e);
+          const notif = document.createElement("notification-component");
+          notif.setAttribute("text", e.message);
+          notif.setAttribute("type", "error");
+          notificationsContainer.appendChild(notif);
+        } finally {
+          loader.remove(); // Quitar loader
+        }
       });
+  }
 
-      // Envíando datos al servidor
-      const uploadDataResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/user/parent/update`,
-        {
-          method: "PATCH",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (!uploadDataResponse.ok) {
-        const error = await uploadDataResponse.json();
-        throw new Error(
-          error.message ?? "Error al actualizar los datos del representante",
-        );
-      }
-
-      const notification = document.createElement("notification-component");
-      notification.setAttribute(
-        "text",
-        "Datos del representante actualizados correctamente",
-      );
-      notification.setAttribute("type", "success");
-      notificationsContainer.appendChild(notification);
-
-      setTimeout(
-        () => (window.location.href = "/app/representante/editar-perfil/"),
-        2000,
-      );
-    } catch (Error) {
-      console.error(Error.stack);
-      const notification = document.createElement("notification-component");
-      notification.setAttribute("text", Error.message);
-      notification.setAttribute("type", "error");
-      notificationsContainer.appendChild(notification);
-    } finally {
-      loader.remove();
-    }
+  // --- C. EXTRAS VISUALES ---
+  
+  // Previsualización de Foto
+  if(photoField) {
+      photoField.addEventListener("change", function(e){
+          const file = e.target.files[0];
+          if(file) {
+             if (!file.type.startsWith("image/")) {
+                 alert("Solo se permiten imágenes (JPG, PNG).");
+                 this.value = ""; return;
+             }
+             if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                 alert("La imagen es muy pesada (Máx 5MB).");
+                 this.value = ""; return;
+             }
+             const reader = new FileReader();
+             reader.onload = (ev) => {
+                 if(photoPreview) photoPreview.style.backgroundImage = `url('${ev.target.result}')`;
+                 if(uploadIcon) uploadIcon.style.display="none";
+             };
+             reader.readAsDataURL(file);
+          }
+      });
+  }
+  
+  // Mostrar/Ocultar Contraseña
+  document.querySelectorAll(".toggle-password").forEach(btn => {
+      btn.addEventListener("click", function() {
+          const inp = this.previousElementSibling;
+          const open = this.querySelector(".eye-open");
+          const closed = this.querySelector(".eye-closed");
+          if(inp.type==="password"){
+              inp.type="text";
+              if(open) open.classList.add("hidden");
+              if(closed) closed.classList.remove("hidden");
+          } else {
+              inp.type="password";
+              if(open) open.classList.remove("hidden");
+              if(closed) closed.classList.add("hidden");
+          }
+      });
   });
-
-  // --- Funcionalidad: Previsualización de Foto de Perfil ---
-  const photoInput = document.getElementById("photoUploadInput");
-
-  photoInput.addEventListener("change", function (e) {
-    const file = e.target.files[0];
-
-    if (file) {
-      // Validar tamaño (Ej: 5MB mencionado en el diseño)
-      if (file.size > 5 * 1024 * 1024) {
-        alert("El archivo es demasiado grande. El tamaño máximo es 5MB.");
-        this.value = ""; // Limpiar el input
-        return;
-      }
-
-      // Validar tipo de imagen simple
-      if (!file.type.startsWith("image/")) {
-        alert(
-          "Por favor seleccione un archivo de imagen válido (JPG, PNG, GIF).",
-        );
-        this.value = "";
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = function (event) {
-        // Ocultar el icono de subida por defecto
-        uploadIcon.style.display = "none";
-        // Establecer la imagen como fondo del contenedor de previsualización
-        photoPreview.style.backgroundImage = `url('${event.target.result}')`;
-      };
-
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // --- Funcionalidad: Alternar Visibilidad de Contraseña ---
-  const togglePasswordButtons = document.querySelectorAll(".toggle-password");
-
-  togglePasswordButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      // Encontrar el input asociado (el hermano anterior en el DOM dentro del wrapper)
-      const input = this.previousElementSibling;
-
-      // Encontrar los iconos dentro de este botón específico
-      const eyeOpen = this.querySelector(".eye-open");
-      const eyeClosed = this.querySelector(".eye-closed");
-
-      if (input.type === "password") {
-        input.type = "text";
-        eyeOpen.classList.add("hidden");
-        eyeClosed.classList.remove("hidden");
-        this.setAttribute("aria-label", "Ocultar contraseña");
-      } else {
-        input.type = "password";
-        eyeOpen.classList.remove("hidden");
-        eyeClosed.classList.add("hidden");
-        this.setAttribute("aria-label", "Mostrar contraseña");
-      }
-    });
-  });
-
-  // --- Efecto extra: Animación suave al hacer scroll (opcional) ---
-  // Se podría implementar IntersectionObserver para animar secciones al entrar en pantalla,
-  // pero las animaciones CSS de entrada (fade-in-up) al cargar ya cubren la petición de efectos.
 });
