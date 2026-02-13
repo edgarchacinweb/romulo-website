@@ -3,295 +3,137 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar Sesión | Liceo Nacional</title>
+    <title>Academia Integral - Iniciar Sesión</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/login.css" />
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="../src/styles/reset.css" />
-    <link rel="stylesheet" href="../src/styles/global.css" />
-
-    <!-- Components -->
+    <script src="/src/components/loader.component.js" type="module"></script>
     <script
-      src="../src/components/notification.component.js"
+      src="/src/components/notifications-container.component.js"
       type="module"
     ></script>
-    <script src="../src/components/loader.component.js" type="module"></script>
-
-    <script src="../src/scripts/config.js"></script>
-
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #e6eef5;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        margin: 0;
-      }
-
-      .login-container {
-        padding: 20px;
-        width: 100%;
-        max-width: 380px; /* Ancho de la caja de login sin cambios */
-      }
-
-      .login-box {
-        background-color: #fff;
-        padding: 30px 40px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
-
-      .logo-area {
-        margin-bottom: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .logo {
-        /* 🎯 AJUSTE FINAL: 180px es un buen tamaño para ser visible y no dominar */
-        max-width: 180px;
-        height: auto;
-        margin-bottom: 10px;
-      }
-
-      h2 {
-        color: #333;
-        margin-bottom: 30px;
-        font-size: 24px;
-        font-weight: 600;
-      }
-
-      .input-group {
-        margin-bottom: 20px;
-        text-align: left;
-      }
-
-      .input-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #555;
-        font-weight: bold;
-      }
-
-      .input-group input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        font-size: 16px;
-      }
-
-      .login-button {
-        background-color: #007bff;
-        color: #fff;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 6px;
-        font-size: 18px;
-        cursor: pointer;
-        width: 100%;
-        margin-top: 15px;
-        transition: background-color 0.3s ease;
-      }
-
-      .login-button:hover {
-        background-color: #0056b3;
-      }
-
-      .forgot-password {
-        display: block;
-        margin-top: 20px;
-        color: #007bff;
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.3s ease;
-      }
-
-      .forgot-password:hover {
-        color: #0056b3;
-        text-decoration: underline;
-      }
-
-      .notifications {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        display: flex;
-        align-items: center;
-        flex-direction: column;
-        gap: 5px;
-      }
-    </style>
+    <script
+      src="/src/components/notification.component.js"
+      type="module"
+    ></script>
   </head>
   <body>
-    <div id="loader"></div>
-    <section class="notifications"></section>
-    <div class="login-container">
-      <div class="login-box">
-        <div class="logo-area">
-          <img
-            src="../src/assets/images/Liceo.png"
-            alt="Logo Liceo Nacional"
-            class="logo"
-          />
+    <notifications-container id="notifications"></notifications-container>
+    <main class="login-container">
+      <div class="background-glow"></div>
+
+      <section class="login-card">
+        <div class="login-header">
+          <div class="logo-container">
+            <img src="/src/assets/images/romulo.webp" class="logo-img" />
+          </div>
+          <h1>Inicar Sesión</h1>
+          <p>Liceo Nacional "Don Rómulo Gallegos"</p>
         </div>
 
-        <h2>Iniciar Sesión</h2>
-
-        <form id="loginForm">
+        <form id="loginForm" class="login-form">
           <div class="input-group">
-            <label for="username">Usuario:</label>
-            <input type="email" id="username" name="username" />
+            <label for="email">Correo Electrónico</label>
+            <div class="input-wrapper">
+              <span class="icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+              </span>
+              <input
+                type="email"
+                id="username"
+                placeholder="tu@correo.com"
+                required
+                autocomplete="off"
+              />
+            </div>
           </div>
 
           <div class="input-group">
-            <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="password" />
+            <label for="password">Contraseña</label>
+            <div class="input-wrapper">
+              <span class="icon">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect
+                    x="3"
+                    y="11"
+                    width="18"
+                    height="11"
+                    rx="2"
+                    ry="2"
+                  ></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </span>
+              <input
+                type="password"
+                id="password"
+                placeholder="........"
+                required
+              />
+              <button
+                type="button"
+                id="togglePassword"
+                class="toggle-visibility"
+                aria-label="Mostrar contraseña"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <button class="login-button" id="loginBtn">Iniciar Sesión</button>
+          <button type="submit" id="loginBtn" class="btn-primary">
+            <span class="btn-text">Iniciar Sesión</span>
+            <span class="btn-loader"></span> <span class="btn-icon">→</span>
+          </button>
 
-          <a href="/app/cambiar-clave.html" class="forgot-password"
-            >¿Olvidaste tu contraseña?</a
-          >
+          <div class="form-footer">
+            <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+          </div>
         </form>
-      </div>
-    </div>
 
-    <script>
-      // Redireccionando si ya se inició sesión
-      const role = localStorage.getItem("role");
+        <footer class="card-footer">
+          <p>
+            © 2026 Liceo Nacional "Don Rómulo Gallegos". <br />Todos los
+            derechos reservados.
+          </p>
+        </footer>
+      </section>
+    </main>
 
-      if (role) {
-        if (role === "administrador") {
-          window.location.href = "/app/admin/dashboard/";
-        } else if (role === "representante") {
-          window.location.href = "/app/representante/inicio/";
-        } else if (role === "docente") {
-          window.location.href = "/app/docente/inicio/";
-        }
-      }
-
-      document.addEventListener("DOMContentLoaded", function () {
-        const loginBtn = document.getElementById("loginBtn");
-        const notificationContainer = document.querySelector(".notifications");
-        const usernameInput = document.getElementById("username");
-        const passwordInput = document.getElementById("password");
-
-        loginBtn.addEventListener("click", (e) => {
-          e.preventDefault();
-
-          const username = usernameInput.value;
-          const password = passwordInput.value;
-
-          (async () => {
-            // Iniciando sesión, obteniendo ID del usuario
-            if (username.trim().length > 0 && password.trim().length > 0) {
-              await customElements.whenDefined("loader-spinner");
-              const loader = document.createElement("loader-spinner");
-              loader.title = "Iniciando sesión...";
-              document.body.appendChild(loader);
-              const response = await fetch(
-                `${window.APP_CONFIG.api_url}/user/login`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    Email: username,
-                    Clave: password,
-                  }),
-                },
-              );
-
-              const data = await response.json();
-
-              passwordInput.value = "";
-              loader.remove();
-
-              const notification = document.createElement(
-                "notification-component",
-              );
-              notification.setAttribute(
-                "text",
-                response.status == 200
-                  ? "Credenciales correctas"
-                  : data.message,
-              );
-              notification.setAttribute(
-                "type",
-                response.status >= 400 ? "error" : "success",
-              );
-              notificationContainer.appendChild(notification);
-
-              if (response.status >= 400) return;
-
-              // Obteniendo el token de autenticación
-              const responseToken = await fetch(
-                `${window.APP_CONFIG.api_url}/user/token/${data.id}`,
-                {
-                  method: "GET",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                },
-              );
-
-              if (responseToken.status != 200) {
-                const tokenErrorNotification = document.createElement(
-                  "notification-component",
-                );
-                tokenErrorNotification.setAttribute(
-                  "text",
-                  "Error al obtener los datos del usuario",
-                );
-                tokenErrorNotification.setAttribute("type", "error");
-                notificationContainer.appendChild(tokenErrorNotification);
-              } else {
-                const { token, role } = await responseToken.json();
-
-                // Guardando el token de autenticación y el rol del usuario
-                localStorage.setItem("auth", token);
-                localStorage.setItem("role", role);
-
-                // Redirigiendo a la ventana correspondiente
-                let url = "";
-                if (role === "administrador") url = "/app/admin/dashboard/";
-                else if (role === "representante")
-                  url = "/app/representante/inicio/";
-                else if (role === "docente") url = "/app/docente/inicio/";
-                else url = "/";
-
-                setTimeout(() => {
-                  window.location.href = url;
-                }, 1500);
-              }
-            } else {
-              let warningText = "";
-
-              if (username.trim().length === 0)
-                warningText = "Rellena el campo del nombre de usuario";
-              else if (password.trim().length === 0)
-                warningText = "Rellena el campo de la contraseña";
-
-              await customElements.whenDefined("notification-component");
-              const warningNotification = document.createElement(
-                "notification-component",
-              );
-              warningNotification.setAttribute("type", "warning");
-              warningNotification.setAttribute("text", warningText);
-
-              notificationContainer.appendChild(warningNotification);
-            }
-          })();
-        });
-      });
-    </script>
+    <script src="/src/scripts/config.js"></script>
+    <script src="/src/scripts/login.js"></script>
   </body>
 </html>

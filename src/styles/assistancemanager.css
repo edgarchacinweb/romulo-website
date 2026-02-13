@@ -1,0 +1,408 @@
+:root {
+  --primary-blue: #3b5d7e;
+  --dark-blue: #2c3e50;
+  --bg-color: #f8fafc;
+  --white: #ffffff;
+  --border-color: #e2e8f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --orange-accent: #f39c12; /* Color de hover y botón guardar */
+  --btn-blue: #6daedb; /* Azul grisáceo de botones */
+  --btn-blue-hover: #5a9bc8;
+  --success-green: #d1fae5;
+  --success-text: #059669;
+  --danger-red: #fee2e2;
+  --danger-text: #dc2626;
+  --hover-gray: #f1f5f9;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Ubuntu", "Segoe UI", system-ui, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.5;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+/* Animación Inicial */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.main-header {
+  background: var(--white);
+  padding: 0.8rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--white);
+  border: 2px solid var(--primary-blue);
+  border-radius: 8px;
+  padding: 5px;
+  color: var(--primary-blue);
+}
+
+.brand-text h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark-blue);
+  margin: 0;
+}
+
+.brand-text .subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+
+.btn-logout:hover {
+  background: var(--hover-gray);
+  color: var(--danger-text);
+  border-color: var(--danger-red);
+}
+
+/* Layout Principal */
+.container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+/* Tarjetas */
+.card {
+  background: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Grid de Filtros */
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--dark-blue);
+}
+
+.select-wrapper,
+.input-wrapper {
+  position: relative;
+}
+
+select,
+input[type="date"] {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: #ecf0f1; /* Gris claro de los inputs */
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  appearance: none; /* Elimina estilo por defecto */
+  cursor: pointer;
+  transition: border 0.2s;
+}
+
+select:focus,
+input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  background: var(--white);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+/* Botones */
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-primary {
+  background-color: var(--btn-blue);
+  color: var(--white);
+  border: none;
+  padding: 0.7rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: var(--btn-blue-hover);
+}
+
+/* Estado Vacío */
+.empty-state {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.empty-icon {
+  width: 60px;
+  height: 60px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+}
+
+.empty-content h3 {
+  margin-bottom: 0.5rem;
+  color: var(--dark-blue);
+}
+
+.empty-content p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Sección de Estudiantes */
+.hidden {
+  display: none;
+}
+
+.students-section {
+  background: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-info {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.attendance-counter {
+  text-align: right;
+}
+
+.counter-big {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-blue);
+  display: block;
+  line-height: 1;
+}
+
+.counter-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.bulk-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-outline:hover {
+  background: var(--hover-gray);
+  border-color: var(--primary-blue);
+}
+
+/* Lista de Estudiantes */
+.student-row {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 0.8rem;
+  transition: all 0.2s;
+  background: var(--white);
+}
+
+.student-row:hover {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border-color: #cbd5e1;
+}
+
+.check-container {
+  margin-right: 1rem;
+}
+
+/* Checkbox Personalizado */
+.custom-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #cbd5e1;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+}
+
+.custom-checkbox.checked {
+  background-color: var(--primary-blue);
+  border-color: var(--primary-blue);
+}
+
+.student-info {
+  flex-grow: 1;
+}
+
+.student-name {
+  font-weight: 600;
+  display: block;
+}
+
+.student-email {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.status-badge.present {
+  background-color: var(--success-green);
+  color: var(--success-text);
+}
+
+.status-badge.absent {
+  background-color: var(--danger-red);
+  color: var(--danger-text);
+}
+
+/* Botón Guardar */
+.save-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.btn-warning {
+  background-color: var(--orange-accent);
+  color: var(--white);
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3);
+  transition: transform 0.1s;
+}
+
+.btn-warning:active {
+  transform: scale(0.98);
+}

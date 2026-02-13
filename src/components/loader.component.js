@@ -25,6 +25,7 @@ class LoaderComponent extends HTMLElement {
           align-items: center;
           flex-direction: column;
           gap: 7px;
+          z-index: 1000;
         }
 
         .loader__spinner {

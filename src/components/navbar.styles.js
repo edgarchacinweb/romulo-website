@@ -54,7 +54,7 @@ sheet.replaceSync(`
         gap: 5px;
         z-index: 100;
         text-decoration: none;
-        color: var(--dark-color);
+        color: var(--light-color);
         font-family: var(--tipography), "sans-serif";
         font-size: 1.1rem;
         transition: all 250ms ease;
@@ -76,7 +76,7 @@ sheet.replaceSync(`
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: var(--navbar-selected-color);
+        background-color: var(--light-color);
         border-radius: 5px;
         opacity: 0;
         z-index: -1;
@@ -107,7 +107,7 @@ sheet.replaceSync(`
         left: 0;
         height: 2px;
         width: 0;
-        background-color: var(--dark-color);
+        background-color: var(--light-color);
         transition: all 350ms ease;
     }
 

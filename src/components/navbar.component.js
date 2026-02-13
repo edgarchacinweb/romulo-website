@@ -15,32 +15,8 @@ class NavbarComponent extends HTMLElement {
             </section>
             <div class="navigation__container">
                 <section class="navigation__options">
-                    <a href="#" class="navigation__link">
-                        <img src="./src/assets/icons/home.svg" class="navigation__icon" />
-                        <span class="options__text">Inicio</span>
-                    </a>
-                    <a href="#" class="navigation__link">
-                        <img src="./src/assets/icons/help-octagon.svg" class="navigation__icon" />
-                        <span class="options__text">Sobre nosotros</span>
-                    </a>
-                    <a href="#" class="navigation__link">
-                        <img src="./src/assets/icons/school.svg" class="navigation__icon" />
-                        <span class="options__text">Oferta académica</span>
-                    </a>
-                    <a href="#" class="navigation__link">
-                        <img src="./src/assets/icons/slideshow.svg" class="navigation__icon" />
-                        <span class="options__text">Galería</span>
-                    </a>
-                    <a href="#" class="navigation__link">
-                        <img src="./src/assets/icons/mail.svg" class="navigation__icon" />
-                        <span class="options__text">Contacto</span>
-                    </a>
                 </section>
                 <section class="navigation__account">
-                    <a href="./app/inscripcion-selector.html" class="navigation__link">
-                        <img src="./src/assets/icons/users-plus.svg" class="navigation__icon" />
-                        <span class="navigation__text">Inscribirse</span>
-                    </a>
                     <a href="./app/iniciar-sesion.html" class="navigation__link">
                         <img src="./src/assets/icons/login.svg" class="navigation__icon" />
                         <span class="navigation__text">Iniciar Sesión</span>
@@ -55,12 +31,12 @@ class NavbarComponent extends HTMLElement {
     const navigation = this.shadowRoot.querySelector(".navigation");
 
     menuBtn.addEventListener("click", () =>
-      navigation.classList.toggle("navigation--active")
+      navigation.classList.toggle("navigation--active"),
     );
     window.addEventListener("resize", () =>
       window.innerWidth > 790
         ? navigation.classList.remove("navigation--active")
-        : ""
+        : "",
     );
   }
 }

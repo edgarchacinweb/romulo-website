@@ -150,7 +150,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else if (identity.length === 0) {
         identityEntry.focus();
         throw new Error("Debes introducir la cédula del representante");
-      } else if (!new RegExp(/^([3-9]\d{7}|\d{9})$/).test(identity)) {
+      } else if (
+        !new RegExp(/\d{7}|\d{8}/).test(identity) ||
+        identity < 100000
+      ) {
         identityEntry.focus();
         throw new Error(
           "La cédula de identidad del representante presenta un formato inválido",
@@ -186,7 +189,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
 
       const peopleData = await dataResponse.json();
-      console.log(peopleData);
 
       if (dataResponse.status !== 201) throw new Error(peopleData.message);
 
@@ -268,6 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         Email: email,
         Rol: "representante",
       });
+      repForm.reset();
       totalCount.textContent = parents.length;
     } catch (error) {
       console.error(error);
@@ -276,7 +279,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     } finally {
       loader.remove();
       notificationsContainer.appendChild(notification);
-      repForm.reset();
     }
   });
 });
