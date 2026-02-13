@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!sectionsResponse.ok) throw new Error(sections.message);
 
     gradeField.innerHTML = '<option value="">Selecciona el grado</option>';
+    sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
     sections.forEach((s) => {
       const newGradeOption = document.createElement("option");
       newGradeOption.setAttribute("value", s["CursoId"]);

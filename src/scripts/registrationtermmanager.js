@@ -112,8 +112,10 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (response.status !== 201)
           throw "Error al crear el período escolar";
         const lastActive = document.querySelector(".active");
-        lastActive.classList.replace("active", "inactive");
-        lastActive.textContent = "Inactivo";
+        if (lastActive) {
+          lastActive.classList.replace("active", "inactive");
+          lastActive.textContent = "Inactivo";
+        }
         registrationTermStatus.setAttribute("type", "success");
 
         const newSchoolTermElement = document.createElement("tr");

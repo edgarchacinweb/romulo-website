@@ -51,7 +51,7 @@ const addTeacherCard = (teacher) => {
                       >
                         <path d="M23 5v13.883l-1 .117v-16c-3.895.119-7.505.762-10.002 2.316-2.496-1.554-6.102-2.197-9.998-2.316v16l-1-.117v-13.883h-1v15h9.057c1.479 0 1.641 1 2.941 1 1.304 0 1.461-1 2.942-1h9.06v-15h-1zm-12 13.645c-1.946-.772-4.137-1.269-7-1.484v-12.051c2.352.197 4.996.675 7 1.922v11.613zm9-1.484c-2.863.215-5.054.712-7 1.484v-11.613c2.004-1.247 4.648-1.725 7-1.922v12.051z"/>
                       </svg>
-                      <p class="card__text">Matematicas, Fisica</p>
+                      <p class="card__text">${teacher["Materias"].map((m) => m["Nombre"]).join(", ")}</p>
                     </div>
                     <div class="card__field">
                       <svg
@@ -274,8 +274,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     subjects.forEach((s) => {
       const subject = document.createElement("option");
-      subject.setAttribute("value", s.id);
-      subject.textContent = s.name;
+      subject.setAttribute("value", s["MateriaId"]);
+      subject.textContent = s["Nombre"];
       subjectList.appendChild(subject);
     });
   }
@@ -297,6 +297,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     loader.setAttribute("title", "Registrando docente...");
     document.body.appendChild(loader);
+
     try {
       if (!firstName || firstName.length === 0) {
         firstNameField.focus();
@@ -318,7 +319,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else if (!identity) {
         identityField.focus();
         throw new Error("Debes especificar la cédula de identidad del docente");
-      } else if (!new RegExp(/^([3-9]\d{7}|\d{9})$/).test(identity)) {
+      } else if (
+        !new RegExp(/\d{7}|\d{8}/).test(identity) ||
+        identity < 100000
+      ) {
         identityField.focus();
         throw new Error("Formato de cédula de identidad inválido.");
       } else if (!phonePrefix) {
@@ -387,6 +391,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         Direccion: location,
       };
 
+      console.log(selectedSubjects);
+
       const registerTeacherResponse = await fetch(
         `${window.APP_CONFIG.api_url}/teacher/create`,
         {
@@ -424,6 +430,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       teachersCounter.textContent = parseInt(teachersCounter.textContent) + 1;
 
       teacherForm.reset();
+      subjectsContainer.querySelectorAll("p").forEach((p) => p.remove());
+      selectedSubjects.forEach((s) => {
+        const subjectOption = document.createElement("option");
+        subjectOption.setAttribute("value", s["MateriaId"]);
+        subjectOption.textContent = s["Nombre"];
+        subjectField.appendChild(subjectOption);
+      });
+
+      selectedSubjects = [];
+
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "success");
       notification.setAttribute("text", "Docente registrado correctamente");
