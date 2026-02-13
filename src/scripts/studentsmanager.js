@@ -4,6 +4,7 @@ import numberToLetter from "./utils.js";
 authorize("administrador");
 
 document.addEventListener("DOMContentLoaded", async () => {
+  
   const token = localStorage.getItem("auth");
   const notifications = document.getElementById("notifications");
   const loader = document.createElement("loader-spinner");
