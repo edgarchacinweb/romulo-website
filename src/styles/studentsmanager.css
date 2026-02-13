@@ -160,8 +160,9 @@ body {
 
 /* --- Cards --- */
 .student-reject {
-  opacity: 0.6;
-  pointer-events: none;
+  opacity: 0.8; /* Aumentado un poco para que sea legible */
+  /* pointer-events: none; <--- ELIMINADO: Esto bloqueaba los clicks */
+  background-color: #f9fafb; /* Fondo sutilmente diferente */
 }
 
 .cards-flex {
@@ -375,6 +376,9 @@ body {
   background: #f9fafb;
   display: flex;
   gap: 1rem;
+  position: relative;
+  z-index: 10; /* Asegurar que esté por encima */
+  pointer-events: auto !important; /* FORZAR CLICK HABILITADO */
 }
 
 .btn {
@@ -390,6 +394,7 @@ body {
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.2s;
+  pointer-events: auto; /* Asegurar que los botones reciban click */
 }
 
 .btn-success {
@@ -433,12 +438,12 @@ body {
   justify-content: center;
   z-index: 1000;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none; /* Correcto: invisible no bloquea */
   transition: opacity 0.3s;
 }
 .modal-overlay.open {
   opacity: 1;
-  pointer-events: auto;
+  pointer-events: auto; /* Correcto: visible sí interactúa */
 }
 
 .modal-content {

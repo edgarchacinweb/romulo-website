@@ -2,11 +2,42 @@ import authorize from "./auth.js";
 
 authorize("representante");
 
-function calcularEdadExacta(fechaNacimiento) {
+/**
+ * Función robusta para leer fechas en varios formatos
+ * Corrige el problema de NaN en fechas
+ */
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  
+  // Intento 1: Parseo directo (ISO format YYYY-MM-DD)
+  let d = new Date(dateStr);
+  if (!isNaN(d.getTime())) return d; // Si es válida, la devolvemos
+
+  // Intento 2: Formato latino DD/MM/YYYY (por si acaso el backend lo manda formateado)
+  if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+          // Reordenamos a YYYY-MM-DD para que JS lo entienda
+          const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+          d = new Date(isoDate);
+          if (!isNaN(d.getTime())) return d;
+      }
+  }
+  
+  return null;
+}
+
+function calcularEdadExacta(fechaNacimientoObj) {
+  if (!fechaNacimientoObj) return "??";
+  
   const hoy = new Date();
-  const nacimiento = new Date(fechaNacimiento);
+  const nacimiento = new Date(fechaNacimientoObj);
+  
+  if (isNaN(nacimiento.getTime())) return "??";
+
   let edad = hoy.getFullYear() - nacimiento.getFullYear();
   const diferenciaMeses = hoy.getMonth() - nacimiento.getMonth();
+  
   if (
     diferenciaMeses < 0 ||
     (diferenciaMeses === 0 && hoy.getDate() < nacimiento.getDate())
@@ -22,19 +53,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("auth");
 
   try {
-    // 1. Verificar si hay periodo de inscripción abierto y obtener su ID
+    // 1. Verificar si hay periodo de inscripción abierto
     let activeEnrollmentPeriod = null;
     try {
-      const periodResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/students/check_period`,
-      );
-      if (periodResponse.ok) {
-        activeEnrollmentPeriod = await periodResponse.json();
-        // activeEnrollmentPeriod.periodoEscolarId contiene el ID del periodo activo
-      }
-    } catch (e) {
-      console.log("No hay periodo activo");
-    }
+        const periodResponse = await fetch(`${window.APP_CONFIG.api_url}/students/check_period`);
+        if (periodResponse.ok) {
+            activeEnrollmentPeriod = await periodResponse.json();
+        }
+    } catch (e) { console.log("Nota: No se pudo verificar periodo activo"); }
 
     // 2. Cargando datos del representante
     const parentDataResponse = await fetch(
@@ -67,14 +93,34 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!studentsDataResponse.ok) throw new Error(studentsData.message);
 
     // 4. Generar Tarjetas
+    if (studentsData.length === 0) {
+        cardContainer.innerHTML = '<p style="color: #666; width: 100%; text-align: center; margin-top: 2rem;">No tienes estudiantes registrados.</p>';
+    }
+
     studentsData.forEach((student) => {
+      // Intentamos obtener la fecha de varias formas posibles
+      const rawDate = student.FechaNacimiento || student.fechaNacimiento || student.fechanacimiento;
+
       const card = document.createElement("div");
-      const gender =
-        student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
-      const birthdate = new Date(student.FechaNacimiento);
-      const estado = student.EstadoEstudiante.Estado;
+      const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
+      const estado = student.EstadoEstudiante.Estado; 
       const currentGrade = parseInt(student.Curso.Grado);
-      const currentPeriodId = student.Curso.PeriodoEscolarId; // Este es el periodo donde está inscrito
+      const currentPeriodId = student.Curso.PeriodoEscolarId;
+      
+      // --- MANEJO SEGURO DE FECHAS ---
+      const birthdateObj = parseDate(rawDate);
+      let dateDisplay = "No registrada";
+      let ageDisplay = "??";
+
+      if (birthdateObj) {
+          // Ajustamos +1 al mes porque getMonth() devuelve 0-11
+          const day = String(birthdateObj.getDate()).padStart(2, '0');
+          const month = String(birthdateObj.getMonth() + 1).padStart(2, '0');
+          const year = birthdateObj.getFullYear();
+          
+          dateDisplay = `${day}/${month}/${year}`;
+          ageDisplay = calcularEdadExacta(birthdateObj);
+      }
 
       card.classList.add("card");
 
@@ -92,20 +138,16 @@ document.addEventListener("DOMContentLoaded", async () => {
              <small style="display:block; text-align:center; color: #666; margin-top:5px;">Revise su correo para ver el motivo.</small>
           </div>
         `;
-      }
-      // LÓGICA CORREGIDA: Solo mostramos reinscripción si:
-      // 1. Hay un periodo abierto (activeEnrollmentPeriod no es null)
-      // 2. El estudiante está "inscrito" (aprobado)
-      // 3. El periodo abierto es DIFERENTE al periodo actual del estudiante (Evita reinscribir en el mismo año)
+      } 
       else if (
-        estado === "inscrito" &&
-        currentGrade < 6 &&
-        activeEnrollmentPeriod &&
-        activeEnrollmentPeriod.open === true &&
-        activeEnrollmentPeriod.periodoEscolarId !== currentPeriodId
+          estado === "inscrito" && 
+          currentGrade < 6 && 
+          activeEnrollmentPeriod && 
+          activeEnrollmentPeriod.open === true &&
+          activeEnrollmentPeriod.periodoEscolarId !== currentPeriodId 
       ) {
-        const nextGrade = currentGrade + 1;
-        actionButtonsHTML = `
+         const nextGrade = currentGrade + 1;
+         actionButtonsHTML = `
           <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
              <button class="btn-reinscribe" 
                 data-id="${student.EstudianteId}" 
@@ -116,7 +158,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
       }
-      // ------------------------
 
       card.innerHTML = `
             <section class="card__student">
@@ -140,14 +181,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <svg class="field__icon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     <h4 class="field__legend">Nacimiento</h4>
                   </div>
-                  <span class="field__content">${birthdate.getDate()}/${birthdate.getMonth() + 1}/${birthdate.getFullYear()}</span>
+                  <span class="field__content">${dateDisplay}</span>
                 </div>
                 <div class="card__field">
                   <div class="field__title">
                     <svg class="field__icon" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <h4 class="field__legend">Edad</h4>
                   </div>
-                  <span class="field__content">${calcularEdadExacta(birthdate)} años</span>
+                  <span class="field__content">${ageDisplay} años</span>
                 </div>
               </div>
 
@@ -185,59 +226,49 @@ document.addEventListener("DOMContentLoaded", async () => {
       cardContainer.appendChild(card);
 
       const reinscribeBtn = card.querySelector(".btn-reinscribe");
-      if (reinscribeBtn) {
-        reinscribeBtn.addEventListener("click", async () => {
-          const nextGrade = reinscribeBtn.getAttribute("data-next");
-          const studentId = reinscribeBtn.getAttribute("data-id");
+      if(reinscribeBtn) {
+          reinscribeBtn.addEventListener("click", async () => {
+             const nextGrade = reinscribeBtn.getAttribute("data-next");
+             const studentId = reinscribeBtn.getAttribute("data-id");
 
-          const confirmAction = confirm(
-            `¿Confirma que desea solicitar la reinscripción para ${nextGrade}° Año?`,
-          );
-          if (!confirmAction) return;
+             const confirmAction = confirm(`¿Confirma que desea solicitar la reinscripción para ${nextGrade}° Año?`);
+             if (!confirmAction) return;
 
-          try {
-            // Buscamos curso por grado
-            const courseRes = await fetch(
-              `${window.APP_CONFIG.api_url}/course/get_by_grade/${nextGrade}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              },
-            );
+             try {
+                const courseRes = await fetch(`${window.APP_CONFIG.api_url}/course/get_by_grade/${nextGrade}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                
+                if(!courseRes.ok) throw new Error("No se encontró el curso para el siguiente año.");
+                const courseData = await courseRes.json();
+                
+                const response = await fetch(`${window.APP_CONFIG.api_url}/students/reinscribe`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        EstudianteId: studentId,
+                        NuevoCursoId: courseData.CursoId 
+                    })
+                });
 
-            if (!courseRes.ok)
-              throw new Error("No se encontró el curso para el siguiente año.");
-            const courseData = await courseRes.json();
-
-            // Enviamos Reinscripción
-            const response = await fetch(
-              `${window.APP_CONFIG.api_url}/students/reinscribe`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  EstudianteId: studentId,
-                  NuevoCursoId: courseData.CursoId,
-                }),
-              },
-            );
-
-            const result = await response.json();
-            if (response.ok) {
-              alert(result.message);
-              window.location.reload();
-            } else {
-              alert("Error: " + result.message);
-            }
-          } catch (error) {
-            console.error(error);
-            alert("No se pudo procesar: " + error.message);
-          }
-        });
+                const result = await response.json();
+                if (response.ok) {
+                    alert(result.message);
+                    window.location.reload(); 
+                } else {
+                    alert("Error: " + result.message);
+                }
+             } catch (error) {
+                 console.error(error);
+                 alert("No se pudo procesar: " + error.message);
+             }
+          });
       }
     });
+
   } catch (Error) {
     console.error(Error.stack);
   }
