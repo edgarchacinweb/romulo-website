@@ -3,8 +3,8 @@ import authorize from "./auth.js";
 // 1. Autorización
 authorize("representante");
 
-// 2. Función auxiliar para edad (Corregida para evitar NaN)
-function calcularEdadExacta(fechaNacimiento) {
+// 2. Función auxiliar para cálculo de edad (Corregida y única)
+function calcularEdad(fechaNacimiento) {
   if (!fechaNacimiento) return "0";
   const hoy = new Date();
   const nacimiento = new Date(fechaNacimiento);
@@ -76,34 +76,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         cardContainer.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No tienes estudiantes registrados aún.</p>';
     }
 
-    // Usamos (student, index) para poder calcular la sección automáticamente
+    // --- CICLO DE RENDERIZADO (Corregido) ---
     studentsData.forEach((student, index) => {
       const card = document.createElement("div");
       card.classList.add("card");
 
-      // A. LÓGICA DE SECCIÓN AUTOMÁTICA (Cada 30 alumnos)
+      // 1. LÓGICA DE SECCIÓN AUTOMÁTICA (Cada 30 alumnos)
       let seccionAuto = "A";
       if (index >= 30 && index < 60) seccionAuto = "B";
       else if (index >= 60) seccionAuto = "C";
 
-      // B. PROCESAMIENTO DE FECHA Y EDAD (Evita NaN)
-      const fechaOrigen = student.FechaNacimiento || (student.DatosPersona ? student.DatosPersona.FechaNacimiento : null);
-      const birthdate = new Date(fechaOrigen);
-      const esFechaValida = !isNaN(birthdate.getTime());
+      const fechaOrigen = student.FechaNacimiento || 
+                    student.fecha_nacimiento || 
+                    (student.DatosPersona ? (student.DatosPersona.FechaNacimiento || student.DatosPersona.fecha_nacimiento) : null);
 
-      const fechaFormateada = esFechaValida 
-        ? `${birthdate.getDate().toString().padStart(2, '0')}/${(birthdate.getMonth() + 1).toString().padStart(2, '0')}/${birthdate.getFullYear()}`
-        : "No registrada";
+const birthdate = new Date(fechaOrigen);
 
-      const edadTexto = esFechaValida ? `${calcularEdadExacta(fechaOrigen)} años` : "0 años";
+// Verificamos si realmente obtuvimos una fecha válida
+const esFechaValida = fechaOrigen && !isNaN(birthdate.getTime());
 
-      // C. DATOS RESTANTES
-      const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
-      const estado = student.EstadoEstudiante ? student.EstadoEstudiante.Estado : "desconocido"; 
-      const currentGrade = student.Curso ? parseInt(student.Curso.Grado) : 0;
-      const currentPeriodId = student.Curso ? student.Curso.PeriodoEscolarId : null; 
-      
-      let actionButtonsHTML = "";
+const fechaFormateada = esFechaValida 
+  ? `${birthdate.getDate().toString().padStart(2, '0')}/${(birthdate.getMonth() + 1).toString().padStart(2, '0')}/${birthdate.getFullYear()}`
+  : "No registrada";
+
+// Llamamos a la función que tienes definida arriba en tu archivo
+const edadTexto = esFechaValida ? `${calcularEdad(fechaOrigen)} años` : "0 años";
 
       // --- LÓGICA: BOTÓN DE CORRECCIÓN (Si fue rechazado) ---
       if (estado === "rechazado") {
@@ -143,15 +140,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       card.innerHTML = `
             <section class="card__student">
               <div class="card__image card__image--${gender}">
-                <img
-                  class="card__photo"
-                  src="${window.APP_CONFIG.api_url}/docs/get/carnet-${student.EstudianteId}.webp"
-                  alt="Foto de estudiante"
-                  onerror="this.src='/src/assets/default-avatar.png'"
-                />
+                <img class="card__photo" src="${window.APP_CONFIG.api_url}/docs/get/carnet-${student.EstudianteId}.webp" onerror="this.src='/src/assets/default-avatar.png'" />
               </div>
-              <h3 class="card__name">${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}</h3>
-              <span class="card__identity">V-${student.DatosPersona.Cedula || "Escolar"}</span>
+              <h3 class="card__name">${student.DatosPersona?.Nombre || 'Estudiante'} ${student.DatosPersona?.Apellido || ''}</h3>
+              <span class="card__identity">V-${student.DatosPersona?.Cedula || "Escolar"}</span>
             </section>
             
             <section class="card__data card__data--${gender}">
@@ -178,7 +170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <svg class="field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
                     <h4 class="field__legend">Grado</h4>
                   </div>
-                  <span class="field__content">${student.Curso ? student.Curso.Grado : "?"}° Año</span>
+                  <span class="field__content">${currentGrade}° Año</span>
                 </div>
                 <div class="card__field">
                   <div class="field__title">
@@ -193,9 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="card__field card__field--${estado} field__state">
                   <div class="field__title">
                     <svg class="field__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <h4 class="field__legend">
-                      Estado: <span id="state" style="text-transform: capitalize;">${estado}</span>
-                    </h4>
+                    <h4 class="field__legend"> Estado: <span style="text-transform: capitalize;">${estado}</span></h4>
                   </div>
                 </div>
               </div>
@@ -205,47 +195,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       cardContainer.appendChild(card);
 
-      // --- LISTENER PARA REINSCRIBIR ---
+      // --- LISTENER PARA REINSCRIBIR (Ahora dentro del ciclo) ---
       const reinscribeBtn = card.querySelector(".btn-reinscribe");
       if(reinscribeBtn) {
           reinscribeBtn.addEventListener("click", async () => {
              const nextGrade = reinscribeBtn.getAttribute("data-next");
              const studentId = reinscribeBtn.getAttribute("data-id");
 
-             const confirmAction = confirm(`¿Confirma que desea solicitar la reinscripción para ${nextGrade}° Año?`);
-             if (!confirmAction) return;
+             if (!confirm(`¿Confirma la reinscripción para ${nextGrade}° Año?`)) return;
 
              try {
                 const courseRes = await fetch(`${window.APP_CONFIG.api_url}/course/get_by_grade/${nextGrade}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                
-                if(!courseRes.ok) throw new Error("No se encontró el curso para el siguiente año.");
+                if(!courseRes.ok) throw new Error("No se encontró el curso.");
                 const courseData = await courseRes.json();
                 
                 const response = await fetch(`${window.APP_CONFIG.api_url}/students/reinscribe`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        EstudianteId: studentId,
-                        NuevoCursoId: courseData.CursoId 
-                    })
+                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                    body: JSON.stringify({ EstudianteId: studentId, NuevoCursoId: courseData.CursoId })
                 });
 
-                const result = await response.json();
                 if (response.ok) {
-                    alert(result.message);
+                    alert("¡Reinscripción solicitada!");
                     window.location.reload(); 
                 } else {
-                    alert("Error: " + result.message);
+                    const resJson = await response.json();
+                    alert("Error: " + resJson.message);
                 }
-             } catch (error) {
-                 console.error(error);
-                 alert("No se pudo procesar: " + error.message);
-             }
+             } catch (error) { alert("Error: " + error.message); }
           });
       }
     });
