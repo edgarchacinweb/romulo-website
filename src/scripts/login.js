@@ -121,3 +121,11 @@ document.addEventListener("DOMContentLoaded", function () {
     })();
   });
 });
+
+document.getElementById("togglePassword").addEventListener("click", () => {
+  const passwordInput = document.getElementById("password");
+  passwordInput.setAttribute(
+    "type",
+    passwordInput.getAttribute("type") === "text" ? "password" : "text",
+  );
+});
