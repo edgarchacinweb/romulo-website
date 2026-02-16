@@ -3,7 +3,9 @@ import authorize from "./auth.js";
 authorize("administrador");
 
 document.addEventListener("DOMContentLoaded", () => {
-  const notificationContainer = document.getElementById("notificationContainer");
+  const notificationContainer = document.getElementById(
+    "notificationContainer",
+  );
   const token = localStorage.getItem("auth");
 
   // --- 1. Cargar Total de Estudiantes ---
@@ -15,9 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}` // Token añadido
+            Authorization: `Bearer ${token}`, // Token añadido
           },
-        }
+        },
       );
 
       if (!studentsResponse.ok) throw new Error("Error al cargar la matrícula");
@@ -25,13 +27,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await studentsResponse.json();
       const el = document.getElementById("totalStudents");
       if (el) el.innerHTML = `${data.count}`;
-
     } catch (err) {
       console.error(err);
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
-      notification.setAttribute("text", "Error al cargar la matrícula de estudiantes");
-      if (notificationContainer) notificationContainer.appendChild(notification);
+      notification.setAttribute(
+        "text",
+        "Error al cargar la matrícula de estudiantes",
+      );
+      if (notificationContainer)
+        notificationContainer.appendChild(notification);
     }
   })();
 
@@ -44,23 +49,27 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      if (!teacherResponse.ok) throw new Error("Error al cargar personal docente");
+      if (!teacherResponse.ok)
+        throw new Error("Error al cargar personal docente");
 
       const data = await teacherResponse.json();
       const el = document.getElementById("totalTeachers");
       if (el) el.innerHTML = `${data.count}`;
-
     } catch (err) {
       console.error(err);
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
-      notification.setAttribute("text", "Error al cargar la plantilla del personal docente");
-      if (notificationContainer) notificationContainer.appendChild(notification);
+      notification.setAttribute(
+        "text",
+        "Error al cargar la plantilla del personal docente",
+      );
+      if (notificationContainer)
+        notificationContainer.appendChild(notification);
     }
   })();
 
@@ -73,19 +82,20 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      if (!schoolTermResponse.ok) throw new Error("Error al cargar período escolar");
+      if (!schoolTermResponse.ok)
+        throw new Error("Error al cargar período escolar");
 
       const data = await schoolTermResponse.json();
       // Verificamos que existan las fechas antes de intentar cortarlas con slice
       if (data.FechaInicio && data.FechaFin) {
-          const term = `${data.FechaInicio.slice(0, 4)} - ${data.FechaFin.slice(0, 4)}`;
-          const el = document.getElementById("schoolTerm");
-          if (el) el.innerHTML = term;
+        const term = `${data.FechaInicio.slice(0, 4)} - ${data.FechaFin.slice(0, 4)}`;
+        const el = document.getElementById("schoolTerm");
+        if (el) el.innerHTML = term;
       }
     } catch (err) {
       console.error(err);
@@ -101,23 +111,27 @@ document.addEventListener("DOMContentLoaded", () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      if (!registrationResponse.ok) throw new Error("Error en conteo de inscripciones");
+      if (!registrationResponse.ok)
+        throw new Error("Error en conteo de inscripciones");
 
       const data = await registrationResponse.json();
       const el = document.getElementById("activeEnrollments");
       if (el) el.innerHTML = `${data.count}`;
-
     } catch (err) {
       console.error(err);
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
-      notification.setAttribute("text", "Error al cargar estudiantes en espera");
-      if (notificationContainer) notificationContainer.appendChild(notification);
+      notification.setAttribute(
+        "text",
+        "Error al cargar estudiantes en espera",
+      );
+      if (notificationContainer)
+        notificationContainer.appendChild(notification);
     }
   })();
 
@@ -135,3 +149,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+document.querySelectorAll("a").forEach((anchor) =>
+  anchor.addEventListener("click", (event) => {
+    event.preventDefault();
+    document.body.style.overflow = "hidden";
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    setTimeout(() => (window.location.href = anchor.href), 1000);
+  }),
+);

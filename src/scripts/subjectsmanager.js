@@ -28,42 +28,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función principal para renderizar la lista
   const renderSubjects = () => {
     dynamicList.innerHTML = "";
-
-    // Manejo del estado vacío
-    if (subjects.length === 0) {
-      emptyState.classList.remove("hidden");
-      subjectsContainer.classList.add("hidden");
-      return;
-    }
-
-    emptyState.classList.add("hidden");
-    subjectsContainer.classList.remove("hidden");
-
-    // Agrupar materias por nivel educativo
-    // Creamos un objeto donde las claves son los niveles
-    const grouped = subjects.reduce((acc, subject) => {
-      if (!acc[subject.level]) {
-        acc[subject.level] = [];
-      }
-      acc[subject.level].push(subject);
-      return acc;
-    }, {});
-
-    // Iterar sobre los grupos y crear el HTML
-    for (const [level, items] of Object.entries(grouped)) {
-      const groupSection = document.createElement("div");
-      groupSection.className = "level-group";
-
-      // Header del grupo (Nivel + Contador)
-      const countText = `${items.length} materia${items.length !== 1 ? "s" : ""}`;
-
-      // Icono de birrete para el título de sección
-      const iconHat = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>`;
-
-      groupSection.innerHTML = `
+    const groupSection = document.createElement("div");
+    groupSection.classList.add("level-group");
+    groupSection.innerHTML = `
                 <div class="level-header">
                     <div class="level-title">
-                        ${iconHat}
+                        <svg
+                           width="20"
+                           height="20"
+                           viewBox="0 0 24 24"
+                           fill="none"
+                           stroke="#6366f1"
+                           stroke-width="2"
+                           stroke-linecap="round"
+                           stroke-linejoin="round"
+                         >
+                             <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                             <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                         </svg>
                         <span>Educación ${level}</span>
                     </div>
                     <span class="subject-count">${countText}</span>
@@ -71,29 +53,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="subjects-grid" id="grid-${level}"></div>
             `;
 
-      dynamicList.appendChild(groupSection);
+    dynamicList.appendChild(groupSection);
 
-      // Insertar tarjetas en el grid correspondiente
-      const grid = groupSection.querySelector(`#grid-${level}`);
+    // Insertar tarjetas en el grid correspondiente
+    // const grid = groupSection.querySelector(`#grid-${level}`);
 
-      items.forEach((subject) => {
-        const card = document.createElement("div");
-        card.className = "subject-card";
-        card.innerHTML = `
-                    <div class="card-info">
-                        <h4>${subject.name}</h4>
-                        <span>${subject.date}</span>
-                    </div>
-                    <button class="btn-delete" title="Eliminar materia">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                `;
-        grid.appendChild(card);
-      });
-    }
+    // items.forEach((subject) => {
+    //   const card = document.createElement("div");
+    //   card.className = "subject-card";
+    //   card.innerHTML = `
+    //               <div class="card-info">
+    //                   <h4>${subject.name}</h4>
+    //                   <span>${subject.date}</span>
+    //               </div>
+    //               <button class="btn-delete" title="Eliminar materia">
+    //                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    //                       <polyline points="3 6 5 6 21 6"></polyline>
+    //                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    //                   </svg>
+    //               </button>
+    //           `;
+    //   grid.appendChild(card);
+    // });
   };
 
   const enableBtn = () => {
