@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                               <h4>${subject["Nombre"]}</h4>
                               <span>${getCurrentDate()}</span>
                             </div>
-                            <button class="btn-delete" title="Eliminar materia">
+                            <button class="btn-delete" title="Eliminar materia" data-id=${subject["MateriaId"]}>
                               <svg
                                 width="16"
                                 height="16"
@@ -97,6 +97,53 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       dynamicList.appendChild(groupSection);
     });
+
+    document.querySelectorAll(".btn-delete").forEach((btn) =>
+      btn.addEventListener("click", async () => {
+        const confirmation = confirm(
+          "¿Estás seguro de inhabilitar esta materia?",
+        );
+        if (!confirmation) return;
+
+        const notification = document.createElement("notification-component");
+        loader.setAttribute("title", "Deshabilitando Materia...");
+        document.body.appendChild(loader);
+
+        try {
+          const id = btn.getAttribute("data-id");
+          const removeSubjectResponse = await fetch(
+            `${window.APP_CONFIG.api_url}/subject/delete/${id}`,
+            {
+              method: "DELETE",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          if (!removeSubjectResponse.ok) {
+            const removeSubjectAnswer = await removeSubjectResponse.json();
+            throw new Error(removeSubjectAnswer.message);
+          }
+
+          subjects = subjects.filter((s) => s["MateriaId"] !== id);
+          renderSubjects();
+          notification.setAttribute("type", "success");
+          notification.setAttribute(
+            "text",
+            "Materia deshabilitada correctamente",
+          );
+        } catch (Error) {
+          console.error(Error.stack);
+          notification.setAttribute("type", "error");
+          notification.setAttribute("text", Error.message);
+        } finally {
+          loader.remove();
+          notifications.appendChild(notification);
+        }
+      }),
+    );
   };
 
   const enableBtn = () => {
