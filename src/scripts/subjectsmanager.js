@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   nameInput.addEventListener("keyup", enableBtn);
 
   // Manejador del envío del formulario
-  addSubjectBtn.addEventListener("click", (e) => {
+  addSubjectBtn.addEventListener("click", async () => {
     loader.setAttribute("title", "Registrando Materia...");
 
     try {
@@ -225,16 +225,41 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error(
           "El nombre de la materia es demasiado largo. Límite máximo: 20 caracteres",
         );
+      } else if (
+        subjects.findIndex(
+          (s) => s["Nombre"].toLowerCase() === name.toLowerCase(),
+        ) !== -1
+      ) {
+        nameInput.focus();
+        throw new Error("Esa materia ya se encuentra registrada");
       }
 
-      // Crear nueva materia
       const newSubject = {
-        id: Date.now(), // ID único basado en timestamp
-        name: name,
-        level: level,
-        date: getCurrentDate(),
+        Nombre: name
+          .split(" ")
+          .map((m) => m[0].toUpperCase() + m.substr(1).toLowerCase())
+          .join(" "),
+        Nivel: level,
       };
 
+      // Crear nueva materia
+      const registerSubjectResponse = await fetch(
+        `${window.APP_CONFIG.api_url}/subject/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(newSubject),
+        },
+      );
+
+      const registerSubjectAnswer = await registerSubjectResponse.json();
+      if (registerSubjectResponse.status !== 201)
+        throw new Error(registerSubjectAnswer.message);
+
+      newSubject["MateriaId"] = registerSubjectAnswer["MateriaId"];
       subjects.push(newSubject);
 
       // Mostrar notificación
@@ -251,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       nameInput.focus();
       renderSubjects();
     } catch (Error) {
-      console.log(Error.stack);
+      console.error(Error.stack);
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
       notification.setAttribute("text", Error.message);
