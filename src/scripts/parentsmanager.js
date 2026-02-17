@@ -35,29 +35,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- FUNCIÓN GLOBAL: CARGAR DATOS EN FORMULARIO (EDITAR) ---
   window.editRep = (usuarioId) => {
-    // 1. Buscamos el usuario en el array local
+    // Buscamos el usuario. IMPORTANTE: Ahora la estructura puede variar un poco, así que buscamos robustamente
     const parentFound = parents.find(
-      (p) => p.UsuarioId == usuarioId || p.id == usuarioId,
+      (p) => p.UsuarioId == usuarioId || p.Usuario?.UsuarioId == usuarioId
     );
     if (!parentFound) return;
 
     const { DatosPersona, Email } = parentFound;
 
-    // 2. Llenamos los campos del formulario
+    // Llenamos los campos del formulario
     firstNameEntry.value = DatosPersona.Nombre;
     lastNameEntry.value = DatosPersona.Apellido;
     identityEntry.value = DatosPersona.Cedula;
     genderEntry.value = DatosPersona.Sexo;
     emailEntry.value = Email;
 
-    // 3. NO BLOQUEAMOS el email
     emailEntry.disabled = false;
 
-    // 4. Cambiamos estado a "Editando"
+    // Cambiamos estado a "Editando"
     isEditing = true;
-    currentEditId = DatosPersona.DatosPersonaId || DatosPersona.id;
+    currentEditId = DatosPersona.DatosPersonaId;
 
-    // 5. Cambiamos estilo del botón
     submitBtn.textContent = "Actualizar Representante";
     submitBtn.classList.add("btn-warning");
     firstNameEntry.focus();
@@ -65,25 +63,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- FUNCIÓN AUXILIAR: RENDERIZAR LISTA ---
   const renderParents = (parentsData) => {
-    repsList.innerHTML = ""; // Limpiar lista actual
+    repsList.innerHTML = ""; 
 
     parentsData.forEach((parent) => {
-      // Definimos userId dentro del bucle
-      const userId = parent.UsuarioId || parent.id;
-
+      // Obtenemos el ID de forma segura (tu backend nuevo envía UsuarioId en la raíz del objeto)
+      const userId = parent.UsuarioId;
       const { DatosPersona } = parent;
+      
       const card = document.createElement("article");
       card.className = "rep-card";
 
-      // por si necesitamos el boton de editar en el futuro
+      // Nota: Si quieres activar la edición, descomenta el botón de abajo
       card.innerHTML = `
                 <div class="rep-top">
                     <h3>${DatosPersona.Nombre} ${DatosPersona.Apellido}</h3>
-                    
-                    </div>
-                <span class="cedula-text">Cédula: V-${
-                  DatosPersona.Cedula
-                }</span>
+                     <!-- 
+                    <button class="btn-edit" onclick="editRep('${userId}')" title="Editar">
+                       ${icons.edit}
+                    </button> 
+                    -->
+                </div>
+                <span class="cedula-text">Cédula: V-${DatosPersona.Cedula}</span>
 
                 <div class="rep-details">
                     <div class="detail-item">
@@ -92,34 +92,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>
                     <div class="detail-item">
                         <span class="icon-green">${icons.phone}</span>
-                        ${
-                          !DatosPersona.Telefono
-                            ? "No asignado"
-                            : DatosPersona.Telefono
-                        }
+                        ${!DatosPersona.Telefono ? "No asignado" : DatosPersona.Telefono}
                     </div>
                     <div class="detail-item">
                         <span class="icon-orange">${icons.map}</span>
-                        ${
-                          !DatosPersona.Direccion
-                            ? "No asignado"
-                            : DatosPersona.Direccion
-                        }
+                        ${!DatosPersona.Direccion ? "No asignado" : DatosPersona.Direccion}
                     </div>
                     <div class="detail-item">
                         <span class="icon-purple">${icons.briefcase}</span>
-                        ${
-                          !DatosPersona.Ocupacion
-                            ? "No asignado"
-                            : DatosPersona.Ocupacion
-                        }
+                        ${!DatosPersona.Ocupacion ? "No asignado" : DatosPersona.Ocupacion}
                     </div>
                 </div>
 
                 <div class="rep-footer">
-                    Registrado: ${new Date(
-                      parent.FechaCreacion || new Date(),
-                    ).toLocaleDateString("es-VE")}
+                    Representante Activo
                 </div>        
             `;
       repsList.appendChild(card);
@@ -127,45 +113,60 @@ document.addEventListener("DOMContentLoaded", async () => {
     totalCount.textContent = parentsData.length;
   };
 
-  // --- CARGA INICIAL DE DATOS ---
-  document.body.appendChild(loader);
-  try {
-    const parentsResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/user/filter`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+  // --- NUEVA FUNCIÓN: CARGAR DATOS (POLLING) ---
+  const loadParentsData = async (isBackgroundUpdate = false) => {
+    if (isEditing && isBackgroundUpdate) return;
+
+    if (!isBackgroundUpdate) {
+      document.body.appendChild(loader);
+    }
+
+    try {
+      const parentsResponse = await fetch(
+        `${window.APP_CONFIG.api_url}/people/list`, 
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-        body: JSON.stringify({
-          Rol: "representante",
-        }),
-      },
-    );
+      );
 
-    const parentsData = await parentsResponse.json();
-    if (parentsResponse.status !== 200) throw new Error(parentsData.message);
+      const parentsData = await parentsResponse.json();
+      if (parentsResponse.status !== 200) throw new Error(parentsData.message);
 
-    // Guardamos en variable global y renderizamos
-    parents = parentsData;
-    renderParents(parents);
-  } catch (error) {
-    console.log(error);
-    const loadNotification = document.createElement("notification-component");
-    loadNotification.setAttribute("type", "error");
-    loadNotification.setAttribute("text", error);
-    notificationsContainer.appendChild(loadNotification);
-  } finally {
-    loader.remove();
-  }
+      parents = parentsData;
+      renderParents(parents);
+    } catch (error) {
+      console.log(error);
+      if (!isBackgroundUpdate) {
+        const loadNotification = document.createElement("notification-component");
+        loadNotification.setAttribute("type", "error");
+        loadNotification.setAttribute("text", "Error cargando lista: " + error);
+        notificationsContainer.appendChild(loadNotification);
+      }
+    } finally {
+      if (!isBackgroundUpdate) {
+        loader.remove();
+      }
+    }
+  };
+
+  // --- CARGA INICIAL ---
+  await loadParentsData(false);
+
+  // --- AUTO-REFRESH (Cada 5 segundos) ---
+  setInterval(() => {
+    loadParentsData(true);
+  }, 5000); 
 
   // --- MANEJO DEL BOTÓN DE ENVÍO (CREAR O EDITAR) ---
   submitBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     const firstName = firstNameEntry.value.trim();
     const lastName = lastNameEntry.value.trim();
-    const identity = identityEntry.value.trim();
+    const identity = identityEntry.value.trim(); // Cédula como string
     const gender = genderEntry.value;
     const email = emailEntry.value.trim();
     const notification = document.createElement("notification-component");
@@ -173,41 +174,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.appendChild(loader);
 
     try {
-      // 1. Validaciones
+      // 1. Validaciones Generales
       if (firstName.length === 0) {
-        firstNameEntry.focus();
-        throw new Error("Debes introducir el nombre del representante");
+        firstNameEntry.focus(); throw new Error("Debes introducir el nombre");
       } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(firstName)) {
-        firstNameEntry.focus();
-        throw new Error("El nombre presenta un formato inválido");
+        firstNameEntry.focus(); throw new Error("Nombre inválido");
       } else if (lastName.length === 0) {
-        lastNameEntry.focus();
-        throw new Error("Debes introducir el apellido del representante");
+        lastNameEntry.focus(); throw new Error("Debes introducir el apellido");
       } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(lastName)) {
-        lastNameEntry.focus();
-        throw new Error("El apellido presenta un formato inválido");
-      } else if (identity.length === 0) {
-        identityEntry.focus();
-        throw new Error("Debes introducir la cédula del representante");
-      } else if (!/^[1-9]\d{6,9}$/.test(identity)) {
-        identityEntry.focus();
-        throw new Error(
-          "La cédula debe ser mayor a 1 millón (mínimo 7 dígitos)",
-        );
-      } else if (gender.length === 0) {
-        genderEntry.focus();
-        throw new Error("Debes indicar el género del representante");
+        lastNameEntry.focus(); throw new Error("Apellido inválido");
+      } 
+      
+      // === NUEVAS VALIDACIONES DE CÉDULA ===
+      else if (identity.length === 0) {
+        identityEntry.focus(); throw new Error("Debes introducir la cédula");
+      } else if (!/^\d+$/.test(identity)) {
+        identityEntry.focus(); throw new Error("La cédula solo debe contener números (sin letras ni puntos)");
+      } else if (identity.startsWith("0")) {
+        identityEntry.focus(); throw new Error("La cédula no debe empezar por 0");
+      } else if (identity.length < 7 || identity.length > 9) {
+        identityEntry.focus(); throw new Error("La cédula debe tener entre 7 y 9 dígitos");
+      } else if (parseInt(identity) <= 1000000) {
+        identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000");
+      } 
+      // =====================================
+
+      else if (gender.length === 0) {
+        genderEntry.focus(); throw new Error("Indica el género");
       } else if (email.length === 0) {
-        emailEntry.focus();
-        throw new Error("Debes indicar el correo electrónico");
+        emailEntry.focus(); throw new Error("Indica el correo");
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        emailEntry.focus();
-        throw new Error("El correo electrónico presenta un formato inválido");
+        emailEntry.focus(); throw new Error("Correo inválido");
       }
 
       // 2. Lógica: ¿Editar o Crear?
       if (isEditing) {
-        // ================= MODO EDICIÓN (PATCH) =================
+        // --- EDITAR ---
         const updateResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/update/${currentEditId}`,
           {
@@ -234,28 +236,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("type", "success");
         notification.setAttribute("text", "Datos actualizados correctamente");
 
-        // Actualizamos Array Local
-        const parentIndex = parents.findIndex(
-          (p) =>
-            p.DatosPersona.id === currentEditId ||
-            p.DatosPersona.DatosPersonaId === currentEditId,
-        );
+        await loadParentsData(true);
 
-        if (parentIndex !== -1) {
-          parents[parentIndex].DatosPersona.Nombre = firstName;
-          parents[parentIndex].DatosPersona.Apellido = lastName;
-          parents[parentIndex].DatosPersona.Cedula = identity;
-          parents[parentIndex].DatosPersona.Sexo = gender;
-          parents[parentIndex].Email = email;
-        }
-
-        // Resetear estado
         isEditing = false;
         currentEditId = null;
         submitBtn.textContent = "Registrar Representante";
         submitBtn.classList.remove("btn-warning");
       } else {
-        // ================= MODO CREACIÓN (POST) =================
+        // --- CREAR ---
         const dataResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/create`,
           {
@@ -301,30 +289,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           throw new Error(userData.message || userData);
 
         notification.setAttribute("type", "success");
-        notification.setAttribute(
-          "text",
-          "Representante registrado correctamente",
-        );
+        notification.setAttribute("text", "Representante registrado correctamente");
 
-        // Agregar al Array Local
-        parents.push({
-          UsuarioId: userData.id || userData.UsuarioId,
-          DatosPersona: {
-            id: peopleId,
-            DatosPersonaId: peopleId,
-            Apellido: lastName,
-            Cedula: identity,
-            Nombre: firstName,
-            Sexo: gender,
-          },
-          Email: email,
-          Rol: "representante",
-          FechaCreacion: new Date(),
-        });
+        await loadParentsData(true);
       }
 
-      // 3. Renderizar y Limpiar
-      renderParents(parents);
       repForm.reset();
     } catch (error) {
       console.error(error);
