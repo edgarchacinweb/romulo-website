@@ -32,8 +32,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     document.body.appendChild(loader);
 
-    // --- 2. VALIDACIÓN DE PERIODO (NUEVO) ---
-    // Si NO estamos editando, verificamos si el proceso está abierto
+    // --- 2. VALIDACIÓN DE PERIODO ---
     if (!editId) {
       const checkPeriodResponse = await fetch(
         `${window.APP_CONFIG.api_url}/students/check_period`,
@@ -43,7 +42,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
 
       if (!checkPeriodResponse.ok) {
-        // Bloquear visualmente el formulario
         const mainContainer =
           document.querySelector(".container") || document.body;
         mainContainer.innerHTML = `
@@ -55,13 +53,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
             `;
         loader.remove();
-        return; // Detener ejecución
+        return;
       }
     }
 
-    // --- 3. Carga Inicial (Grados y Representante) ---
-
-    // Cargar Grados
+    // --- 3. Carga Inicial ---
     const gradesResponse = await fetch(
       `${window.APP_CONFIG.api_url}/course/get_all`,
       {
@@ -73,7 +69,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (grades[index]) opt.value = grades[index].CursoId;
     });
 
-    // Cargar Representante
     const parentResponse = await fetch(
       `${window.APP_CONFIG.api_url}/people/get`,
       {
@@ -91,7 +86,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const countData = await countResponse.json();
     parentData["students"] = countData;
 
-    // --- 4. MODO EDICIÓN: CARGAR DATOS ---
+    // --- 4. MODO EDICIÓN ---
     if (editId) {
       if (formTitle) formTitle.textContent = "Corregir Inscripción";
       btnSubmit.textContent = "Guardar Correcciones";
@@ -253,16 +248,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Visual de Inputs de archivo
+  // --- Visual de Inputs de Archivo (Modificado para Preview de Foto) ---
   document.querySelectorAll('input[type="file"]').forEach((input) => {
     input.addEventListener("change", (e) => {
-      const fileName = e.target.files[0]?.name;
+      const file = e.target.files[0];
       const zone = input.closest(".upload-zone");
-      if (fileName && zone) {
-        zone.querySelector("span").textContent = fileName;
-        zone.style.borderColor = "#28a745";
+      
+      if (file && zone) {
+        // A. Lógica Específica para Foto (Preview)
+        if (input.id === "studentPhoto") {
+             if (!file.type.startsWith("image/")) {
+                 alert("Solo se permiten imágenes (JPG, PNG).");
+                 input.value = ""; 
+                 return;
+             }
+             const reader = new FileReader();
+             reader.onload = (ev) => {
+                 zone.style.backgroundImage = `url('${ev.target.result}')`;
+                 zone.classList.add("has-image"); // Activa estilos CSS
+             };
+             reader.readAsDataURL(file);
+             zone.style.borderColor = "#28a745";
+        } 
+        // B. Lógica Estándar para Documentos (PDFs)
+        else {
+            const fileName = file.name;
+            zone.querySelector("span").textContent = fileName;
+            zone.style.borderColor = "#28a745";
+        }
       }
     });
+
     input
       .closest(".upload-zone")
       ?.addEventListener("click", () => input.click());

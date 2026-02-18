@@ -74,6 +74,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     } catch (e) { console.warn("No se pudo cargar la foto de perfil previa"); }
 
+    // --- NUEVO: 3.1 VERIFICAR SI YA EXISTE CÉDULA CARGADA ---
+    try {
+        // Construimos la URL probable del archivo (siguiendo el patrón de la foto)
+        // Usamos dni-{UUID}.pdf
+        const dniUrl = `${window.APP_CONFIG.api_url}/docs/get/dni-${parentUserData.UsuarioId}.pdf`;
+        
+        // Hacemos una petición ligera (HEAD) para ver si el archivo existe sin descargarlo todo
+        // Si el servidor no soporta HEAD, caerá en el catch o dará error, pero intentamos.
+        const dniResponse = await fetch(dniUrl, { method: "HEAD" });
+
+        // Si responde OK (200), significa que el archivo existe en el servidor
+        if (dniResponse.ok || dniResponse.status === 200) {
+            // Actualizamos la UI al estado "Verde"
+            if (identityBtn) {
+                identityBtn.classList.remove("btn-outline");
+                identityBtn.classList.add("btn-success");
+            }
+            if (identityBtnText) {
+                identityBtnText.textContent = "Cédula Cargada";
+            }
+            if (identityFileName) {
+                // Mostramos un enlace o texto indicando que ya está guardado
+                identityFileName.innerHTML = `<span style="color:var(--success)"></span>`; //creo que no es necesario, pero podemos agregarlo despues (NG)
+                identityFileName.style.display = "block";
+            }
+        }
+    } catch (e) {
+        // Si falla (404 no existe, u otro error), simplemente lo dejamos en gris (estado por defecto)
+        console.warn("No se detectó cédula previa o error al verificar:", e);
+    }
+    // ---------------------------------------------------------
+
     // 4. Llenar campos
     if(firstNameField) firstNameField.value = parentData["Nombre"] ?? "";
     if(lastNameField) lastNameField.value = parentData["Apellido"] ?? "";
@@ -195,35 +227,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // 1. BLOQUEO TOTAL DE LETRAS EN TELÉFONO
   if (phoneField) {
-    // a. Prevenir escritura de caracteres no numéricos
     phoneField.addEventListener("keydown", function(e) {
-      // Permitir teclas especiales de navegación y borrado
       const allowedKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight", "Home", "End"];
-      
-      // Permitir atajos de teclado (Ctrl+C, Ctrl+V, etc)
-      if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
-        return;
-      }
-
-      // Si la tecla NO es un número, bloquearla
-      if (!/^[0-9]$/.test(e.key)) {
-        e.preventDefault();
-      }
+      if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) return;
+      if (!/^[0-9]$/.test(e.key)) e.preventDefault();
     });
 
-    // b. Limpieza en caso de pegar texto o autocompletado
     phoneField.addEventListener("input", function() {
-      // Eliminar cualquier cosa que no sea número
       this.value = this.value.replace(/[^0-9]/g, "");
-      
-      // Cortar estrictamente a 7 dígitos
-      if (this.value.length > 7) {
-        this.value = this.value.slice(0, 7);
-      }
+      if (this.value.length > 7) this.value = this.value.slice(0, 7);
     });
   }
 
-  // 2. Feedback visual Cédula
+  // 2. Feedback visual Cédula (Al seleccionar archivo nuevo)
   if (identityUploadField && identityBtn) {
     identityUploadField.addEventListener("change", function () {
       if (this.files && this.files.length > 0) {
@@ -232,10 +248,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         identityBtn.classList.add("btn-success");
         if (identityBtnText) identityBtnText.textContent = "Cédula Cargada";
         if (identityFileName) {
-          identityFileName.textContent = `Archivo: ${file.name}`;
+          identityFileName.textContent = `Archivo nuevo: ${file.name}`;
           identityFileName.style.display = "block";
+          identityFileName.style.color = "var(--primary-color)"; // Color normal para nuevo archivo
         }
       } else {
+        // Si cancela, ¿volvemos al estado gris o verificamos si ya había uno?
+        // Por simplicidad, volvemos a gris, el usuario puede recargar si quiere ver el estado original.
         identityBtn.classList.remove("btn-success");
         identityBtn.classList.add("btn-outline");
         if (identityBtnText) identityBtnText.textContent = "Cargar Cédula";
