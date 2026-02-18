@@ -304,7 +304,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="partida-nacimiento-${student["EstudianteId"]}.pdf">
+                      <!-- CORREGIDO AQUÍ: Nombre del archivo sincronizado con Backend -->
+                      <button class="btn-icon-small btn-download-file" data-file="partida-${student["EstudianteId"]}.pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
@@ -322,7 +323,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="notas-certificadas-${student["EstudianteId"]}.pdf">
+                      <!-- CORREGIDO AQUÍ: Nombre del archivo sincronizado con Backend -->
+                      <button class="btn-icon-small btn-download-file" data-file="notas-${student["EstudianteId"]}.pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
@@ -541,7 +543,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
           const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "error");
+          notification.setAttribute("type", "error"); 
           notification.setAttribute("text", "Solicitud rechazada correctamente");
           notifications.appendChild(notification);
           
@@ -573,7 +575,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Event Listeners de Filtros
   searchField.addEventListener("change", filterRequests);
-  gradesField.addEventListener("change", filterRequests);
+  // gradesField.addEventListener("change", filterRequests); // <--- ELIMINADO: Se gestiona abajo
   sectionsField.addEventListener("change", filterRequests);
   stateField.addEventListener("change", filterRequests);
 
@@ -597,7 +599,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       0,
     );
 
-    sections.forEach((section) => {
+    // FILTRAR GRADOS ÚNICOS (Evitar duplicados en el dropdown)
+    const uniqueGrades = [];
+    const seenGrades = new Set();
+    sections.forEach(s => {
+        if(!seenGrades.has(s["CursoId"])) {
+            seenGrades.add(s["CursoId"]);
+            uniqueGrades.push(s);
+        }
+    });
+
+    uniqueGrades.forEach((section) => {
       const option = document.createElement("option");
       option.setAttribute("value", section["CursoId"]);
       option.textContent = `${section["Grado"]}° Año`;
@@ -616,7 +628,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     loader.remove();
   }
 
+  // EVENT LISTENER UNIFICADO PARA CAMBIO DE GRADO
   gradesField.addEventListener("change", () => {
+    // 1. Actualizar las secciones disponibles
     const selectedSections =
       sections.find((element) => element["CursoId"] === gradesField.value)?.Seccion ?? maxSection;
 
@@ -627,6 +641,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       option.textContent = numberToLetter(i);
       sectionsField.appendChild(option);
     }
+
+    // 2. Ejecutar el filtro (AHORA SÍ con el valor de sección reseteado o actualizado)
+    filterRequests();
   });
 
   document.getElementById("BtnBack").addEventListener("click", () => {
