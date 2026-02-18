@@ -160,9 +160,8 @@ body {
 
 /* --- Cards --- */
 .student-reject {
-  opacity: 0.8; /* Aumentado un poco para que sea legible */
-  /* pointer-events: none; <--- ELIMINADO: Esto bloqueaba los clicks */
-  background-color: #f9fafb; /* Fondo sutilmente diferente */
+  /* opacity: 0.8;  <-- ELIMINADO: Esto causaba el efecto pálido/transparente */
+  background-color: #f9fafb;
 }
 
 .cards-flex {
@@ -195,6 +194,7 @@ body {
   border-color: #bfdbfe;
 }
 
+/* --- RESTAURADO: Fondo azul degradado y borde azul --- */
 .card-header {
   background: linear-gradient(to right, #f0f9ff, #e0f2fe);
   padding: 1rem;
