@@ -10,7 +10,7 @@ const token = localStorage.getItem("auth") ?? "";
 
 // 3. Inicialización
 document.addEventListener("DOMContentLoaded", async () => {
-  // --- REFERENCIAS AL DOM (Asegúrate que coincidan con tu HTML) ---
+  // --- REFERENCIAS AL DOM ---
   const photoPreview = document.getElementById("photoPreview");
   const photoField = document.getElementById("photoUploadInput");
   const firstNameField = document.getElementById("firstNameField");
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const genderField = document.getElementById("genderField");
   const emailField = document.getElementById("emailField");
 
-  // Referencias para el Feedback Visual de Cédula (Nuevos elementos)
+  // Referencias para el Feedback Visual de Cédula
   const identityBtn = document.getElementById("btnIdentityUpload");
   const identityBtnText = document.getElementById("btnTextIdentity");
   const identityFileName = document.getElementById("identityFileName");
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const phoneField = document.getElementById("phoneField");
   const phonePrefixField = document.getElementById("phonePrefixField");
   const occupationField = document.getElementById("occupationField");
-  const addressField = document.getElementById("addressField"); // ID debe ser 'addressField' en el HTML
+  const addressField = document.getElementById("addressField");
   
   // Contraseñas
   const currentPasswordField = document.getElementById("current-password");
@@ -51,7 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!parentDataResponse.ok) throw Error("Error al cargar datos personales");
     const parentData = await parentDataResponse.json();
     
-    // 2. Obtener Datos de Usuario (Email)
+    // 2. Obtener Datos de Usuario
     const parentUserDataResponse = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
       method: "GET",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -74,13 +74,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     } catch (e) { console.warn("No se pudo cargar la foto de perfil previa"); }
 
-    // 4. Llenar los campos visuales
+    // 4. Llenar campos
     if(firstNameField) firstNameField.value = parentData["Nombre"] ?? "";
     if(lastNameField) lastNameField.value = parentData["Apellido"] ?? "";
     if(identityField) identityField.value = `V-${parentData["Cedula"]}` ?? "";
     if(emailField) emailField.value = parentUserData["Email"] ?? "";
-    
-    // Asignación directa de Ocupación y Dirección
     if(occupationField) occupationField.value = parentData["Ocupacion"] || "";
     if(addressField) addressField.value = parentData["Direccion"] || "";
 
@@ -88,7 +86,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if(genderField) {
         const sexoRecibido = parentData["Sexo"] ?? "";
         genderField.value = sexoRecibido;
-        // Fix para selects que no coinciden en value/text
         if (genderField.value !== sexoRecibido && sexoRecibido) {
             Array.from(genderField.options).forEach(opt => {
                 if (opt.text === sexoRecibido) genderField.value = opt.value;
@@ -96,7 +93,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Teléfono (Separar prefijo y número)
+    // Teléfono
     if(phoneField && phonePrefixField) {
         const phone = parentData["Telefono"] ?? "";
         const parts = phone.split("-");
@@ -119,32 +116,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     loader.remove();
   }
 
-  // --- B. GUARDADO DE DATOS (LOGICA BLINDADA) ---
+  // --- B. GUARDADO DE DATOS ---
   if(btnSubmit) {
       btnSubmit.addEventListener("click", async (event) => {
         event.preventDefault();
-        document.body.appendChild(loader); // Mostrar loader
+        document.body.appendChild(loader);
 
         try {
           const formData = new FormData();
           let hasChanges = false;
 
-          // 1. OBTENER VALORES ACTUALES
           const telValue = phoneField ? phoneField.value.trim() : "";
           const occValue = occupationField ? occupationField.value.trim() : "";
           const addrValue = addressField ? addressField.value.trim() : "";
           const passValue = newPasswordField ? newPasswordField.value.trim() : "";
 
-          // 2. VALIDACIONES LOCALES
+          // VALIDACIONES
           if (telValue && !/^\d{7}$/.test(telValue)) throw new Error("El teléfono debe tener 7 dígitos numéricos");
           if (occValue && occValue.length < 3) throw new Error("La ocupación es demasiado corta");
           if (addrValue && addrValue.length < 5) throw new Error("La dirección es demasiado corta");
           
-          // Validación Contraseña
           if (passValue) {
               if (!currentPasswordField.value.trim()) throw new Error("Para cambiar la clave, indique su contraseña actual");
               if (passValue !== confirmPasswordField.value.trim()) throw new Error("Las nuevas contraseñas no coinciden");
-              // Regex fuerte
               if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?&._-])[A-Za-z\d$@$!%*?&._-]{8,}$/.test(passValue)) {
                   throw new Error("La contraseña debe tener: Mayúscula, minúscula, número y símbolo.");
               }
@@ -154,46 +148,19 @@ document.addEventListener("DOMContentLoaded", async () => {
               hasChanges = true;
           }
 
-          // 3. CONSTRUIR FORMDATA (Enviar siempre que tengan valor)
-          
           if (telValue) {
               const fullPhone = `${phonePrefixField.value}-${telValue}`;
               formData.append("Telefono", fullPhone);
               hasChanges = true;
           }
-          
-          if (occValue) {
-              formData.append("Ocupacion", occValue);
-              hasChanges = true;
-          }
-          
-          if (addrValue) {
-              formData.append("Direccion", addrValue);
-              hasChanges = true;
-          }
+          if (occValue) { formData.append("Ocupacion", occValue); hasChanges = true; }
+          if (addrValue) { formData.append("Direccion", addrValue); hasChanges = true; }
 
-          // Archivos
-          if (photoField && photoField.files[0]) {
-              formData.append("Foto", photoField.files[0]);
-              hasChanges = true;
-          }
-          if (identityUploadField && identityUploadField.files[0]) {
-              formData.append("DNI", identityUploadField.files[0]);
-              hasChanges = true;
-          }
+          if (photoField && photoField.files[0]) { formData.append("Foto", photoField.files[0]); hasChanges = true; }
+          if (identityUploadField && identityUploadField.files[0]) { formData.append("DNI", identityUploadField.files[0]); hasChanges = true; }
 
-          // Validar si hay algo que enviar
-          if (!hasChanges) {
-              throw new Error("No hay cambios para guardar.");
-          }
+          if (!hasChanges) throw new Error("No hay cambios para guardar.");
 
-          // --- DEBUG EN CONSOLA (Para ver qué se envía) ---
-          console.log("--- ENVIANDO AL SERVIDOR ---");
-          for (let pair of formData.entries()) {
-              console.log(pair[0] + ': ' + pair[1]); 
-          }
-
-          // 4. PETICIÓN AL SERVIDOR
           const response = await fetch(`${window.APP_CONFIG.api_url}/user/parent/update`, {
             method: "PATCH",
             body: formData,
@@ -205,13 +172,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             throw new Error(err.message || "Error del servidor al guardar.");
           }
 
-          // 5. ÉXITO
           const notif = document.createElement("notification-component");
           notif.setAttribute("text", "¡Datos actualizados correctamente!");
           notif.setAttribute("type", "success");
           notificationsContainer.appendChild(notif);
 
-          // Recargar para ver cambios
           setTimeout(() => window.location.reload(), 1500);
 
         } catch (e) {
@@ -221,38 +186,59 @@ document.addEventListener("DOMContentLoaded", async () => {
           notif.setAttribute("type", "error");
           notificationsContainer.appendChild(notif);
         } finally {
-          loader.remove(); // Quitar loader
+          loader.remove();
         }
       });
   }
 
-  // --- C. EXTRAS VISUALES ---
+  // --- C. VALIDACIONES Y EVENTOS VISUALES ---
   
-  // Nuevo: Feedback visual al cargar Cédula
+  // 1. BLOQUEO TOTAL DE LETRAS EN TELÉFONO
+  if (phoneField) {
+    // a. Prevenir escritura de caracteres no numéricos
+    phoneField.addEventListener("keydown", function(e) {
+      // Permitir teclas especiales de navegación y borrado
+      const allowedKeys = ["Backspace", "Delete", "Tab", "Escape", "Enter", "ArrowLeft", "ArrowRight", "Home", "End"];
+      
+      // Permitir atajos de teclado (Ctrl+C, Ctrl+V, etc)
+      if (allowedKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+        return;
+      }
+
+      // Si la tecla NO es un número, bloquearla
+      if (!/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // b. Limpieza en caso de pegar texto o autocompletado
+    phoneField.addEventListener("input", function() {
+      // Eliminar cualquier cosa que no sea número
+      this.value = this.value.replace(/[^0-9]/g, "");
+      
+      // Cortar estrictamente a 7 dígitos
+      if (this.value.length > 7) {
+        this.value = this.value.slice(0, 7);
+      }
+    });
+  }
+
+  // 2. Feedback visual Cédula
   if (identityUploadField && identityBtn) {
     identityUploadField.addEventListener("change", function () {
       if (this.files && this.files.length > 0) {
         const file = this.files[0];
-        
-        // 1. Cambiar color del botón a verde
         identityBtn.classList.remove("btn-outline");
         identityBtn.classList.add("btn-success");
-        
-        // 2. Cambiar texto del botón
         if (identityBtnText) identityBtnText.textContent = "Cédula Cargada";
-        
-        // 3. Mostrar nombre del archivo
         if (identityFileName) {
           identityFileName.textContent = `Archivo: ${file.name}`;
           identityFileName.style.display = "block";
         }
       } else {
-        // Resetear si se cancela la selección
         identityBtn.classList.remove("btn-success");
         identityBtn.classList.add("btn-outline");
-        
         if (identityBtnText) identityBtnText.textContent = "Cargar Cédula";
-        
         if (identityFileName) {
           identityFileName.textContent = "";
           identityFileName.style.display = "none";
@@ -261,7 +247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Previsualización de Foto
+  // 3. Previsualización de Foto
   if(photoField) {
       photoField.addEventListener("change", function(e){
           const file = e.target.files[0];
@@ -270,7 +256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                  alert("Solo se permiten imágenes (JPG, PNG).");
                  this.value = ""; return;
              }
-             if (file.size > 5 * 1024 * 1024) { // 5MB limit
+             if (file.size > 5 * 1024 * 1024) {
                  alert("La imagen es muy pesada (Máx 5MB).");
                  this.value = ""; return;
              }
@@ -284,7 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   }
   
-  // Mostrar/Ocultar Contraseña
+  // 4. Mostrar/Ocultar Contraseña
   document.querySelectorAll(".toggle-password").forEach(btn => {
       btn.addEventListener("click", function() {
           const inp = this.previousElementSibling;

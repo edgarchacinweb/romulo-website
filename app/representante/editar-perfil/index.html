@@ -131,7 +131,7 @@
                 Formatos soportados: JPG, PNG (máximo 5MB)
               </p>
               
-              <!-- SECCIÓN MODIFICADA: CARGAR CÉDULA -->
+              <!-- SECCIÓN DE CARGAR CÉDULA -->
               <input
                 type="file"
                 id="IdentityUploadInput"
@@ -164,7 +164,6 @@
               <p class="help-text">Formatos soportados: PDF (máximo 5MB)</p>
               <!-- Nuevo elemento para mostrar el nombre del archivo -->
               <p id="identityFileName" class="file-name-msg"></p>
-              <!-- FIN SECCIÓN MODIFICADA -->
 
             </div>
 
@@ -241,11 +240,14 @@
                 <label for="phone" class="field-label"
                   >Número de Teléfono</label
                 >
+                <!-- CAMBIO AQUÍ: inputmode numeric y maxlength 7 -->
                 <input
                   type="tel"
                   id="phoneField"
                   class="input-field"
                   placeholder="Ej: 1234567"
+                  maxlength="7"
+                  inputmode="numeric" 
                 />
                 <p class="help-text">
                   Selecciona la operadora y escriba su número de 7 dígitos
