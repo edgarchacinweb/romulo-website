@@ -41,12 +41,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- Lógica del Modal de Edición (Estado) ---
   if(cancelEditBtn) {
       cancelEditBtn.addEventListener("click", () => {
-          editModal.classList.remove("open"); // CORREGIDO
+          editModal.classList.remove("open");
           currentEditId = null;
       });
   }
 
-  // Cerrar modal al hacer clic fuera (opcional, para consistencia)
+  // Cerrar modal al hacer clic fuera
   if(editModal) {
       editModal.addEventListener("click", (e) => {
           if (e.target === editModal) {
@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               }
 
               // Éxito
-              editModal.classList.remove("open"); // CORREGIDO
+              editModal.classList.remove("open");
               
               const notification = document.createElement("notification-component");
               notification.setAttribute("type", "success");
@@ -403,7 +403,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         cardsContainer.appendChild(studentCard);
         accordion(studentCard, student);
 
-        // --- Event Listener para el Lápiz (Abrir Modal) - CORREGIDO ---
+        // --- Event Listener para el Lápiz (Abrir Modal) ---
         const editBtn = studentCard.querySelector(".edit-trigger");
         if (editBtn) {
             editBtn.addEventListener("click", (e) => {
@@ -413,21 +413,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 currentEditId = student["EstudianteId"];
                 editStudentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
                 newStatusSelect.value = student["Estado"]; 
-                editModal.classList.add("open"); // <-- AQUÍ ESTABA LA CLAVE
+                editModal.classList.add("open");
             });
         }
 
-        // Event Listeners de Descarga y Aprobación...
-        // ... (El resto del código sigue igual) ...
+        // Descargar Documentos
         studentCard.querySelectorAll(".btn-download-file").forEach((btn) =>
           btn.addEventListener("click", async () => {
-             // ... lógica descarga ...
              loader.setAttribute("title", "Descargando documento...");
              document.body.appendChild(loader);
-             // ...
-             // (Para ahorrar espacio, usa el bloque de descarga que ya tenías o cópialo del anterior si lo necesitas,
-             // pero el bloque completo de arriba ya incluye todo lo necesario).
-             // NOTA: He incluido la lógica completa en el bloque grande de arriba.
              let objectUrl = undefined;
              try {
                const downloadDocumentResponse = await fetch(
@@ -457,9 +451,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           }),
         );
 
+        // Aprobar Estudiante (CORREGIDO STATUS 200)
         studentCard.querySelectorAll(".btn-success").forEach((btn) =>
           btn.addEventListener("click", async () => {
-             // ... lógica aprobación ...
              loader.setAttribute("title", "Aprobando solicitud...");
              document.body.appendChild(loader);
              try {
@@ -475,10 +469,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                    },
                  },
                );
-               if (approveResponse.status !== 204) {
+               
+               // CORRECCIÓN AQUÍ: Aceptamos 200 o 204
+               if (approveResponse.status !== 200 && approveResponse.status !== 204) {
                  const approveError = await approveResponse.json();
                  throw new Error(approveError.message);
                }
+               
                studentCard.remove();
                const notification = document.createElement("notification-component");
                notification.setAttribute("type", "success");
@@ -537,13 +534,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
           );
 
-          if (rejectRegistrationResponse.status !== 204) {
+          // CORRECCIÓN AQUÍ: Aceptamos 200 o 204
+          if (rejectRegistrationResponse.status !== 200 && rejectRegistrationResponse.status !== 204) {
             const rejectMessage = await rejectRegistrationResponse.json();
             throw new Error(rejectMessage.message);
           }
 
           const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "success");
+          notification.setAttribute("type", "error");
           notification.setAttribute("text", "Solicitud rechazada correctamente");
           notifications.appendChild(notification);
           
