@@ -19,6 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const identityUploadField = document.getElementById("IdentityUploadInput");
   const genderField = document.getElementById("genderField");
   const emailField = document.getElementById("emailField");
+
+  // Referencias para el Feedback Visual de Cédula (Nuevos elementos)
+  const identityBtn = document.getElementById("btnIdentityUpload");
+  const identityBtnText = document.getElementById("btnTextIdentity");
+  const identityFileName = document.getElementById("identityFileName");
   
   // Campos editables importantes
   const phoneField = document.getElementById("phoneField");
@@ -223,6 +228,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- C. EXTRAS VISUALES ---
   
+  // Nuevo: Feedback visual al cargar Cédula
+  if (identityUploadField && identityBtn) {
+    identityUploadField.addEventListener("change", function () {
+      if (this.files && this.files.length > 0) {
+        const file = this.files[0];
+        
+        // 1. Cambiar color del botón a verde
+        identityBtn.classList.remove("btn-outline");
+        identityBtn.classList.add("btn-success");
+        
+        // 2. Cambiar texto del botón
+        if (identityBtnText) identityBtnText.textContent = "Cédula Cargada";
+        
+        // 3. Mostrar nombre del archivo
+        if (identityFileName) {
+          identityFileName.textContent = `Archivo: ${file.name}`;
+          identityFileName.style.display = "block";
+        }
+      } else {
+        // Resetear si se cancela la selección
+        identityBtn.classList.remove("btn-success");
+        identityBtn.classList.add("btn-outline");
+        
+        if (identityBtnText) identityBtnText.textContent = "Cargar Cédula";
+        
+        if (identityFileName) {
+          identityFileName.textContent = "";
+          identityFileName.style.display = "none";
+        }
+      }
+    });
+  }
+
   // Previsualización de Foto
   if(photoField) {
       photoField.addEventListener("change", function(e){

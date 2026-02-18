@@ -130,6 +130,8 @@
               <p class="help-text">
                 Formatos soportados: JPG, PNG (máximo 5MB)
               </p>
+              
+              <!-- SECCIÓN MODIFICADA: CARGAR CÉDULA -->
               <input
                 type="file"
                 id="IdentityUploadInput"
@@ -138,6 +140,7 @@
               />
               <button
                 type="button"
+                id="btnIdentityUpload"
                 class="btn btn-outline upload-btn"
                 onclick="document.getElementById('IdentityUploadInput').click()"
               >
@@ -156,9 +159,13 @@
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                Cargar Cédula
+                <span id="btnTextIdentity">Cargar Cédula</span>
               </button>
               <p class="help-text">Formatos soportados: PDF (máximo 5MB)</p>
+              <!-- Nuevo elemento para mostrar el nombre del archivo -->
+              <p id="identityFileName" class="file-name-msg"></p>
+              <!-- FIN SECCIÓN MODIFICADA -->
+
             </div>
 
             <div class="readonly-fields">
