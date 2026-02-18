@@ -50,10 +50,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. Detectar si es extranjero para ajustar el selector
     if (cedulaCompleta.toUpperCase().startsWith("E")) {
         typeIdEntry.value = "E";
-        identityEntry.value = cedulaCompleta.substring(1); // Quitamos la E para mostrar solo números
+        identityEntry.value = cedulaCompleta.substring(1); 
     } else {
         typeIdEntry.value = "V";
-        identityEntry.value = cedulaCompleta; // Mostramos todo (asumiendo que son solo números)
+        identityEntry.value = cedulaCompleta; 
     }
 
     firstNameEntry.value = DatosPersona.Nombre;
@@ -86,7 +86,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!displayCedula.startsWith("E") && !displayCedula.startsWith("V")) {
           displayCedula = `V-${displayCedula}`;
       } else if (displayCedula.startsWith("E")) {
-          // Si es extranjero, le ponemos el guión: E-123456
            displayCedula = `E-${displayCedula.substring(1)}`;
       }
 
@@ -173,57 +172,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     e.preventDefault();
     const firstName = firstNameEntry.value.trim();
     const lastName = lastNameEntry.value.trim();
-    
-    // CAPTURA DE DATOS CORREGIDA
-    const identityRaw = identityEntry.value.trim(); // Solo los números
-    const identityType = typeIdEntry ? typeIdEntry.value : "V"; // El tipo (V o E)
-
+    const identityRaw = identityEntry.value.trim(); 
+    const identityType = typeIdEntry ? typeIdEntry.value : "V"; 
     const gender = genderEntry.value;
-    const email = emailEntry.value.trim();
+    const email = emailEntry.value.trim().toLowerCase(); // Normalizamos a minúsculas
     const notification = document.createElement("notification-component");
 
     document.body.appendChild(loader);
 
     try {
+      // VALIDACIONES BÁSICAS
       if (firstName.length === 0) { firstNameEntry.focus(); throw new Error("Falta nombre"); }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(firstName)) { firstNameEntry.focus(); throw new Error("Nombre inválido"); }
       if (lastName.length === 0) { lastNameEntry.focus(); throw new Error("Falta apellido"); }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(lastName)) { lastNameEntry.focus(); throw new Error("Apellido inválido"); }
       
-      // === VALIDACIONES DE CÉDULA ===
+      // VALIDACIONES CÉDULA
       if (identityRaw.length === 0) { identityEntry.focus(); throw new Error("Introduce la cédula"); } 
-      
-      // Verificamos que lo que escribió sean SOLO NÚMEROS (la letra la pone el sistema)
-      if (!/^\d+$/.test(identityRaw)) {
-        identityEntry.focus(); throw new Error("El campo cédula solo debe contener números");
-      } 
-      if (identityRaw.startsWith("0")) {
-        identityEntry.focus(); throw new Error("La cédula no debe empezar por 0");
-      } 
-      if (identityRaw.length < 7 || identityRaw.length > 9) {
-        identityEntry.focus(); throw new Error("La cédula debe tener entre 7 y 9 dígitos");
-      } 
-      if (parseInt(identityRaw) <= 1000000) {
-        identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000");
-      }
-      // ==============================
+      if (!/^\d+$/.test(identityRaw)) { identityEntry.focus(); throw new Error("La cédula solo debe contener números"); } 
+      if (identityRaw.startsWith("0")) { identityEntry.focus(); throw new Error("La cédula no debe empezar por 0"); } 
+      if (identityRaw.length < 7 || identityRaw.length > 9) { identityEntry.focus(); throw new Error("La cédula debe tener entre 7 y 9 dígitos"); } 
+      if (parseInt(identityRaw) <= 1000000) { identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000"); }
 
+      // === VALIDACIÓN DE CORREO Y DOMINIO ===
       if (gender.length === 0) throw new Error("Indica el género");
       if (email.length === 0) throw new Error("Indica el correo");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
 
-      // 3. CONSTRUCCIÓN DE LA CÉDULA PARA EL BACKEND
-      // Si eligió "E", mandamos "E12345". Si eligió "V", mandamos solo "12345".
-      let finalIdentity = identityType === "E" ? `E${identityRaw}` : identityRaw;
+      // NUEVA VALIDACIÓN: DOMINIOS PERMITIDOS
+      const allowedDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com"];
+      const emailDomain = email.split('@')[1];
+      if (!allowedDomains.includes(emailDomain)) {
+        emailEntry.focus();
+        throw new Error("Solo se aceptan correos: @gmail.com, @outlook.com, @hotmail.com o @yahoo.com");
+      }
+      // ===========================
 
-      // Generar clave por defecto adecuada (E#12345 o V#12345)
+      // CONSTRUCCIÓN DE LA CÉDULA
+      let finalIdentity = identityType === "E" ? `E${identityRaw}` : identityRaw;
       let defaultPassword = `${identityType}#${identityRaw}`;
 
       const payloadPerson = {
         Nombre: firstName,
         Apellido: lastName,
         Sexo: gender,
-        Cedula: finalIdentity, // Aquí va la cédula ya procesada
+        Cedula: finalIdentity, 
       };
 
       if (isEditing) {
@@ -276,7 +269,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             body: JSON.stringify({
               Email: email,
               Rol: "representante",
-              Clave: defaultPassword, // Usamos la clave con el prefijo correcto
+              Clave: defaultPassword, 
               DatosPersonaId: peopleId,
             }),
           },
@@ -291,7 +284,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       repForm.reset();
-      // Volvemos el selector a V
       if(typeIdEntry) typeIdEntry.value = "V";
 
     } catch (error) {
