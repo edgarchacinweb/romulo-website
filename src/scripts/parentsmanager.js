@@ -217,6 +217,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         Apellido: lastName,
         Sexo: gender,
         Cedula: finalIdentity, 
+        // FIX: Enviamos cadenas vacías explícitamente para evitar que el backend asigne 
+        // valores por defecto (como "Calle principal del arsenal...")
+        Direccion: "",
+        Ocupacion: "",
+        Telefono: ""
       };
 
       if (isEditing) {
