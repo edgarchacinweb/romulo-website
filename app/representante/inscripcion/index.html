@@ -226,7 +226,7 @@
                     type="text" 
                     id="cedula" 
                     name="cedula" 
-                    placeholder="Ej: 32000000" 
+                    placeholder="Ej: 33000000" 
                     maxlength="12"
                     style="flex-grow: 1;"
                   />
@@ -235,12 +235,13 @@
 
               <div class="form-group">
                 <label for="fechaNac">Fecha de Nacimiento</label>
+                <!-- MODIFICADO: Rango de años 2008 a 2015 -->
                 <input
                   type="date"
                   id="fechaNac"
                   name="fechaNac"
-                  min="2010-01-01"
-                  max="2020-12-31"
+                  min="2008-01-01"
+                  max="2015-12-31"
                 />
               </div>
               <div class="form-group">

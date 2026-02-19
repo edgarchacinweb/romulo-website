@@ -304,7 +304,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       if (!firstNameField.value.trim()) throw new Error("Falta el nombre");
       if (!lastNameField.value.trim()) throw new Error("Falta el apellido");
+      
+      // NUEVA VALIDACIÓN: Año de nacimiento (2008 - 2015)
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
+      const birthDate = new Date(dateField.value);
+      const birthYear = birthDate.getUTCFullYear();
+      if (birthYear < 2008 || birthYear > 2015) {
+          throw new Error("El año de nacimiento del estudiante debe estar entre 2008 y 2015");
+      }
 
       const cedulaValStr = ciField.value.trim();
       let finalCedulaToSubmit = cedulaValStr;
@@ -317,7 +324,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad");
           const cedulaNum = parseInt(cedulaValStr, 10);
           
-          // NUEVA VALIDACIÓN PARA VENEZOLANOS Y EXTRANJEROS
+          // VALIDACIÓN PARA VENEZOLANOS Y EXTRANJEROS
           const isExtranjero = nacionalidadSelect.value === "E";
           
           if (isNaN(cedulaNum) || cedulaNum < 33000000) {
@@ -342,7 +349,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       formData.append("Nombre", firstNameField.value.trim());
       formData.append("Apellido", lastNameField.value.trim());
       formData.append("Genero", genderField.value);
-      formData.append("Cedula", finalCedulaToSubmit); // Aquí enviamos la combinada
+      formData.append("Cedula", finalCedulaToSubmit);
 
       const dateParts = dateField.value.split("-");
       formData.append("FechaNacimiento", `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`);
