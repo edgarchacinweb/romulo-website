@@ -94,7 +94,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (!parentData.Cedula || !dateField.value) {
         ciField.value = "";
-        ciField.placeholder = "Complete fecha y asegúrese de tener cédula cargada...";
+        ciField.placeholder = "La cédula escolar se genera al seleccionar el orden de nacimiento y fecha de nacimiento";
         return;
     }
 
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           nacionalidadWrapper.style.display = "block"; // Mostramos selector V/E
           ciField.readOnly = false;
           ciField.value = "";
-          ciField.placeholder = "Ej: 32000000";
+          ciField.placeholder = "Ej: 34000000";
           if (idFormDoc) idFormDoc.style.display = "block";
       }
   });
@@ -317,10 +317,19 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad");
           const cedulaNum = parseInt(cedulaValStr, 10);
           
-          // Validación relajada: se exige que sea un número válido y mayor a un límite bajo
-          // Se quita el tope de 40M para permitir extranjeros u otros rangos válidos
-          if (isNaN(cedulaNum) || cedulaNum < 1000000) {
-              throw new Error("El número de Cédula Regular es inválido o muy corto");
+          // NUEVA VALIDACIÓN PARA VENEZOLANOS Y EXTRANJEROS
+          const isExtranjero = nacionalidadSelect.value === "E";
+          
+          if (isNaN(cedulaNum) || cedulaNum < 33000000) {
+              throw new Error("El número de Cédula de Identidad del estudiante debe ser mayor a 33.000.000");
+          }
+          
+          if (!isExtranjero && cedulaNum > 40000000) {
+              throw new Error("El número de Cédula de Identidad para Venezolanos (V) no debe exceder los 40.000.000");
+          }
+          
+          if (isExtranjero && cedulaNum > 90000000) {
+              throw new Error("El número de Cédula de Identidad para Extranjeros (E) no debe exceder los 90.000.000");
           }
           
           // Concatenamos el V o E con la cédula
