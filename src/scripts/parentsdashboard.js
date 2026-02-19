@@ -47,6 +47,42 @@ function calcularEdadExacta(fechaNacimientoObj) {
   return edad;
 }
 
+// --- FUNCIÓN HELPER PARA FORMATEAR CÉDULA (ACTUALIZADA) ---
+const formatCedula = (cedula) => {
+    let str = String(cedula).toUpperCase().trim();
+    
+    // 1. DETECCIÓN DE CÉDULA ESCOLAR (> 9 dígitos)
+    if (str.length > 9) {
+        // A. Si empieza por E (Escolar Extranjero: E110...), se deja igual.
+        if (str.startsWith("E")) {
+            return str;
+        }
+        // B. Si ya tiene V (por si acaso), se deja igual.
+        if (str.startsWith("V")) {
+            return str;
+        }
+        // C. Si son solo números largos (Escolar Venezolano: 1120...), AGREGAMOS "V-"
+        return "V-" + str;
+    }
+
+    // 2. LÓGICA PARA CÉDULA REGULAR (<= 9 dígitos)
+    // Caso 1: Ya tiene formato correcto (V-1234 o E-1234)
+    if (str.startsWith("V-") || str.startsWith("E-")) {
+        return str;
+    }
+    
+    // Caso 2: Empieza por V o E pero sin guion (V1234 -> V-1234)
+    if (str.startsWith("V")) {
+        return "V-" + str.substring(1);
+    }
+    if (str.startsWith("E")) {
+        return "E-" + str.substring(1);
+    }
+    
+    // Caso 3: Son solo números cortos (Cédula Regular Venezolana por defecto)
+    return `V-${str}`;
+};
+
 document.addEventListener("DOMContentLoaded", async () => {
   const cardContainer = document.getElementById("card-container");
   const notificationsContainer = document.getElementById("notifications");
@@ -159,6 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
       }
 
+      // CORRECCIÓN APLICADA AQUÍ:
       card.innerHTML = `
             <section class="card__student">
               <div class="card__image card__image--${gender}">
@@ -171,7 +208,8 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
 
               <h3 class="card__name">${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}</h3>
-              <span class="card__identity">V-${student.DatosPersona.Cedula}</span>
+              <!-- AHORA formatCedula PONDRÁ V- SI ES ESCOLAR VENEZOLANO -->
+              <span class="card__identity">${formatCedula(student.DatosPersona.Cedula)}</span>
             </section>
 
             <section class="card__data card__data--${gender}">

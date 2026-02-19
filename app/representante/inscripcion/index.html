@@ -193,9 +193,36 @@
                 >
               </div> 
 
+              <!-- NUEVA SECCIÓN: OPCIONES DE CÉDULA ESCOLAR (SOLO 1ER AÑO) -->
+              <div id="schoolIdSettings" class="form-group full-width" style="display: none; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ffffff;">
+                  <div class="checkbox-wrapper" style="margin-bottom: 10px;">
+                    <input type="checkbox" id="useSchoolId" />
+                    <label for="useSchoolId" style="color: #000000; font-weight: bold;">El estudiante no tiene cédula</label>
+                  </div>
+                  
+                  <div id="schoolIdOptions" style="display: none; margin-top: 10px;">
+                      <label for="birthOrder" style="font-size: 0.85rem;">Orden de Nacimiento (Hijos nacidos en el mismo año):</label>
+                      <select id="birthOrder" style="width: 100%; margin-top: 5px;">
+                          <option value="1">1 - Único hijo(a) en ese año</option>
+                          <option value="2">2 - Segundo hijo(a) (Gemelo/Mellizo)</option>
+                          <option value="3">3 - Tercer hijo(a)</option>
+                          <option value="4">4 - Cuarto hijo(a)</option>
+                      </select>
+                      <small style="display:block; margin-top:5px; color:#666;">Se usará la cédula del representante y el año de nacimiento para generar el código.</small>
+                  </div>
+              </div>
+              <!-- FIN NUEVA SECCIÓN -->
+
               <div class="form-group full-width" id="idContainer">
-                <label for="cedula">Cédula de Identidad</label>
-                <input type="number" id="cedula" name="cedula" placeholder="12345678" />
+                <label for="cedula">Cédula de Identidad / Escolar</label>
+                <!-- Se cambió type a text para permitir la V o E de la escolar -->
+                <input 
+                  type="text" 
+                  id="cedula" 
+                  name="cedula" 
+                  placeholder="Ej: 32000000" 
+                  maxlength="12"
+                />
               </div>
 
               <div class="form-group">

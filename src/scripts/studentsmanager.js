@@ -38,6 +38,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sectionsField = document.getElementById("SectionsField");
   const stateField = document.getElementById("StateField");
 
+  // --- FUNCIÓN HELPER PARA FORMATEAR CÉDULA (ACTUALIZADA) ---
+  const formatCedula = (cedula) => {
+      let str = String(cedula).toUpperCase().trim();
+      
+      // 1. DETECCIÓN DE CÉDULA ESCOLAR (> 9 dígitos)
+      if (str.length > 9) {
+          // A. Si empieza por E (Escolar Extranjero: E110...), se deja igual.
+          if (str.startsWith("E")) {
+              return str;
+          }
+          // B. Si ya tiene V (por si acaso), se deja igual.
+          if (str.startsWith("V")) {
+              return str;
+          }
+          // C. Si son solo números largos (Escolar Venezolano: 1120...), AGREGAMOS "V-"
+          return "V-" + str;
+      }
+
+      // 2. LÓGICA PARA CÉDULA REGULAR (<= 9 dígitos)
+      // Caso 1: Ya tiene formato correcto (V-1234 o E-1234)
+      if (str.startsWith("V-") || str.startsWith("E-")) {
+          return str;
+      }
+      
+      // Caso 2: Empieza por V o E pero sin guion (V1234 -> V-1234)
+      if (str.startsWith("V")) {
+          return "V-" + str.substring(1);
+      }
+      if (str.startsWith("E")) {
+          return "E-" + str.substring(1);
+      }
+      
+      // Caso 3: Son solo números cortos (Cédula Regular Venezolana por defecto)
+      return `V-${str}`;
+  };
+
   // --- Lógica del Modal de Edición (Estado) ---
   if(cancelEditBtn) {
       cancelEditBtn.addEventListener("click", () => {
@@ -260,7 +296,8 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
               <div class="info-item">
                 <label>CÉDULA</label>
-                <p>V${student["DatosPersona"]["Cedula"]}</p>
+                <!-- CORRECCIÓN: Usamos formatCedula optimizado -->
+                <p>${formatCedula(student["DatosPersona"]["Cedula"])}</p>
               </div>
               <div class="info-item">
                 <label>FECHA DE NACIMIENTO</label>
@@ -304,7 +341,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <!-- CORREGIDO AQUÍ: Nombre del archivo sincronizado con Backend -->
                       <button class="btn-icon-small btn-download-file" data-file="partida-${student["EstudianteId"]}.pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -323,7 +359,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <!-- CORREGIDO AQUÍ: Nombre del archivo sincronizado con Backend -->
                       <button class="btn-icon-small btn-download-file" data-file="notas-${student["EstudianteId"]}.pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -352,7 +387,9 @@ document.addEventListener("DOMContentLoaded", async () => {
               <div class="accordion-content">
                 <div class="info-grid mt-2">
                   <div class="info-item"><label>PARENTESCO</label><p>${student["Parentesco"]}</p></div>
-                  <div class="info-item"><label>CÉDULA</label><p>V${student["Representante"]["Cedula"]}</p></div>
+                  <div class="info-item"><label>CÉDULA</label>
+                  <!-- CORRECCIÓN: Usamos formatCedula también aquí para el representante -->
+                  <p>${formatCedula(student["Representante"]["Cedula"])}</p></div>
                   <div class="info-item"><label>TELÉFONO</label><p class="link">${student["Representante"]["Telefono"]}</p></div>
                   <div class="info-item"><label>EMAIL</label><p class="link">${student["Representante"]["Email"]}</p></div>
                   <div class="info-item"><label>OCUPACIÓN</label><p>${student["Representante"]["Ocupacion"]}</p></div>
