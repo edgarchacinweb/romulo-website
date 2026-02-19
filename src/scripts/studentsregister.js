@@ -10,7 +10,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const firstNameField = document.getElementById("nombre");
   const lastNameField = document.getElementById("apellido");
   const genderField = document.getElementById("genero");
+  
+  // Elementos de Cédula y Nacionalidad
   const ciField = document.getElementById("cedula");
+  const nacionalidadSelect = document.getElementById("nacionalidad");
+  const nacionalidadWrapper = document.getElementById("nacionalidadWrapper");
+  
   const dateField = document.getElementById("fechaNac");
   const relationshipField = document.getElementById("parentesco");
   const gradeField = document.getElementById("grado");
@@ -30,7 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnSubmit = document.getElementById("BtnSubmit");
   const btnCancel = document.getElementById("BtnCancel");
   const formTitle = document.querySelector(".page-title h2");
-  const mainForm = document.getElementById("inscriptionForm"); // Referencia al formulario para ocultarlo si es necesario
+  const mainForm = document.getElementById("inscriptionForm");
 
   const notificationsContainer = document.getElementById("notifications");
   const loader = document.createElement("loader-spinner");
@@ -40,10 +45,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- FUNCIÓN: BLOQUEAR SI FALTAN DATOS ---
   function mostrarBloqueoPerfil(camposFaltantes) {
-      // 1. Ocultar el formulario principal para evitar interacción
       if(mainForm) mainForm.style.display = "none";
       
-      // 2. Crear el modal de bloqueo
       const modalOverlay = document.createElement("div");
       Object.assign(modalOverlay.style, {
           position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
@@ -58,7 +61,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
       });
 
-      // CORRECCIÓN AQUÍ: Ruta ajustada a /app/representante/editar-perfil/
       modalContent.innerHTML = `
           <div style="margin-bottom: 20px;">
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -144,21 +146,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, { headers: { Authorization: `Bearer ${token}` } });
     parentData = await parentResponse.json();
 
-    // ============================================================
-    // NUEVA VALIDACIÓN: REVISAR SI FALTAN DATOS DEL REPRESENTANTE
-    // ============================================================
     const camposFaltantes = [];
     if (!parentData.Telefono || parentData.Telefono.trim() === "") camposFaltantes.push("Teléfono");
     if (!parentData.Direccion || parentData.Direccion.trim() === "") camposFaltantes.push("Dirección de Habitación");
     if (!parentData.Ocupacion || parentData.Ocupacion.trim() === "") camposFaltantes.push("Ocupación");
 
-    // Si hay campos faltantes, BLOQUEAMOS LA PÁGINA
     if (camposFaltantes.length > 0) {
-        loader.remove(); // Quitamos el loader para mostrar el modal
+        loader.remove();
         mostrarBloqueoPerfil(camposFaltantes);
-        return; // DETENEMOS TODA LA EJECUCIÓN DEL SCRIPT AQUÍ
+        return; 
     }
-    // ============================================================
 
     const countResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent`, { headers: { Authorization: `Bearer ${token}` } });
     const countData = await countResponse.json();
@@ -176,8 +173,36 @@ document.addEventListener("DOMContentLoaded", async () => {
         firstNameField.value = student.DatosPersona.Nombre || "";
         lastNameField.value = student.DatosPersona.Apellido || "";
         genderField.value = student.DatosPersona.Sexo || "";
-        ciField.value = student.DatosPersona.Cedula || "";
         addressField.value = student.DatosPersona.Direccion || "";
+
+        // Parseo de Cédula existente
+        let rawCedula = student.DatosPersona.Cedula || "";
+        
+        // Si es cédula escolar (muy larga) se maneja distinto
+        if (rawCedula.length > 9) {
+            useSchoolIdCheckbox.checked = true;
+            schoolIdOptions.style.display = "block";
+            nacionalidadWrapper.style.display = "none";
+            ciField.value = rawCedula;
+            ciField.readOnly = true;
+            if (idFormDoc) idFormDoc.style.display = "none";
+        } else {
+            // Es cédula normal, debemos separar V/E del número
+            useSchoolIdCheckbox.checked = false;
+            nacionalidadWrapper.style.display = "block";
+            ciField.readOnly = false;
+            
+            if (rawCedula.startsWith("V-") || rawCedula.startsWith("E-")) {
+                nacionalidadSelect.value = rawCedula.charAt(0);
+                ciField.value = rawCedula.substring(2);
+            } else if (rawCedula.startsWith("V") || rawCedula.startsWith("E")) {
+                nacionalidadSelect.value = rawCedula.charAt(0);
+                ciField.value = rawCedula.substring(1);
+            } else {
+                nacionalidadSelect.value = "V";
+                ciField.value = rawCedula;
+            }
+        }
       }
     }
   } catch (err) {
@@ -218,6 +243,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           alert("Ha cambiado a un grado distinto a 1er Año. La opción de Cédula Escolar se desactivará.");
           useSchoolIdCheckbox.checked = false;
           schoolIdOptions.style.display = "none";
+          nacionalidadWrapper.style.display = "block";
           ciField.readOnly = false;
           ciField.value = "";
           if (idFormDoc) idFormDoc.style.display = "block";
@@ -242,10 +268,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
           schoolIdOptions.style.display = "block";
+          nacionalidadWrapper.style.display = "none"; // Ocultamos selector V/E
           hasIdCheckbox.checked = true; 
           generarCedulaEscolar();
       } else {
           schoolIdOptions.style.display = "none";
+          nacionalidadWrapper.style.display = "block"; // Mostramos selector V/E
           ciField.readOnly = false;
           ciField.value = "";
           ciField.placeholder = "Ej: 32000000";
@@ -260,12 +288,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     ciField.addEventListener("input", function() {
       if (useSchoolIdCheckbox.checked) return; 
       
-      this.value = this.value.replace(/[^0-9]/g, "");
+      this.value = this.value.replace(/[^0-9]/g, ""); // Solo números
       if (this.value.length > 8) this.value = this.value.slice(0, 8);
     });
   }
   
-  // Botón Cancelar
   if (btnCancel) {
       btnCancel.addEventListener("click", () => {
           window.location.href = "/app/representante/inicio/";
@@ -280,6 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
 
       const cedulaValStr = ciField.value.trim();
+      let finalCedulaToSubmit = cedulaValStr;
       
       if (useSchoolIdCheckbox.checked) {
           if (cedulaValStr.length < 11 || cedulaValStr.length > 12) {
@@ -288,9 +316,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
           if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad");
           const cedulaNum = parseInt(cedulaValStr, 10);
-          if (cedulaNum < 32000000 || cedulaNum > 40000000) {
-              throw new Error("La Cédula Regular debe estar entre 32.000.000 y 40.000.000");
+          
+          // Validación relajada: se exige que sea un número válido y mayor a un límite bajo
+          // Se quita el tope de 40M para permitir extranjeros u otros rangos válidos
+          if (isNaN(cedulaNum) || cedulaNum < 1000000) {
+              throw new Error("El número de Cédula Regular es inválido o muy corto");
           }
+          
+          // Concatenamos el V o E con la cédula
+          finalCedulaToSubmit = `${nacionalidadSelect.value}-${cedulaValStr}`;
       }
 
       document.body.appendChild(loader);
@@ -299,7 +333,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       formData.append("Nombre", firstNameField.value.trim());
       formData.append("Apellido", lastNameField.value.trim());
       formData.append("Genero", genderField.value);
-      formData.append("Cedula", ciField.value.trim());
+      formData.append("Cedula", finalCedulaToSubmit); // Aquí enviamos la combinada
 
       const dateParts = dateField.value.split("-");
       formData.append("FechaNacimiento", `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`);
