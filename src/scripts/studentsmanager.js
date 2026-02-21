@@ -41,13 +41,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- FUNCIÓN HELPER PARA FORMATEAR CÉDULA ---
   const formatCedula = (cedula) => {
       let str = String(cedula).toUpperCase().trim();
+      let limpia = str.replace(/-/g, ""); // Quitamos guiones para contar bien
       
-      if (str.length > 9) {
-          if (str.startsWith("E")) return str;
-          if (str.startsWith("V")) return str;
+      // Si es Cédula Escolar (más de 9 dígitos puros)
+      if (limpia.length > 9) {
+          if (str.startsWith("E-") || str.startsWith("V-")) return str;
+          if (str.startsWith("E") || str.startsWith("V")) return str.charAt(0) + "-" + str.substring(1);
           return "V-" + str;
       }
 
+      // Si es Cédula Regular
       if (str.startsWith("V-") || str.startsWith("E-")) return str;
       if (str.startsWith("V")) return "V-" + str.substring(1);
       if (str.startsWith("E")) return "E-" + str.substring(1);
@@ -190,13 +193,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       studentsRequest.forEach((student) => {
         const studentBirthdate = new Date(student["FechaNacimiento"]);
-        const studentCard = document.createElement("article");
-        const cedula = new String(student["DatosPersona"]["Cedula"]);
+        
+        // --- CORRECCIÓN DE CÉDULA ESCOLAR VS REGULAR ---
+        const cedulaRaw = String(student["DatosPersona"]["Cedula"]);
+        const cedulaLimpia = cedulaRaw.replace(/-/g, "").trim();
+        // Las cédulas regulares (incluso extrangeras) no superan los 9 dígitos puros
+        const isSchoolId = cedulaLimpia.length > 9; 
         
         // Elemento Opcional de Autorización
         const requiereAutorizacion = student["Parentesco"] !== "Padre" && student["Parentesco"] !== "Madre";
         
-        let docCount = cedula.length > 8 ? 2 : 3;
+        let docCount = isSchoolId ? 2 : 3;
         if (requiereAutorizacion) docCount++;
 
         const autorizacionElement = requiereAutorizacion ? `
@@ -241,6 +248,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
 
+        const studentCard = document.createElement("article");
         studentCard.classList.add("student-card");
         studentCard.setAttribute("data-id", student["EstudianteId"]);
         if (!student["Activo"]) studentCard.classList.add("student-reject");
@@ -368,7 +376,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </button>
                     </div>
                   </div>
-                  ${cedula.length > 8 ? "" : cedulaElement}
+                  ${isSchoolId ? "" : cedulaElement}
                   ${autorizacionElement}
                 </div>
               </div>

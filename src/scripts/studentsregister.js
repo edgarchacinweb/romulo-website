@@ -187,9 +187,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Parseo de Cédula existente
         let rawCedula = student.DatosPersona.Cedula || "";
+        let limpiaCedula = rawCedula.replace(/-/g, "").trim();
         
         // Si es cédula escolar (muy larga) se maneja distinto
-        if (rawCedula.length > 9) {
+        if (limpiaCedula.length > 9) {
             useSchoolIdCheckbox.checked = true;
             schoolIdOptions.style.display = "block";
             nacionalidadWrapper.style.display = "none";
@@ -404,9 +405,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
-        } else if (!editId && key !== "DocDni") {
+        } else if (!editId) {
              if(key === "DocAutorizacion") {
                  throw new Error("Debe cargar el Documento de Autorización Legal / Motivo");
+             } else if(key === "DocDni") {
+                 throw new Error("Debe cargar la Cédula de Identidad en formato PDF");
              } else {
                  throw new Error(`Falta cargar: ${key}`);
              }
