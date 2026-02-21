@@ -336,3 +336,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 });
+
+document.getElementById("BtnBack").addEventListener("click", (event) => {
+  event.preventDefault();
+  document.body.style.animation = "goodByePage 0.8s forwards";
+  setTimeout(() => (document.location.href = event.target.href), 1000);
+});

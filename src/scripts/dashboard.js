@@ -142,8 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const logout = confirm("¿Estás seguro de que quieres cerrar sesión?");
       if (logout) {
-        localStorage.removeItem("auth");
-        localStorage.removeItem("role");
+        localStorage.clear();
         window.location.href = "/";
       }
     });
@@ -152,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 document.querySelectorAll("a").forEach((anchor) =>
   anchor.addEventListener("click", (event) => {
+    if (anchor.href.includes("cerrar-sesion")) return;
     event.preventDefault();
     document.body.style.overflow = "hidden";
     document.body.style.animation = "goodByePage 0.8s forwards";
