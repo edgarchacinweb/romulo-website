@@ -24,6 +24,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const hasIdCheckbox = document.getElementById("hasId");
   const idFormDoc = document.getElementById("IdDoc");
   
+  // Elementos Autorización
+  const authDocZone = document.getElementById("AutorizacionDoc");
+  const authDocInput = document.getElementById("docAutorizacion");
+  
   const sameAddressCheckbox = document.getElementById("sameAddress");
 
   // Elementos Cédula Escolar
@@ -175,6 +179,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         genderField.value = student.DatosPersona.Sexo || "";
         addressField.value = student.DatosPersona.Direccion || "";
 
+        if (student.Parentesco) {
+            relationshipField.value = student.Parentesco;
+            // Desencadenar evento para actualizar visual del formulario (Autorización Legal)
+            relationshipField.dispatchEvent(new Event('change'));
+        }
+
         // Parseo de Cédula existente
         let rawCedula = student.DatosPersona.Cedula || "";
         
@@ -212,7 +222,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // --- 5. Lógica de UI Interactiva ---
-  
+
+  // Mostrar archivo de Autorización si parentesco no es Padre/Madre
+  relationshipField.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val && val !== "Padre" && val !== "Madre") {
+          authDocZone.style.display = "block";
+      } else {
+          authDocZone.style.display = "none";
+          authDocInput.value = ""; // Limpia el archivo si cambian
+          const zone = authDocInput.closest(".upload-zone");
+          if (zone) {
+              zone.querySelector("span").textContent = "Haga clic para cargar";
+              zone.style.borderColor = "";
+          }
+      }
+  });
+
   if (sameAddressCheckbox) {
       sameAddressCheckbox.addEventListener("change", (e) => {
         if (e.target.checked) {
@@ -365,17 +391,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         DocDni: "docDni",
         DocPartidaNacimiento: "docPartidaNacimiento",
         DocNotasCertificadas: "docNotasCertificadas",
+        DocAutorizacion: "docAutorizacion" // Archivo extra
       };
 
       for (const [key, id] of Object.entries(filesMap)) {
         const fileInput = document.getElementById(id);
         
         if (key === "DocDni" && useSchoolIdCheckbox.checked) continue;
+        
+        // Excluimos Autorización si es Padre o Madre
+        if (key === "DocAutorizacion" && (relationshipField.value === "Padre" || relationshipField.value === "Madre" || !relationshipField.value)) continue;
 
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
         } else if (!editId && key !== "DocDni") {
-             throw new Error(`Falta cargar: ${key}`);
+             if(key === "DocAutorizacion") {
+                 throw new Error("Debe cargar el Documento de Autorización Legal / Motivo");
+             } else {
+                 throw new Error(`Falta cargar: ${key}`);
+             }
         }
       }
 
