@@ -208,7 +208,6 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
 
               <h3 class="card__name">${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}</h3>
-              <!-- AHORA formatCedula PONDRÁ V- SI ES ESCOLAR VENEZOLANO -->
               <span class="card__identity">${formatCedula(student.DatosPersona.Cedula)}</span>
             </section>
 
@@ -265,44 +264,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const reinscribeBtn = card.querySelector(".btn-reinscribe");
       if(reinscribeBtn) {
-          reinscribeBtn.addEventListener("click", async () => {
+          reinscribeBtn.addEventListener("click", () => {
              const nextGrade = reinscribeBtn.getAttribute("data-next");
              const studentId = reinscribeBtn.getAttribute("data-id");
 
-             const confirmAction = confirm(`¿Confirma que desea solicitar la reinscripción para ${nextGrade}° Año?`);
+             const confirmAction = confirm(`¿Desea iniciar el proceso de reinscripción para ${nextGrade}° Año?`);
              if (!confirmAction) return;
 
-             try {
-                const courseRes = await fetch(`${window.APP_CONFIG.api_url}/course/get_by_grade/${nextGrade}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                
-                if(!courseRes.ok) throw new Error("No se encontró el curso para el siguiente año.");
-                const courseData = await courseRes.json();
-                
-                const response = await fetch(`${window.APP_CONFIG.api_url}/students/reinscribe`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        EstudianteId: studentId,
-                        NuevoCursoId: courseData.CursoId 
-                    })
-                });
-
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    window.location.reload(); 
-                } else {
-                    alert("Error: " + result.message);
-                }
-             } catch (error) {
-                 console.error(error);
-                 alert("No se pudo procesar: " + error.message);
-             }
+             // REDIRECCIÓN AL FORMULARIO PASANDO PARÁMETROS
+             window.location.href = `/app/representante/inscripcion/?reinscribe_id=${studentId}&next=${nextGrade}`;
           });
       }
     });
