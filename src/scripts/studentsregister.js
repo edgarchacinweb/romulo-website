@@ -47,6 +47,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let parentData = {};
 
+  // --- FILTRO EN TIEMPO REAL: SOLO LETRAS PARA NOMBRES Y APELLIDOS ---
+  function filterLetters(e) {
+    // Permite letras (mayúsculas/minúsculas), espacios y vocales acentuadas + ñ
+    e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+  }
+
+  if (firstNameField) firstNameField.addEventListener("input", filterLetters);
+  if (lastNameField) lastNameField.addEventListener("input", filterLetters);
+
+
   // --- FUNCIÓN: BLOQUEAR SI FALTAN DATOS ---
   function mostrarBloqueoPerfil(camposFaltantes) {
       if(mainForm) mainForm.style.display = "none";
@@ -329,8 +339,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- 6. ENVÍO DEL FORMULARIO ---
   btnSubmit.addEventListener("click", async () => {
     try {
-      if (!firstNameField.value.trim()) throw new Error("Falta el nombre");
-      if (!lastNameField.value.trim()) throw new Error("Falta el apellido");
+      const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+      const nombreVal = firstNameField.value.trim();
+      const apellidoVal = lastNameField.value.trim();
+
+      // VALIDACIÓN ESTRICTA DE SOLO LETRAS
+      if (!nombreVal) throw new Error("Falta el nombre");
+      if (!nameRegex.test(nombreVal)) throw new Error("El nombre solo debe contener letras");
+
+      if (!apellidoVal) throw new Error("Falta el apellido");
+      if (!nameRegex.test(apellidoVal)) throw new Error("El apellido solo debe contener letras");
       
       // NUEVA VALIDACIÓN: Año de nacimiento (2008 - 2015)
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
@@ -373,8 +391,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.body.appendChild(loader);
       const formData = new FormData();
 
-      formData.append("Nombre", firstNameField.value.trim());
-      formData.append("Apellido", lastNameField.value.trim());
+      formData.append("Nombre", nombreVal);
+      formData.append("Apellido", apellidoVal);
       formData.append("Genero", genderField.value);
       formData.append("Cedula", finalCedulaToSubmit);
 
