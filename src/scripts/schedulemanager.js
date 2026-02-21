@@ -472,3 +472,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       await filter(gradeField.value, sectionField.value, termField.value),
   );
 });
+
+document.getElementById("btn-back").addEventListener("click", (e) => {
+  e.preventDefault();
+  const url = e.target.href;
+  document.body.style.animation = "goodByePage 0.8s forwards";
+  setTimeout(() => (window.location.href = url), 1000);
+});

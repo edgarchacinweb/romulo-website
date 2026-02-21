@@ -40,6 +40,8 @@ body {
   color: var(--color-gray-700);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  animation: startPage 0.8s;
 }
 
 .nav-logo-img {
