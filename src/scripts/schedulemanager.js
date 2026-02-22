@@ -81,7 +81,7 @@ const renderTeacherSelector = (assignedSubjects) => {
         ${subjectName}
       </div>
         <div class="select-wrapper full-width">
-        <select class="select-gray">
+        <select class="select-gray teacher-selector" data-subject="${subject}">
           ${teachersList.reduce((prev, current) => prev + `<option value="${current["DocenteId"]}">${current["DatosPersona"]["Nombre"]} ${current["DatosPersona"]["Apellido"]}</option>`, "")}
         </select>
       </div>
@@ -357,15 +357,64 @@ const filter = async (grade, section) => {
       }),
     );
 
-    document.getElementById("btn-submit").addEventListener("click", () => {
-      const errorLoader = document.createElement("loader-spinner");
-      errorLoader.setAttribute("title", "Guardando horario");
-      document.body.appendChild(errorLoader);
-      setTimeout(() => {
-        errorLoader.remove();
-        alert("Error al guardar datos del horario: Error de BBDD");
-      }, 5000);
-    });
+    document
+      .getElementById("btn-submit")
+      .addEventListener("click", async () => {
+        loader.setAttribute("title", "Guardando horario...");
+        document.body.appendChild(loader);
+
+        const updatedSchedule = [];
+        document.querySelectorAll(".select-subject").forEach((s) => {
+          if (s.value === "") return;
+          const scheduleBlockId = s.parentElement.getAttribute("data-row");
+          const teacher = document.querySelector(
+            `[data-subject="${s.value}"]`,
+          ).value;
+          updatedSchedule.push({
+            CursoId: grade,
+            BloqueHorarioId: scheduleBlockId,
+            DocenteId: teacher,
+            MateriaId: s.value,
+            Seccion: section,
+            Dia: s.classList[2],
+          });
+        });
+
+        const notification = document.createElement("notification-component");
+
+        try {
+          console.log();
+          const updateSchedulePromise = await fetch(
+            `${window.APP_CONFIG.api_url}/schedule/create`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(updatedSchedule),
+            },
+          );
+
+          if (!updateSchedulePromise.ok) {
+            const updateScheduleResponse = await updateSchedulePromise.json();
+            throw new Error(updateScheduleResponse.message);
+          }
+
+          console.log(updatedSchedule);
+          const notification = document.createElement("notification-component");
+          notification.setAttribute("type", "success");
+          notification.setAttribute("text", "¡Horario Guardado Correctamente!");
+          notifications.appendChild(notification);
+        } catch (Error) {
+          console.error(Error.stack);
+          notification.setAttribute("type", "error");
+          notification.setAttribute("text", Error.message);
+        } finally {
+          notifications.appendChild(notification);
+          loader.remove();
+        }
+      });
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
