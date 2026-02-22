@@ -11,6 +11,7 @@ let scheduleBlocks = [];
 let subjects = [];
 let teachers = [];
 let schedule = [];
+let courses = [];
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -51,7 +52,6 @@ const loadSchedules = async (term, period) => {
       "text",
       `Horarios Cargados del Período Escolar ${period}.`,
     );
-    console.log(schedule);
   } catch (Error) {
     console.error(Error.stack);
     notification.setAttribute("type", "error");
@@ -91,37 +91,26 @@ const renderTeacherSelector = (assignedSubjects) => {
   });
 };
 
-const filter = async (grade, section, term) => {
+const filter = async (grade, section) => {
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
 
   try {
-    const options = subjects.reduce((prev, element) => {
-      return (
-        prev +
-        `
+    const level =
+      courses.find((c) => c["CursoId"] === grade)["Grado"] < 4
+        ? "Secundaria"
+        : "Bachillerato";
+    const options = subjects
+      .filter((s) => s["Nivel"] === level)
+      .reduce((prev, element) => {
+        return (
+          prev +
+          `
         <option value="${element["MateriaId"]}">${element["Nombre"]}</option>"
       `
-      );
-    }, '<option value="">Sin asignar</option>');
-
-    const scheduleBlocksResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/schedule/blocks`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const scheduleBlocksAnswer = await scheduleBlocksResponse.json();
-    if (!scheduleBlocksResponse.ok)
-      throw new Error("Error al cargar los bloques de horario");
-
-    scheduleBlocks = [...scheduleBlocksAnswer];
+        );
+      }, '<option value="">Sin asignar</option>');
 
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
       const minutes = calcMinutesDifferences(
@@ -310,11 +299,16 @@ const filter = async (grade, section, term) => {
     scheduleContainer.appendChild(scheduleCard);
 
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
+    const selectedSchedule = schedule.filter(
+      (s) => s["Seccion"] === parseInt(section) && s["CursoId"] === grade,
+    );
+
     scheduleBlocks.forEach((sb) => {
       const id = sb["BloqueHorarioId"];
       const row = document.querySelectorAll(`[data-row="${id}"]`);
       row.forEach((r, index) => {
-        const data = schedule.find(
+        const data = selectedSchedule.find(
           (s) => s["BloqueHorarioId"] === id && s["Dia"] == days[index],
         );
 
@@ -344,7 +338,11 @@ const filter = async (grade, section, term) => {
     teachers = [...teachersAnswer];
 
     let assignedSubjects = Array.from(
-      new Set(schedule.map((s) => s["MateriaId"])),
+      new Set(
+        schedule
+          .filter((s) => s["Seccion"] == section && s["CursoId"] === grade)
+          .map((s) => s["MateriaId"]),
+      ),
     );
 
     renderTeacherSelector(assignedSubjects);
@@ -462,6 +460,55 @@ document.addEventListener("DOMContentLoaded", async () => {
       throw new Error(
         "No hay estudiantes registrados en este período escolar.",
       );
+
+    const scheduleBlocksResponse = await fetch(
+      `${window.APP_CONFIG.api_url}/schedule/blocks`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const scheduleBlocksAnswer = await scheduleBlocksResponse.json();
+    if (!scheduleBlocksResponse.ok)
+      throw new Error("Error al cargar los bloques de horario");
+
+    scheduleBlocks = [...scheduleBlocksAnswer];
+
+    // Cargando lista de materias
+    const subjectsPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/subject/list`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const subjectsResponse = await subjectsPromise.json();
+    if (!subjectsPromise.ok) throw new Error(subjectsResponse.message);
+    subjects = [...subjectsResponse];
+
+    // Cargando grados
+    const gradesPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/course/get_all`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+
+    const gradesResponse = await gradesPromise.json();
+    if (!gradesPromise.ok) throw new Error(gradesResponse.message);
+
+    courses = [...gradesResponse];
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -472,11 +519,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     loader.remove();
   }
 
-  // sectionField.addEventListener(
-  //   "change",
-  //   async () =>
-  //     await filter(gradeField.value, sectionField.value, termField.value),
-  // );
+  sectionField.addEventListener(
+    "change",
+    async () => await filter(gradeField.value, sectionField.value),
+  );
 
   await loadSchedules(
     termField.value,
