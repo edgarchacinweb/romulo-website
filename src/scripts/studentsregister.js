@@ -227,6 +227,39 @@ document.addEventListener("DOMContentLoaded", async () => {
             photoZone.classList.add("has-image");
         }
 
+        // --- MARCAR DOCUMENTOS COMO CARGADOS VISUALMENTE ---
+        const markZoneAsLoaded = (inputId) => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                const zone = input.closest(".upload-zone");
+                if (zone) {
+                    zone.style.borderColor = "#28a745";
+                    zone.style.backgroundColor = "#f8fff9";
+                    const span = zone.querySelector("span");
+                    if (span) {
+                        span.textContent = "PDF en sistema";
+                        span.style.color = "#28a745";
+                        span.style.fontWeight = "bold";
+                    }
+                }
+            }
+        };
+
+        // Por defecto, DNI y Partida de Nacimiento ya están en el sistema para estudiantes registrados
+        markZoneAsLoaded("docDni");
+        markZoneAsLoaded("docPartidaNacimiento");
+
+        // Si requiere autorización según los datos guardados
+        if (student.Parentesco && student.Parentesco !== "Padre" && student.Parentesco !== "Madre") {
+            markZoneAsLoaded("docAutorizacion");
+        }
+
+        // Notas Certificadas: Si es Edición general ya están en el sistema. 
+        // Si es Reinscripción, NO se marcan, para que el usuario suba obligatoriamente las del nuevo año.
+        if (editId) {
+            markZoneAsLoaded("docNotasCertificadas");
+        }
+
         // --- ASIGNACIÓN DE GRADO Y BLOQUEO PARA REINSCRIPCIÓN ---
         if (reinscribeId) {
             // Automáticamente calcular el siguiente grado usando el grado actual de la BD
@@ -325,6 +358,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (zone) {
               zone.querySelector("span").textContent = "Haga clic para cargar";
               zone.style.borderColor = "";
+              zone.style.backgroundColor = "";
+              zone.querySelector("span").style.color = "";
+              zone.querySelector("span").style.fontWeight = "";
           }
       }
   });
@@ -553,7 +589,13 @@ document.addEventListener("DOMContentLoaded", async () => {
              };
              reader.readAsDataURL(file);
         } else {
-            zone.querySelector("span").textContent = file.name;
+            const span = zone.querySelector("span");
+            if (span) {
+                span.textContent = file.name;
+                span.style.color = "#28a745";
+                span.style.fontWeight = "bold";
+            }
+            zone.style.backgroundColor = "#f8fff9";
         }
         zone.style.borderColor = "#28a745";
       }
