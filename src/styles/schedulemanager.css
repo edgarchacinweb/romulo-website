@@ -28,6 +28,8 @@ body {
   background-color: var(--bg-light);
   color: var(--text-dark);
   padding-bottom: 40px;
+  overflow: hidden;
+  animation: startPage 0.8s;
 }
 
 /* Header */

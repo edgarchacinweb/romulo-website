@@ -96,9 +96,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       card.innerHTML = `
                 <div class="rep-top">
                     <h3>${DatosPersona.Nombre} ${DatosPersona.Apellido}</h3>
-                     <!-- 
+                      <!-- 
                     <button class="btn-edit" onclick="editRep('${userId}')" title="Editar">
-                       ${icons.edit}
+                        ${icons.edit}
                     </button> 
                     -->
                 </div>
@@ -300,4 +300,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       notificationsContainer.appendChild(notification);
     }
   });
+});
+
+document.getElementById("BtnBack").addEventListener("click", (event) => {
+  event.preventDefault();
+  document.body.style.animation = "goodByePage 0.8s forwards";
+  setTimeout(() => (document.location.href = event.target.href), 1000);
 });

@@ -20,8 +20,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   let subjects = [];
 
   // Función para obtener la fecha actual formateada (ej: 15 de febrero de 2026)
-  const getCurrentDate = () => {
-    const date = new Date();
+  const getCurrentDate = (strdate = "") => {
+    let date = new Date();
+    if (strdate.length > 0) {
+      console.log(strdate);
+      date = new Date(strdate);
+    }
     const options = { day: "numeric", month: "long", year: "numeric" };
     return `Agregado el ${date.toLocaleDateString("es-VE", options)}`;
   };
@@ -69,7 +73,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                           <div class="subject-card">
                             <div class="card-info">
                               <h4>${subject["Nombre"]}</h4>
-                              <span>${getCurrentDate()}</span>
+                              <span>${getCurrentDate(subject["Fecha"])}</span>
                             </div>
                             <button class="btn-delete" title="Eliminar materia" data-id=${subject["MateriaId"]}>
                               <svg
@@ -153,7 +157,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       !name.length > 3 ||
       name.length > 20 ||
       !new RegExp(
-        /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]{3,}(?: [a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]{3,})*$/,
+        /^(?=[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\.]{3,})[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(?:\.[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)*(?:\s(?=[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\.]{3,})[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(?:\.[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)*)*$/,
       ).test(name)
     )
       return;
@@ -215,7 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       } else if (
         !new RegExp(
-          /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]{3,}(?: [a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]{3,})*$/,
+          /^(?=[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\.]{3,})[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(?:\.[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)*(?:\s(?=[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\.]{3,})[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(?:\.[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)*)*$/,
         ).test(name)
       ) {
         nameInput.focus();
@@ -240,6 +244,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           .map((m) => m[0].toUpperCase() + m.substr(1).toLowerCase())
           .join(" "),
         Nivel: level,
+        Fecha: "",
       };
 
       // Crear nueva materia

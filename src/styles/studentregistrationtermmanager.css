@@ -17,10 +17,16 @@
 }
 
 body {
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: var(--bg-body);
   color: var(--text-dark);
   min-height: 100vh;
+  overflow-x: hidden;
+  animation: startPage 0.8s;
 }
 
 /* --- HEADER --- */
@@ -97,7 +103,9 @@ body {
 .card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06);
   padding: 24px;
   border: 1px solid var(--border-color);
 }

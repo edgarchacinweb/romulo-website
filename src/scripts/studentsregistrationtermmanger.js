@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const data = await response.json();
@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     let data = await response.json();
@@ -79,7 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     data.forEach((e) => {
       const item = document.createElement("tr");
       const schoolTermYear = new Date(
-        e["PeriodoEscolar"]["FechaInicio"]
+        e["PeriodoEscolar"]["FechaInicio"],
       ).getFullYear();
       item.innerHTML = `
         <td class="font-medium">${schoolTermYear} - ${schoolTermYear + 1}</td>
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("Debes rellenar ambos campos primero");
       else if (startEntryDate > endEntryDate) {
         throw new Error(
-          "La fecha de inicio no puede ser posterior a la fecha de fin."
+          "La fecha de inicio no puede ser posterior a la fecha de fin.",
         );
       }
 
@@ -138,7 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (hasOverlap) {
         throw new Error(
-          "Las fechas seleccionadas chocan con un periodo existente."
+          "Las fechas seleccionadas chocan con un periodo existente.",
         );
       }
 
@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             FechaInicio: startDate,
             FechaFin: endDate,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -174,8 +174,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const registrationElement = document.createElement("tr");
       registrationElement.innerHTML = `
                 <td class="font-medium">${schoolTermYear} - ${
-        schoolTermYear + 1
-      }</td>
+                  schoolTermYear + 1
+                }</td>
         <td>${startDate}</td>
         <td>${endDate}</td>
         <td class="text-muted">${dateFormat.format(new Date())}</td>
@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       notification.setAttribute("type", "success");
       notification.setAttribute(
         "text",
-        "Período de inscripción definido correctamente"
+        "Período de inscripción definido correctamente",
       );
     } catch (error) {
       notification.setAttribute("type", "error");
@@ -202,4 +202,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadNotificationContainer.appendChild(notification);
     }
   });
+});
+
+document.getElementById("BtnBack").addEventListener("click", (event) => {
+  event.preventDefault();
+  document.body.style.animation = "goodByePage 0.8s forwards";
+  setTimeout(() => (window.location.href = event.target.href), 1000);
 });

@@ -24,6 +24,44 @@ const calcMinutesDifferences = (time1, time2) => {
   return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
 };
 
+const loadSchedules = async (term, period) => {
+  const loader = document.createElement("loader-spinner");
+  const notification = document.createElement("notification-component");
+  const notifications = document.getElementById("notifications");
+  document.body.appendChild(loader);
+
+  try {
+    const scheduleResponse = await fetch(
+      `${window.APP_CONFIG.api_url}/schedule/list/${term}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const scheduleAnswer = await scheduleResponse.json();
+    if (!scheduleResponse.ok) throw new Error(scheduleAnswer.message);
+
+    schedule = [...scheduleAnswer];
+    notification.setAttribute("type", "success");
+    notification.setAttribute(
+      "text",
+      `Horarios Cargados del Período Escolar ${period}.`,
+    );
+    console.log(schedule);
+  } catch (Error) {
+    console.error(Error.stack);
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", Error.message);
+  } finally {
+    notifications.appendChild(notification);
+    loader.remove();
+  }
+};
+
 const renderTeacherSelector = (assignedSubjects) => {
   const tableList = document.getElementById("table-list");
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
@@ -59,43 +97,6 @@ const filter = async (grade, section, term) => {
   const notifications = document.getElementById("notifications");
 
   try {
-    const scheduleResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/schedule/filter`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          CursoId: grade,
-          Seccion: `${section}`,
-          PeriodoEscolarId: term,
-        }),
-      },
-    );
-
-    const scheduleAnswer = await scheduleResponse.json();
-    if (!scheduleResponse.ok) throw new Error(scheduleAnswer.message);
-
-    schedule = [...scheduleAnswer];
-
-    const subjectsResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/subject/list`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const subjectsAnswer = await subjectsResponse.json();
-    if (!subjectsResponse.ok) throw new Error("Error al cargar las materias");
-
-    subjects = [...subjectsAnswer];
-
     const options = subjects.reduce((prev, element) => {
       return (
         prev +
@@ -456,6 +457,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       newOption.textContent = `${new Date(t["FechaInicio"]).getFullYear()} - ${new Date(t["FechaFin"]).getFullYear()}`;
       termField.appendChild(newOption);
     });
+
+    if (sections.length === 0)
+      throw new Error(
+        "No hay estudiantes registrados en este período escolar.",
+      );
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -466,9 +472,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     loader.remove();
   }
 
-  sectionField.addEventListener(
-    "change",
-    async () =>
-      await filter(gradeField.value, sectionField.value, termField.value),
+  // sectionField.addEventListener(
+  //   "change",
+  //   async () =>
+  //     await filter(gradeField.value, sectionField.value, termField.value),
+  // );
+
+  await loadSchedules(
+    termField.value,
+    termField.options[termField.selectedIndex].textContent,
   );
+  termField.addEventListener("change", async () => {
+    await loadSchedules(
+      termField.value,
+      termField.options(termField.selectedIndex).textContent,
+    );
+  });
+});
+
+document.getElementById("btn-back").addEventListener("click", (e) => {
+  e.preventDefault();
+  const url = e.target.href;
+  document.body.style.animation = "goodByePage 0.8s forwards";
+  setTimeout(() => (window.location.href = url), 1000);
 });
