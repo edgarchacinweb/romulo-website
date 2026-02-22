@@ -231,7 +231,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
       } else if (
         subjects.findIndex(
-          (s) => s["Nombre"].toLowerCase() === name.toLowerCase(),
+          (s) =>
+            s["Nombre"].toLowerCase() === name.toLowerCase() &&
+            s["Nivel"] === level,
         ) !== -1
       ) {
         nameInput.focus();
@@ -268,7 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       subjects.push(newSubject);
 
       // Mostrar notificación
-      alertMessage.textContent = `${name} agregada a ${level}`;
+      alertMessage.textContent = `${name.toUpperCase()} agregada a ${level}`;
       successAlert.classList.remove("hidden");
 
       // Ocultar notificación después de 3 segundos

@@ -357,6 +357,7 @@ const filter = async (grade, section) => {
       }),
     );
 
+    // -- Guardando Horario
     document
       .getElementById("btn-submit")
       .addEventListener("click", async () => {
@@ -383,7 +384,31 @@ const filter = async (grade, section) => {
         const notification = document.createElement("notification-component");
 
         try {
-          console.log();
+          updatedSchedule.forEach((us) => {
+            const repeatedElement = schedule.find(
+              (s) =>
+                s["BloqueHorarioId"] === us["BloqueHorarioId"] &&
+                s["Dia"] === us["Dia"] &&
+                s["DocenteId"] === us["DocenteId"] &&
+                s["CursoId"] !== us["CursoId"] &&
+                s["Seccion"] !== us["Seccion"],
+            );
+
+            if (repeatedElement) {
+              const teacher = teachers.find(
+                (t) => t["DocenteId"] === us["DocenteId"],
+              );
+              const block = scheduleBlocks.find(
+                (sb) =>
+                  sb["BloqueHorarioId"] === repeatedElement["BloqueHorarioId"],
+              );
+              throw new Error(
+                `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
+              );
+            }
+          });
+
+          return;
           const updateSchedulePromise = await fetch(
             `${window.APP_CONFIG.api_url}/schedule/create`,
             {
@@ -401,7 +426,6 @@ const filter = async (grade, section) => {
             throw new Error(updateScheduleResponse.message);
           }
 
-          console.log(updatedSchedule);
           const notification = document.createElement("notification-component");
           notification.setAttribute("type", "success");
           notification.setAttribute("text", "¡Horario Guardado Correctamente!");

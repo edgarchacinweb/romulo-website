@@ -2,6 +2,23 @@ import authorize from "./auth.js";
 
 authorize("administrador");
 
+const token = localStorage.getItem("auth");
+let teachers = [];
+
+const teacherForm = document.getElementById("teacher-form");
+const firstNameField = document.getElementById("nombre");
+const lastNameField = document.getElementById("apellido");
+const genderField = document.getElementById("sexo");
+const identityField = document.getElementById("cedula");
+const phoneField = document.getElementById("telefono");
+const phonePrefixField = document.getElementById("prefijo");
+const ocupationField = document.getElementById("ocupacion");
+const subjectField = document.getElementById("materia");
+const subjectsContainer = document.querySelector(".materias-seleccionadas");
+const hoursField = document.getElementById("horas");
+const emailField = document.getElementById("correo");
+const locationField = document.getElementById("direccion");
+
 const addTeacherCard = (teacher) => {
   const teachersCardContainer = document.getElementById("teacher-list");
   const card = document.createElement("article");
@@ -108,6 +125,19 @@ const addTeacherCard = (teacher) => {
                       </svg>
                       <span>Eliminar</span>
                     </button>
+                    <button class="card__edit">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        stroke="currentColor"
+                        fill="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M18.363 8.464l1.433 1.431-12.67 12.669-7.125 1.436 1.439-7.127 12.665-12.668 1.431 1.431-12.255 12.224-.726 3.584 3.584-.723 12.224-12.257zm-.056-8.464l-2.815 2.817 5.691 5.692 2.817-2.821-5.693-5.688zm-12.318 18.718l11.313-11.316-.705-.707-11.313 11.314.705.709z"/>
+                      </svg>
+                      <span>Editar</span>
+                    </button>
                   </section>
       `;
   teachersCardContainer.appendChild(card);
@@ -155,26 +185,20 @@ const addTeacherCard = (teacher) => {
       notifications.appendChild(notification);
     }
   });
+
+  card.querySelector(".card__edit").addEventListener("click", async () => {
+    document.getElementById("submit-btn").textContent = "Actualizar docente";
+    firstNameField.value = teacher["DatosPersona"]["Nombre"];
+    lastNameField.value = teacher["DatosPersona"]["Apellido"];
+    identityField.value = teacher["DatosPersona"]["Cedula"];
+    ocupationField.value = teacher["DatosPersona"]["Ocupacion"];
+    emailField.value = teacher["Usuario"]["Email"];
+    hoursField.value = parseInt(teacher["HorasAcademicas"]);
+    locationField.value = teacher["DatosPersona"]["Direccion"];
+  });
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const token = localStorage.getItem("auth");
-  let teachers = [];
-
-  const teacherForm = document.getElementById("teacher-form");
-  const firstNameField = document.getElementById("nombre");
-  const lastNameField = document.getElementById("apellido");
-  const genderField = document.getElementById("sexo");
-  const identityField = document.getElementById("cedula");
-  const phoneField = document.getElementById("telefono");
-  const phonePrefixField = document.getElementById("prefijo");
-  const ocupationField = document.getElementById("ocupacion");
-  const subjectField = document.getElementById("materia");
-  const subjectsContainer = document.querySelector(".materias-seleccionadas");
-  const hoursField = document.getElementById("horas");
-  const emailField = document.getElementById("correo");
-  const locationField = document.getElementById("direccion");
-
   const notificationContainer = document.getElementById("notifications");
   const addSubjectBtn = document.getElementById("agregar-materia");
   let selectedSubjects = [];
@@ -275,7 +299,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     subjects.forEach((s) => {
       const subject = document.createElement("option");
       subject.setAttribute("value", s["MateriaId"]);
-      subject.textContent = s["Nombre"];
+      subject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
       subjectList.appendChild(subject);
     });
   }
@@ -434,7 +458,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       selectedSubjects.forEach((s) => {
         const subjectOption = document.createElement("option");
         subjectOption.setAttribute("value", s["MateriaId"]);
-        subjectOption.textContent = s["Nombre"];
+        subjectOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
         subjectField.appendChild(subjectOption);
       });
 
