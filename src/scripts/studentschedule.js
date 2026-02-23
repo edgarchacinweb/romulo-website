@@ -6,10 +6,12 @@ authorize("representante");
 const token = localStorage.getItem("auth");
 const emptyState = document.getElementById("empty-state");
 const scheduleContainer = document.getElementById("results-container");
+const studentField = document.getElementById("studentField");
 const scheduleCard = document.createElement("section");
 let scheduleBlocks = [];
 let subjects = [];
 let teachers = [];
+let students = [];
 let schedule = [];
 let courses = [];
 scheduleCard.classList.add("card");
@@ -97,26 +99,22 @@ const filter = async (grade, section) => {
   const notifications = document.getElementById("notifications");
 
   try {
-    const level =
-      courses.find((c) => c["CursoId"] === grade)["Grado"] < 4
-        ? "Secundaria"
-        : "Bachillerato";
-    const options = subjects
-      .filter((s) => s["Nivel"] === level)
-      .reduce((prev, element) => {
-        return (
-          prev +
-          `
-        <option value="${element["MateriaId"]}">${element["Nombre"]}</option>"
-      `
-        );
-      }, '<option value="">Sin asignar</option>');
-
+    const courseId = courses.find((c) => c["Grado"] === grade)["CursoId"];
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
       const minutes = calcMinutesDifferences(
         item["HoraInicio"],
         item["HoraFin"],
       );
+      console.log(subjects);
+
+      const scheduleSubjects = schedule.filter(
+        (s) =>
+          s["CursoId"] === courseId &&
+          s["Seccion"] ===
+            ["A", "B", "C", "D", "E", "F"].indexOf(section) + 1 &&
+          s["BloqueHorarioId"] === item["BloqueHorarioId"],
+      );
+      // console.log(scheduleSubjects);
       return (
         prev +
         `
@@ -127,54 +125,34 @@ const filter = async (grade, section) => {
             ${
               minutes > 15
                 ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Lunes">
-                ${options}
-              </select>
+              <span>${subjects.find((s) => s["MateriaId"] === scheduleSubjects.find((s) => s["Dia"] === "Lunes")["MateriaId"])["Nombre"]}</span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Martes">
-                ${options}
-              </select>
+              <span></span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Miércoles">
-                ${options}
-              </select>
+              <span></span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Jueves">
-                ${options}
-              </select>
+              <span></span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Viernes">
-                ${options}
-              </select>
+              <span></span>
             </div>`
                 : `<div class="grid-cell">
-              <select class="select-pill" disabled>
-                <option value="">Receso</option>
-              </select>
+              <span>RECESO</span>
             </div>
             <div class="grid-cell">
-              <select class="select-pill" disabled>
-                <option value="">Receso</option>
-              </select>
+              <span>RECESO</span>
             </div>
             <div class="grid-cell">
-              <select class="select-pill" disabled>
-                <option value="">Receso</option>
-              </select>
+              <span>RECESO</span>
             </div>
             <div class="grid-cell">
-              <select class="select-pill" disabled>
-                <option value="">Receso</option>
-              </select>
+              <span>RECESO</span>
             </div>
             <div class="grid-cell">
-              <select class="select-pill" disabled>
-                <option value="">Receso</option>
-              </select>
+              <span>RECESO</span>
             </div>`
             }
       `
@@ -346,113 +324,6 @@ const filter = async (grade, section) => {
     );
 
     renderTeacherSelector(assignedSubjects);
-
-    const selectPills = document.querySelectorAll(".select-subject");
-    selectPills.forEach((select) =>
-      select.addEventListener("change", () => {
-        assignedSubjects = Array.from(
-          new Set(Array.from(selectPills).map((sp) => sp.value)),
-        ).filter((a) => a !== "");
-        renderTeacherSelector(assignedSubjects);
-      }),
-    );
-
-    // -- Guardando Horario
-    document
-      .getElementById("btn-submit")
-      .addEventListener("click", async () => {
-        loader.setAttribute("title", "Guardando horario...");
-        document.body.appendChild(loader);
-
-        const updatedSchedule = [];
-        document.querySelectorAll(".select-subject").forEach((s) => {
-          if (s.value === "") return;
-          const scheduleBlockId = s.parentElement.getAttribute("data-row");
-          const teacher = document.querySelector(
-            `[data-subject="${s.value}"]`,
-          ).value;
-          updatedSchedule.push({
-            CursoId: grade,
-            BloqueHorarioId: scheduleBlockId,
-            DocenteId: teacher,
-            MateriaId: s.value,
-            Seccion: section,
-            Dia: s.classList[2],
-          });
-        });
-
-        const notification = document.createElement("notification-component");
-
-        try {
-          updatedSchedule.forEach((us) => {
-            const repeatedElement = schedule.find(
-              (s) =>
-                s["BloqueHorarioId"] === us["BloqueHorarioId"] &&
-                s["Dia"] === us["Dia"] &&
-                s["DocenteId"] === us["DocenteId"] &&
-                s["CursoId"] !== us["CursoId"] &&
-                s["Seccion"] !== us["Seccion"],
-            );
-
-            const teacher = teachers.find(
-              (t) => t["DocenteId"] === us["DocenteId"],
-            );
-
-            if (repeatedElement) {
-              const block = scheduleBlocks.find(
-                (sb) =>
-                  sb["BloqueHorarioId"] === repeatedElement["BloqueHorarioId"],
-              );
-              throw new Error(
-                `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
-              );
-            }
-
-            const academicHours = teachers.find(
-              (t) => t["DocenteId"] === us["DocenteId"],
-            )["HorasAcademicas"];
-
-            const teacherHours = [...schedule, ...updatedSchedule].filter(
-              (t) => t["DocenteId"] === us["DocenteId"],
-            ).length;
-
-            if (teacherHours > academicHours) {
-              throw new Error(
-                `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} superó su límite de horas académicas semanales`,
-              );
-            }
-          });
-
-          const updateSchedulePromise = await fetch(
-            `${window.APP_CONFIG.api_url}/schedule/create`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(updatedSchedule),
-            },
-          );
-
-          if (!updateSchedulePromise.ok) {
-            const updateScheduleResponse = await updateSchedulePromise.json();
-            throw new Error(updateScheduleResponse.message);
-          }
-
-          const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "success");
-          notification.setAttribute("text", "¡Horario Guardado Correctamente!");
-          notifications.appendChild(notification);
-        } catch (Error) {
-          console.error(Error.stack);
-          notification.setAttribute("type", "error");
-          notification.setAttribute("text", Error.message);
-        } finally {
-          notifications.appendChild(notification);
-          loader.remove();
-        }
-      });
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
@@ -464,26 +335,11 @@ const filter = async (grade, section) => {
   }
 };
 
-const updateSections = (sectionData) => {
-  const sectionField = document.getElementById("sectionField");
-  sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
-  if (sectionField.getAttribute("disabled") !== null)
-    sectionField.removeAttribute("disabled");
-
-  for (let i = 1; i <= sectionData["Seccion"]; i++) {
-    const newSectionOption = document.createElement("option");
-    newSectionOption.setAttribute("value", sectionData["Seccion"]);
-    newSectionOption.textContent = numberToLetter(i);
-    sectionField.appendChild(newSectionOption);
-  }
-};
-
 document.addEventListener("DOMContentLoaded", async () => {
   // Referencias a los elementos del DOM
   const emptyState = document.getElementById("empty-state");
   const notifications = document.getElementById("notifications");
   const resultsContainer = document.getElementById("results-container");
-  const schedule = [];
   const blocks = [];
   const teachers = [];
 
@@ -526,6 +382,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     const subjectsResponse = await subjectsPromise.json();
     if (!subjectsPromise.ok) throw new Error(subjectsResponse.message);
     subjects = [...subjectsResponse];
+
+    const parentPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/people/get`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const parentResponse = await parentPromise.json();
+    if (!parentPromise.ok) throw new Error(parentResponse.message);
+
+    const studentsPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/students/by_parent/${parentResponse["DatosPersonaId"]}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const studentsResponse = await studentsPromise.json();
+    if (!studentsPromise.ok) throw new Error(studentsResponse.message);
+
+    students = [...studentsResponse];
+    studentField.innerHTML = `<option value="">Selecciona un Estudiante</option>`;
+    students.forEach((student) => {
+      const option = document.createElement("option");
+      option.setAttribute("value", student["EstudianteId"]);
+      option.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]} - ${student["DatosPersona"]["Cedula"]}`;
+      studentField.appendChild(option);
+    });
+
+    // Obteniendo datos de horarios
+    const schedulePromise = await fetch(
+      `${window.APP_CONFIG.api_url}/schedule/list/${students[0]["Curso"]["PeriodoEscolarId"]}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const scheduleResponse = await schedulePromise.json();
+    if (!schedulePromise.ok) throw new Error(scheduleResponse.message);
+    schedule = [...scheduleResponse];
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -535,6 +444,29 @@ document.addEventListener("DOMContentLoaded", async () => {
   } finally {
     loader.remove();
   }
+
+  studentField.addEventListener("change", () => {
+    const studentId = studentField.value;
+    const student = students.find((s) => s["EstudianteId"] === studentId);
+
+    console.log(student["Curso"]["Grado"], student["Curso"]["Seccion"]);
+    filter(student["Curso"]["Grado"], student["Curso"]["Seccion"]);
+  });
+
+  // Cargando grados
+  const gradesPromise = await fetch(
+    `${window.APP_CONFIG.api_url}/course/get_all`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const gradesResponse = await gradesPromise.json();
+  if (!gradesPromise.ok) throw new Error(gradesResponse.message);
+  courses = [...gradesResponse];
 });
 
 document.getElementById("btn-back").addEventListener("click", (e) => {
