@@ -11,12 +11,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const notificationsContainer = document.getElementById("notifications");
   const termPreview = document.getElementById("next-period-text");
   const termContainer = document.getElementById("history-body");
+  
+  const startDateInput = document.getElementById("term-start-date");
+  const endDateInput = document.getElementById("term-end-date");
+
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando registros");
   document.body.appendChild(loader);
 
-  const currentDate = new Date().getFullYear();
-  termPreview.textContent = `${currentDate} - ${currentDate + 1}`;
+  // --- LÓGICA CORREGIDA DE CÁLCULO DE AÑO ESCOLAR ---
+  const today = new Date();
+  const currentMonth = today.getMonth(); // 0 = Enero, ..., 6 = Julio, 7 = Agosto
+  const currentYear = today.getFullYear();
+
+  let startYear, endYear;
+
+  // Si estamos en Agosto (7) o meses posteriores, ya pasó el 31 de julio.
+  // Por lo tanto, NO se permite crear para el año pasado, inicia el año actual.
+  if (currentMonth >= 7) { 
+    startYear = currentYear;
+    endYear = currentYear + 1;
+  } else {
+    // Si estamos entre enero y julio (0 a 6), el periodo que se crea pertenece
+    // al ciclo que inició el año anterior.
+    startYear = currentYear - 1;
+    endYear = currentYear;
+  }
+
+  // Fijar fechas bloqueadas
+  startDateInput.value = `${startYear}-09-16`;
+  startDateInput.readOnly = true;
+
+  endDateInput.value = `${endYear}-07-31`;
+  endDateInput.readOnly = true;
+
+  termPreview.textContent = `${startYear} - ${endYear}`;
+
+  // NOTA: Se eliminó el eventListener 'change' de endDateInput porque
+  // el usuario ya no puede modificar las fechas.
+  // ----------------------------------------
 
   // Listar todos los períodos escolares
   const dateFormat = Intl.DateTimeFormat("es-VE", {
@@ -52,19 +85,16 @@ document.addEventListener("DOMContentLoaded", () => {
     .then((terms) => {
       if (!terms) return;
       terms.forEach((termItem, index) => {
-        // console.log(termItem);
         const item = document.createElement("tr");
         const startDate = new Date(termItem["FechaInicio"]);
         const endDate = new Date(termItem["FechaFin"]);
-        console.log(startDate, endDate);
-        console.log(termItem["FechaCreacion"]);
 
         item.innerHTML = `
           <td class="font-bold">${startDate.getFullYear()} - ${endDate.getFullYear()}</td>
           <td><span class="badge ${index === 0 ? "active" : "inactive"}">${
             index === 0 ? "Activo" : "Inactivo"
           }</span></td>
-          <td class="text-muted">${termItem["FechaCreacion"]}</td>
+          <td class="text-muted">${termItem["FechaCreacion"] || 'N/A'}</td>
         `;
 
         termContainer.appendChild(item);
@@ -80,20 +110,29 @@ document.addEventListener("DOMContentLoaded", () => {
       loader.remove();
     });
 
-  // Crear período de inscripción
-  const registrationTermStatus = document.createElement(
-    "notification-component",
-  );
-  loader.setAttribute("title", "Registrando nuevo período escolar...");
-
+  // Crear período escolar
+  const registrationTermStatus = document.createElement("notification-component");
+  
   btnCreate.addEventListener("click", () => {
+    // Validar que tengamos ambas fechas antes de continuar
+    if (!startDateInput.value || !endDateInput.value) {
+        alert("Ocurrió un error leyendo las fechas predeterminadas.");
+        return;
+    }
+
+    const sYear = startDateInput.value.split('-')[0];
+    const eYear = endDateInput.value.split('-')[0];
+
     const confirmation = confirm(
-      "¿Seguro que quieres crear este período escolar?",
+      `¿Seguro que quieres crear el período escolar ${sYear} - ${eYear} (del 16 de Septiembre al 31 de Julio)?`
     );
 
     if (!confirmation) return;
+    
+    loader.setAttribute("title", "Registrando nuevo período escolar...");
     document.body.appendChild(loader);
 
+    // Enviar las fechas reales al backend
     fetch(`${window.APP_CONFIG.api_url}/school_term/create`, {
       method: "POST",
       headers: {
@@ -101,9 +140,9 @@ document.addEventListener("DOMContentLoaded", () => {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        FechaInicio: `${currentDate}-01-02`,
-        FechaFin: `${currentDate + 1}-01-02`,
-        Capacidad: 30,
+        FechaInicio: startDateInput.value,
+        FechaFin: endDateInput.value,
+        Capacidad: 30, // Dejamos la capacidad fija en 30 como estaba antes
       }),
     })
       .then((response) => {
@@ -111,6 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
           throw "No puedes volver a registrar un período escolar que ya existe";
         else if (response.status !== 201)
           throw "Error al crear el período escolar";
+          
         const lastActive = document.querySelector(".active");
         if (lastActive) {
           lastActive.classList.replace("active", "inactive");
@@ -120,14 +160,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const newSchoolTermElement = document.createElement("tr");
         newSchoolTermElement.innerHTML = `
-          <td class="font-bold">${currentDate} - ${currentDate + 1}</td>
+          <td class="font-bold">${sYear} - ${eYear}</td>
           <td><span class="badge active">Activo</span></td>
           <td class="text-muted">${dateFormat.format(new Date())}</td>
         `;
 
         registrationTermStatus.setAttribute(
           "text",
-          "Nuevo período escolar registrado correctamente",
+          "Nuevo período escolar registrado correctamente"
         );
 
         termContainer.insertBefore(
