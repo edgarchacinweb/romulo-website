@@ -2,7 +2,7 @@ import authorize from "./auth.js";
 
 authorize("docente");
 
-// Datos simulados (Mock Data) - Añadimos el campo justification vacío
+// Datos simulados (Mock Data) de Estudiantes - Luego haremos esto dinámico también
 const studentsData = [
   { id: "A001", name: "Juan Carlos Pérez", present: true, justification: "" },
   { id: "A002", name: "María García López", present: true, justification: "" },
@@ -23,7 +23,7 @@ const presentCountSpan = document.getElementById("presentCount");
 const totalCountSpan = document.getElementById("totalCount");
 const btnSave = document.getElementById("btnSave"); 
 
-// Selectores nuevos
+// Selectores
 const subjectSelect = document.getElementById("subjectSelect");
 const yearSelect = document.getElementById("yearSelect");
 const sectionSelect = document.getElementById("sectionSelect");
@@ -35,8 +35,45 @@ dateInput.valueAsDate = new Date();
 
 // Estado local
 let currentStudents = [];
-// Asignamos un UUID simulado para la clase actual (tu backend espera un UUID en ClaseId)
 let currentClassId = ""; 
+
+// === NUEVO: CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const token = localStorage.getItem("auth");
+    const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
+
+    // Hacemos petición al endpoint que ya tienes en subject.py
+    const response = await fetch(`${apiUrl}/subject/list`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) throw new Error("No se pudieron cargar las materias");
+
+    const subjects = await response.json();
+
+    // Limpiamos el selector
+    subjectSelect.innerHTML = '<option value="" disabled selected>Elige materia</option>';
+
+    // Llenamos con las materias reales de la base de datos
+    subjects.forEach(subject => {
+      const option = document.createElement("option");
+      // Guardamos el ID de la materia como data attribute por si lo necesitamos luego
+      option.dataset.id = subject.MateriaId;
+      option.value = subject.Nombre; 
+      option.textContent = subject.Nombre;
+      subjectSelect.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error("Error cargando materias:", error);
+    subjectSelect.innerHTML = '<option value="" disabled selected>Error al cargar materias</option>';
+  }
+});
 
 // Evento: Cargar Estudiantes
 btnLoad.addEventListener("click", () => {
@@ -51,8 +88,10 @@ btnLoad.addEventListener("click", () => {
     return;
   }
 
-  // En un caso real, aquí harías un fetch() a tu backend mandando estos filtros 
-  // para obtener el ClaseId real y los estudiantes correspondientes.
+  // --- EL PRÓXIMO RETO ---
+  // AHORA MISMO: usamos el mock de alumnos fijos (studentsData) y un UUID falso
+  // FUTURO: Aquí deberás hacer OTRO fetch() a tu backend (ej: /class/students) enviando subject, year y section,
+  // para que el backend te devuelva el "ClaseId" real y los alumnos reales de esa sección.
   currentClassId = "123e4567-e89b-12d3-a456-426614174000"; 
   currentStudents = JSON.parse(JSON.stringify(studentsData));
 
@@ -61,6 +100,8 @@ btnLoad.addEventListener("click", () => {
   
   // Formatear la fecha
   const dateObj = new Date(dateInput.value);
+  // Ajuste para evitar problema de zona horaria (que atrase un día)
+  dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
   const formattedDate = dateObj.toLocaleDateString("es-ES", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   displayDate.textContent = `${term} | ${formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)}`;
 
@@ -86,7 +127,6 @@ function renderStudents() {
       ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`
       : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
 
-    // Renderizamos la fila principal del estudiante y, si está ausente, mostramos el input de justificación
     row.innerHTML = `
         <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
             <div class="check-container">
@@ -119,7 +159,6 @@ function renderStudents() {
 // Función para alternar asistencia individual
 window.toggleAttendance = (index) => {
   currentStudents[index].present = !currentStudents[index].present;
-  // Si lo marcamos como presente, borramos la justificación por si acaso había escrito algo
   if(currentStudents[index].present) {
       currentStudents[index].justification = "";
   }
@@ -127,23 +166,20 @@ window.toggleAttendance = (index) => {
   updateStats();
 };
 
-// Función para guardar la justificación que escriba el profesor
 window.updateJustification = (index, value) => {
   currentStudents[index].justification = value;
 };
 
-// Función para actualizar contadores
 function updateStats() {
   const presentCount = currentStudents.filter((s) => s.present).length;
   presentCountSpan.textContent = presentCount;
   totalCountSpan.textContent = currentStudents.length;
 }
 
-// Funciones de Lote (Bulk Actions)
 window.markAll = (status) => {
   currentStudents.forEach((s) => {
       s.present = status;
-      if(status) s.justification = ""; // Limpiar justificaciones si todos están presentes
+      if(status) s.justification = "";
   });
   renderStudents();
   updateStats();
@@ -159,8 +195,6 @@ window.resetAll = () => {
 if (btnSave) {
   btnSave.addEventListener("click", async () => {
     
-    // Transformar datos locales al formato que espera el backend de Python
-    // IMPORTANTE: Se añade "Justificacion", tu compañero backend deberá actualizar assistance.py para recibir este dato.
     const payload = {
       ClaseId: currentClassId,
       EstudianteId: currentStudents.map(s => s.id),
@@ -169,10 +203,10 @@ if (btnSave) {
     };
 
     try {
-      // Reemplaza con tu token real obtenido en el login
       const token = localStorage.getItem("auth") || "TU_TOKEN_AQUI";
+      const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
 
-      const response = await fetch("/assistance/create", {
+      const response = await fetch(`${apiUrl}/assistance/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -189,7 +223,7 @@ if (btnSave) {
       }
     } catch (error) {
       console.error("Error en la petición:", error);
-      alert("Error de conexión al guardar la asistencia (Revisa que tu backend esté encendido).");
+      alert("Error de conexión al guardar la asistencia.");
     }
   });
 }
