@@ -41,5 +41,5 @@ document.getElementById("logout").addEventListener("click", () => {
   );
   if (!confirmation) return;
   localStorage.clear();
-  window.location.href = "/app/iniciar-sesion";
+  window.location.href = "/app/iniciar-sesion.html";
 });
