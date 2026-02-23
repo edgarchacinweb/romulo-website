@@ -43,3 +43,13 @@ document.getElementById("logout").addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "/app/iniciar-sesion.html";
 });
+
+document.getElementById("califications").addEventListener("click", () => {
+  document.body.style.overflow = "hidden";
+  document.body.style.animation = "goodByePage 0.8s forwards";
+
+  setTimeout(
+    () => (window.location.href = "/app/docente/calificaciones/"),
+    1000,
+  );
+});

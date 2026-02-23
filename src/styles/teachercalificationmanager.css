@@ -1,0 +1,368 @@
+/* --- Variables y Configuración Base --- */
+:root {
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --primary-blue: #1d4ed8;
+  --primary-blue-hover: #1e40af;
+  --disabled-blue: #93c5fd;
+  --success-green: #22c55e;
+  --success-bg: #dcfce7;
+  --danger-red: #ef4444;
+  --warning-yellow-bg: #fefce8;
+  --warning-yellow-border: #fef08a;
+  --warning-yellow-text: #ca8a04;
+  --info-blue-bg: #eff6ff;
+  --info-blue-border: #bfdbfe;
+  --info-blue-text: #1d4ed8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family:
+    "Ubuntu",
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+/* --- Animaciones de Página --- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-enter {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.page-exit {
+  animation: fadeOutDown 0.4s ease-in forwards;
+}
+
+/* --- Navbar --- */
+.navbar {
+  background-color: var(--surface-color);
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo-container {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--primary-blue);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-text h1 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.brand-text p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* --- Botones --- */
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-main);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-outline:hover {
+  background-color: #f1f5f9;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  background-color: var(--primary-blue);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-blue-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  background-color: var(--disabled-blue);
+  cursor: not-allowed;
+}
+
+/* --- Layout Principal --- */
+.main-content {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+/* --- Parámetros de Búsqueda --- */
+.params-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.params-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.custom-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  appearance: auto; /* Usamos estilo nativo del SO para no recargar de CSS extra, pero limpio */
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.custom-select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+}
+
+.custom-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --- Estados Dinámicos --- */
+.state-container {
+  display: none; /* Ocultos por defecto */
+  text-align: center;
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.state-container.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-circle {
+  width: 64px;
+  height: 64px;
+  background-color: #f1f5f9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Alertas --- */
+.alert {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  text-align: left;
+  margin-top: 1rem;
+}
+
+.alert-info {
+  background: var(--info-blue-bg);
+  border: 1px solid var(--info-blue-border);
+  color: var(--info-blue-text);
+}
+.alert-warning {
+  background: var(--warning-yellow-bg);
+  border: 1px solid var(--warning-yellow-border);
+  color: var(--warning-yellow-text);
+}
+.alert-success {
+  background: var(--success-bg);
+  border: 1px solid #bbf7d0;
+  color: var(--success-green);
+}
+
+/* --- Tabla de Estudiantes --- */
+.table-container {
+  width: 100%;
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.table-header h2 {
+  font-size: 1.2rem;
+}
+.table-header p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--surface-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th,
+td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+tbody tr {
+  transition: background-color 0.2s;
+}
+tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* Entradas de calificación */
+.grade-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.grade-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.1);
+}
+
+/* Badges de Estado */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.status-pendiente {
+  color: var(--text-muted);
+}
+.status-aprobado {
+  color: var(--success-green);
+}
+.status-reprobado {
+  color: var(--danger-red);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
