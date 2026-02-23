@@ -394,10 +394,11 @@ const filter = async (grade, section) => {
                 s["Seccion"] !== us["Seccion"],
             );
 
+            const teacher = teachers.find(
+              (t) => t["DocenteId"] === us["DocenteId"],
+            );
+
             if (repeatedElement) {
-              const teacher = teachers.find(
-                (t) => t["DocenteId"] === us["DocenteId"],
-              );
               const block = scheduleBlocks.find(
                 (sb) =>
                   sb["BloqueHorarioId"] === repeatedElement["BloqueHorarioId"],
@@ -406,9 +407,22 @@ const filter = async (grade, section) => {
                 `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
               );
             }
+
+            const academicHours = teachers.find(
+              (t) => t["DocenteId"] === us["DocenteId"],
+            )["HorasAcademicas"];
+
+            const teacherHours = [...schedule, ...updatedSchedule].filter(
+              (t) => t["DocenteId"] === us["DocenteId"],
+            ).length;
+
+            if (teacherHours > academicHours) {
+              throw new Error(
+                `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} superó su límite de horas académicas semanales`,
+              );
+            }
           });
 
-          return;
           const updateSchedulePromise = await fetch(
             `${window.APP_CONFIG.api_url}/schedule/create`,
             {
