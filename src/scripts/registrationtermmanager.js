@@ -26,14 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let startYear, endYear;
 
-  // Si estamos en Agosto (7) o meses posteriores, ya pasó el 31 de julio.
-  // Por lo tanto, NO se permite crear para el año pasado, inicia el año actual.
   if (currentMonth >= 7) { 
     startYear = currentYear;
     endYear = currentYear + 1;
   } else {
-    // Si estamos entre enero y julio (0 a 6), el periodo que se crea pertenece
-    // al ciclo que inició el año anterior.
     startYear = currentYear - 1;
     endYear = currentYear;
   }
@@ -45,10 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
   endDateInput.value = `${endYear}-07-31`;
   endDateInput.readOnly = true;
 
-  termPreview.textContent = `${startYear} - ${endYear}`;
-
-  // NOTA: Se eliminó el eventListener 'change' de endDateInput porque
-  // el usuario ya no puede modificar las fechas.
+  const currentPeriodText = `${startYear} - ${endYear}`;
+  termPreview.textContent = currentPeriodText;
   // ----------------------------------------
 
   // Listar todos los períodos escolares
@@ -75,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
         notification.setAttribute("type", "warning");
         notification.setAttribute("text", "No hay períodos escolares creados");
         notificationsContainer.appendChild(notification);
-        return;
+        return [];
       } else if (response.status !== 200) {
         throw "Error al cargar la lista de períodos escolares registrados";
       }
@@ -83,14 +77,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return response.json();
     })
     .then((terms) => {
-      if (!terms) return;
+      if (!terms || terms.length === 0) return;
+      
+      let periodAlreadyExists = false;
+
       terms.forEach((termItem, index) => {
         const item = document.createElement("tr");
         const startDate = new Date(termItem["FechaInicio"]);
         const endDate = new Date(termItem["FechaFin"]);
+        
+        const rowPeriodText = `${startDate.getFullYear()} - ${endDate.getFullYear()}`;
+
+        // Validamos si el periodo que intentamos crear ya existe en el listado
+        if (rowPeriodText === currentPeriodText) {
+            periodAlreadyExists = true;
+        }
 
         item.innerHTML = `
-          <td class="font-bold">${startDate.getFullYear()} - ${endDate.getFullYear()}</td>
+          <td class="font-bold">${rowPeriodText}</td>
           <td><span class="badge ${index === 0 ? "active" : "inactive"}">${
             index === 0 ? "Activo" : "Inactivo"
           }</span></td>
@@ -99,6 +103,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         termContainer.appendChild(item);
       });
+
+      // --- NUEVO: BLOQUEO VISUAL DEL BOTÓN SI YA EXISTE ---
+      if (periodAlreadyExists) {
+          btnCreate.disabled = true;
+          btnCreate.textContent = "Período actual ya registrado";
+          btnCreate.style.backgroundColor = "#9ca3af"; // Color gris
+          btnCreate.style.cursor = "not-allowed";
+          btnCreate.title = "Debes esperar a que finalice este período para crear el siguiente.";
+      }
+
     })
     .catch((error) => {
       const notification = document.createElement("notification-component");
@@ -114,7 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const registrationTermStatus = document.createElement("notification-component");
   
   btnCreate.addEventListener("click", () => {
-    // Validar que tengamos ambas fechas antes de continuar
+    // Si el botón fue deshabilitado por el código anterior, salir de la función
+    if (btnCreate.disabled) return;
+
     if (!startDateInput.value || !endDateInput.value) {
         alert("Ocurrió un error leyendo las fechas predeterminadas.");
         return;
@@ -129,10 +145,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!confirmation) return;
     
+    // Deshabilitar botón durante el proceso para evitar doble clic
+    btnCreate.disabled = true;
+    
     loader.setAttribute("title", "Registrando nuevo período escolar...");
     document.body.appendChild(loader);
 
-    // Enviar las fechas reales al backend
     fetch(`${window.APP_CONFIG.api_url}/school_term/create`, {
       method: "POST",
       headers: {
@@ -142,12 +160,14 @@ document.addEventListener("DOMContentLoaded", () => {
       body: JSON.stringify({
         FechaInicio: startDateInput.value,
         FechaFin: endDateInput.value,
-        Capacidad: 30, // Dejamos la capacidad fija en 30 como estaba antes
+        Capacidad: 30, 
       }),
     })
-      .then((response) => {
-        if (response.status === 409)
-          throw "No puedes volver a registrar un período escolar que ya existe";
+      .then(async (response) => {
+        if (response.status === 409 || response.status === 400) {
+            const errorData = await response.json();
+            throw errorData.message || "No puedes registrar un período que ya existe o tiene fechas inválidas.";
+        }
         else if (response.status !== 201)
           throw "Error al crear el período escolar";
           
@@ -174,9 +194,16 @@ document.addEventListener("DOMContentLoaded", () => {
           newSchoolTermElement,
           termContainer.firstElementChild,
         );
+
+        // Bloquear el botón permanentemente después del éxito
+        btnCreate.textContent = "Período actual ya registrado";
+        btnCreate.style.backgroundColor = "#9ca3af"; 
+        btnCreate.style.cursor = "not-allowed";
+
       })
       .catch((error) => {
         console.log(error);
+        btnCreate.disabled = false; // Reactivar en caso de error
         registrationTermStatus.setAttribute("type", "error");
         registrationTermStatus.setAttribute("text", error);
       })
