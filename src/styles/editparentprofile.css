@@ -318,10 +318,36 @@ select {
 .upload-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   padding: 0.6rem 1rem;
   font-size: 0.875rem;
 }
+
+/* --- NUEVOS ESTILOS PARA CARGA DE ARCHIVO --- */
+/* Estado de éxito para el botón (verde) */
+.btn-success {
+  background-color: var(--success) !important;
+  border-color: var(--success) !important;
+  color: white !important;
+}
+
+.btn-success:hover {
+  background-color: #0d9668 !important; /* Un verde un poco más oscuro */
+  transform: translateY(-2px);
+}
+
+/* Estilo para el texto del nombre del archivo */
+.file-name-msg {
+  font-size: 0.8rem;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-all; /* Rompe palabras largas si es necesario */
+  max-width: 200px;
+}
+/* ------------------------------------------- */
 
 /* Campos de Contraseña con Toggle */
 .password-input-wrapper {

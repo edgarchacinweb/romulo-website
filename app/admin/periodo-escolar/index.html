@@ -69,8 +69,21 @@
             </div>
 
             <p class="helper-text">
-              Se utilizará automáticamente la fecha actual
+              Fechas oficiales del nuevo período
             </p>
+
+            <div class="date-inputs-container">
+              <div class="input-group">
+                <label for="term-start-date">Fecha de Inicio (Fija)</label>
+                <input type="date" id="term-start-date" class="input-readonly" readonly required title="La fecha de inicio es oficial e inamovible" />
+              </div>
+              <div class="input-group">
+                <label for="term-end-date">Fecha de Fin (Fija)</label>
+                <!-- AHORA LA FECHA DE FIN TAMBIÉN ES READONLY Y ESTÁ DESHABILITADA -->
+                <input type="date" id="term-end-date" class="input-readonly" readonly required title="La fecha de fin es oficial e inamovible" />
+              </div>
+            </div>
+
           </div>
 
           <button id="btn-create" class="btn-primary">

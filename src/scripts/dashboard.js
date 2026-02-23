@@ -12,12 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     try {
       const studentsResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/registration/count/students`, // Ruta corregida
+        `${window.APP_CONFIG.api_url}/registration/count/students`, 
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Token añadido
+            Authorization: `Bearer ${token}`, 
           },
         },
       );
@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     try {
       const teacherResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/registration/count/teachers`, // Ruta corregida para usar tu nuevo endpoint
+        `${window.APP_CONFIG.api_url}/registration/count/teachers`, 
         {
           method: "GET",
           headers: {
@@ -73,11 +73,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })();
 
-  // --- 3. Cargar Período Escolar Actual ---
+  // --- 3. Cargar Período Escolar Actual (MODIFICADO) ---
   (async () => {
     try {
+      // Pedimos la lista completa en lugar del último
       const schoolTermResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/school_term/get`,
+        `${window.APP_CONFIG.api_url}/school_term/list`,
         {
           method: "GET",
           headers: {
@@ -90,12 +91,37 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!schoolTermResponse.ok)
         throw new Error("Error al cargar período escolar");
 
-      const data = await schoolTermResponse.json();
-      // Verificamos que existan las fechas antes de intentar cortarlas con slice
-      if (data.FechaInicio && data.FechaFin) {
-        const term = `${data.FechaInicio.slice(0, 4)} - ${data.FechaFin.slice(0, 4)}`;
-        const el = document.getElementById("schoolTerm");
-        if (el) el.innerHTML = term;
+      const terms = await schoolTermResponse.json();
+
+      // Determinar cuál es el periodo actual basado en la fecha de hoy
+      const today = new Date();
+      const currentMonth = today.getMonth(); // 0 = Enero, ..., 7 = Agosto
+      const currentYear = today.getFullYear();
+      
+      // Regla: A partir de agosto (7) iniciamos ciclo del año en curso. 
+      // Antes de agosto, seguimos en el ciclo que inició el año pasado.
+      const activeStartYear = currentMonth >= 7 ? currentYear : currentYear - 1;
+
+      // Buscar en el array el periodo escolar que corresponde a esa fecha
+      const activeTerm = terms.find((t) => {
+        if (!t.FechaInicio) return false;
+        
+        // CORRECCIÓN: Usar Date() en lugar de slice() para extraer el año real y evitar errores de formato (NaN)
+        const startYear = new Date(t.FechaInicio).getFullYear();
+        return startYear === activeStartYear;
+      });
+
+      const el = document.getElementById("schoolTerm");
+      if (activeTerm && el) {
+        // CORRECCIÓN: Usar Date() también aquí al pintar las fechas en pantalla
+        const start = new Date(activeTerm.FechaInicio).getFullYear();
+        const end = new Date(activeTerm.FechaFin).getFullYear();
+        el.innerHTML = `${start} - ${end}`;
+      } else if (el) {
+        // En caso de que aún no exista un periodo para este año en curso
+        el.innerHTML = "No Activo";
+        el.style.color = "#b00020";
+        el.style.fontSize = "1.2rem";
       }
     } catch (err) {
       console.error(err);
@@ -106,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
   (async () => {
     try {
       const registrationResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/registration/count`, // Esta ruta cuenta los 'revision'
+        `${window.APP_CONFIG.api_url}/registration/count`, 
         {
           method: "GET",
           headers: {

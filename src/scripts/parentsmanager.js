@@ -10,7 +10,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const notificationsContainer = document.getElementById("notifications");
   const firstNameEntry = document.getElementById("nombre");
   const lastNameEntry = document.getElementById("apellido");
-  const identityEntry = document.getElementById("cedula");
+  
+  // ELEMENTOS DE CÉDULA
+  const identityEntry = document.getElementById("cedula"); // El input de números
+  const typeIdEntry = document.getElementById("tipo-cedula"); // El selector V/E
+  
   const genderEntry = document.getElementById("sexo");
   const emailEntry = document.getElementById("email");
   const submitBtn = document.getElementById("btn-submit");
@@ -20,9 +24,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const totalCount = document.getElementById("totalCount");
 
   // Estado de la aplicación
-  let parents = []; // Array local de datos
-  let isEditing = false; // Bandera para saber si editamos
-  let currentEditId = null; // ID que estamos editando
+  let parents = []; 
+  let isEditing = false; 
+  let currentEditId = null; 
 
   // Iconos
   const icons = {
@@ -35,55 +39,70 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- FUNCIÓN GLOBAL: CARGAR DATOS EN FORMULARIO (EDITAR) ---
   window.editRep = (usuarioId) => {
-    // 1. Buscamos el usuario en el array local
     const parentFound = parents.find(
-      (p) => p.UsuarioId == usuarioId || p.id == usuarioId,
+      (p) => p.UsuarioId == usuarioId || p.Usuario?.UsuarioId == usuarioId
     );
     if (!parentFound) return;
 
     const { DatosPersona, Email } = parentFound;
+    let cedulaCompleta = DatosPersona.Cedula.toString();
 
-    // 2. Llenamos los campos del formulario
+    // 1. Detectar si es extranjero para ajustar el selector
+    if (cedulaCompleta.toUpperCase().startsWith("E")) {
+        typeIdEntry.value = "E";
+        identityEntry.value = cedulaCompleta.substring(1); 
+    } else {
+        typeIdEntry.value = "V";
+        identityEntry.value = cedulaCompleta; 
+    }
+
     firstNameEntry.value = DatosPersona.Nombre;
     lastNameEntry.value = DatosPersona.Apellido;
-    identityEntry.value = DatosPersona.Cedula;
     genderEntry.value = DatosPersona.Sexo;
     emailEntry.value = Email;
 
-    // 3. NO BLOQUEAMOS el email
     emailEntry.disabled = false;
 
-    // 4. Cambiamos estado a "Editando"
     isEditing = true;
-    currentEditId = DatosPersona.DatosPersonaId || DatosPersona.id;
+    currentEditId = DatosPersona.DatosPersonaId;
 
-    // 5. Cambiamos estilo del botón
     submitBtn.textContent = "Actualizar Representante";
     submitBtn.classList.add("btn-warning");
     firstNameEntry.focus();
   };
 
-  // --- FUNCIÓN AUXILIAR: RENDERIZAR LISTA ---
+  // --- RENDERIZAR LISTA ---
   const renderParents = (parentsData) => {
-    repsList.innerHTML = ""; // Limpiar lista actual
+    repsList.innerHTML = ""; 
 
     parentsData.forEach((parent) => {
-      // Definimos userId dentro del bucle
-      const userId = parent.UsuarioId || parent.id;
-
+      const userId = parent.UsuarioId;
       const { DatosPersona } = parent;
+      
+      // 2. Formateo visual inteligente
+      let displayCedula = DatosPersona.Cedula.toString().toUpperCase();
+      
+      // Si no empieza con E ni con V, asumimos V
+      if (!displayCedula.startsWith("E") && !displayCedula.startsWith("V")) {
+          displayCedula = `V-${displayCedula}`;
+      } else if (displayCedula.startsWith("E")) {
+           displayCedula = `E-${displayCedula.substring(1)}`;
+      }
+
       const card = document.createElement("article");
       card.className = "rep-card";
 
-      // por si necesitamos el boton de editar en el futuro
+      // Nota: Si quieres activar la edición, descomenta el botón de abajo
       card.innerHTML = `
                 <div class="rep-top">
                     <h3>${DatosPersona.Nombre} ${DatosPersona.Apellido}</h3>
-                    
-                    </div>
-                <span class="cedula-text">Cédula: V-${
-                  DatosPersona.Cedula
-                }</span>
+                      <!-- 
+                    <button class="btn-edit" onclick="editRep('${userId}')" title="Editar">
+                        ${icons.edit}
+                    </button> 
+                    -->
+                </div>
+                <span class="cedula-text">Cédula: ${displayCedula}</span>
 
                 <div class="rep-details">
                     <div class="detail-item">
@@ -92,34 +111,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                     </div>
                     <div class="detail-item">
                         <span class="icon-green">${icons.phone}</span>
-                        ${
-                          !DatosPersona.Telefono
-                            ? "No asignado"
-                            : DatosPersona.Telefono
-                        }
+                        ${!DatosPersona.Telefono ? "No asignado" : DatosPersona.Telefono}
                     </div>
                     <div class="detail-item">
                         <span class="icon-orange">${icons.map}</span>
-                        ${
-                          !DatosPersona.Direccion
-                            ? "No asignado"
-                            : DatosPersona.Direccion
-                        }
+                        ${!DatosPersona.Direccion ? "No asignado" : DatosPersona.Direccion}
                     </div>
                     <div class="detail-item">
                         <span class="icon-purple">${icons.briefcase}</span>
-                        ${
-                          !DatosPersona.Ocupacion
-                            ? "No asignado"
-                            : DatosPersona.Ocupacion
-                        }
+                        ${!DatosPersona.Ocupacion ? "No asignado" : DatosPersona.Ocupacion}
                     </div>
                 </div>
 
                 <div class="rep-footer">
-                    Registrado: ${new Date(
-                      parent.FechaCreacion || new Date(),
-                    ).toLocaleDateString("es-VE")}
+                    Representante Activo
                 </div>        
             `;
       repsList.appendChild(card);
@@ -127,102 +132,106 @@ document.addEventListener("DOMContentLoaded", async () => {
     totalCount.textContent = parentsData.length;
   };
 
-  // --- CARGA INICIAL DE DATOS ---
-  document.body.appendChild(loader);
-  try {
-    const parentsResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/user/filter`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+  // --- CARGAR DATOS (POLLING) ---
+  const loadParentsData = async (isBackgroundUpdate = false) => {
+    if (isEditing && isBackgroundUpdate) return;
+    if (!isBackgroundUpdate) document.body.appendChild(loader);
+
+    try {
+      const parentsResponse = await fetch(
+        `${window.APP_CONFIG.api_url}/people/list`, 
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         },
-        body: JSON.stringify({
-          Rol: "representante",
-        }),
-      },
-    );
+      );
+      const parentsData = await parentsResponse.json();
+      if (parentsResponse.status !== 200) throw new Error(parentsData.message);
+      parents = parentsData;
+      renderParents(parents);
+    } catch (error) {
+      if (!isBackgroundUpdate) {
+        const loadNotification = document.createElement("notification-component");
+        loadNotification.setAttribute("type", "error");
+        loadNotification.setAttribute("text", "Error cargando lista: " + error);
+        notificationsContainer.appendChild(loadNotification);
+      }
+    } finally {
+      if (!isBackgroundUpdate) loader.remove();
+    }
+  };
 
-    const parentsData = await parentsResponse.json();
-    if (parentsResponse.status !== 200) throw new Error(parentsData.message);
+  await loadParentsData(false);
+  setInterval(() => { loadParentsData(true); }, 5000); 
 
-    // Guardamos en variable global y renderizamos
-    parents = parentsData;
-    renderParents(parents);
-  } catch (error) {
-    console.log(error);
-    const loadNotification = document.createElement("notification-component");
-    loadNotification.setAttribute("type", "error");
-    loadNotification.setAttribute("text", error);
-    notificationsContainer.appendChild(loadNotification);
-  } finally {
-    loader.remove();
-  }
-
-  // --- MANEJO DEL BOTÓN DE ENVÍO (CREAR O EDITAR) ---
+  // --- MANEJO DEL BOTÓN DE ENVÍO ---
   submitBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     const firstName = firstNameEntry.value.trim();
     const lastName = lastNameEntry.value.trim();
-    const identity = identityEntry.value.trim();
+    const identityRaw = identityEntry.value.trim(); 
+    const identityType = typeIdEntry ? typeIdEntry.value : "V"; 
     const gender = genderEntry.value;
-    const email = emailEntry.value.trim();
+    const email = emailEntry.value.trim().toLowerCase(); // Normalizamos a minúsculas
     const notification = document.createElement("notification-component");
 
     document.body.appendChild(loader);
 
     try {
-      // 1. Validaciones
-      if (firstName.length === 0) {
-        firstNameEntry.focus();
-        throw new Error("Debes introducir el nombre del representante");
-      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(firstName)) {
-        firstNameEntry.focus();
-        throw new Error("El nombre presenta un formato inválido");
-      } else if (lastName.length === 0) {
-        lastNameEntry.focus();
-        throw new Error("Debes introducir el apellido del representante");
-      } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(lastName)) {
-        lastNameEntry.focus();
-        throw new Error("El apellido presenta un formato inválido");
-      } else if (identity.length === 0) {
-        identityEntry.focus();
-        throw new Error("Debes introducir la cédula del representante");
-      } else if (!/^[1-9]\d{6,9}$/.test(identity)) {
-        identityEntry.focus();
-        throw new Error(
-          "La cédula debe ser mayor a 1 millón (mínimo 7 dígitos)",
-        );
-      } else if (gender.length === 0) {
-        genderEntry.focus();
-        throw new Error("Debes indicar el género del representante");
-      } else if (email.length === 0) {
-        emailEntry.focus();
-        throw new Error("Debes indicar el correo electrónico");
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        emailEntry.focus();
-        throw new Error("El correo electrónico presenta un formato inválido");
-      }
+      // VALIDACIONES BÁSICAS
+      if (firstName.length === 0) { firstNameEntry.focus(); throw new Error("Falta nombre"); }
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(firstName)) { firstNameEntry.focus(); throw new Error("Nombre inválido"); }
+      if (lastName.length === 0) { lastNameEntry.focus(); throw new Error("Falta apellido"); }
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(lastName)) { lastNameEntry.focus(); throw new Error("Apellido inválido"); }
+      
+      // VALIDACIONES CÉDULA
+      if (identityRaw.length === 0) { identityEntry.focus(); throw new Error("Introduce la cédula"); } 
+      if (!/^\d+$/.test(identityRaw)) { identityEntry.focus(); throw new Error("La cédula solo debe contener números"); } 
+      if (identityRaw.startsWith("0")) { identityEntry.focus(); throw new Error("La cédula no debe empezar por 0"); } 
+      if (identityRaw.length < 7 || identityRaw.length > 9) { identityEntry.focus(); throw new Error("La cédula debe tener entre 7 y 9 dígitos"); } 
+      if (parseInt(identityRaw) <= 1000000) { identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000"); }
 
-      // 2. Lógica: ¿Editar o Crear?
+      // === VALIDACIÓN DE CORREO Y DOMINIO ===
+      if (gender.length === 0) throw new Error("Indica el género");
+      if (email.length === 0) throw new Error("Indica el correo");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
+
+      // NUEVA VALIDACIÓN: DOMINIOS PERMITIDOS
+      const allowedDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com"];
+      const emailDomain = email.split('@')[1];
+      if (!allowedDomains.includes(emailDomain)) {
+        emailEntry.focus();
+        throw new Error("Solo se aceptan correos: @gmail.com, @outlook.com, @hotmail.com o @yahoo.com");
+      }
+      // ===========================
+
+      // CONSTRUCCIÓN DE LA CÉDULA
+      let finalIdentity = identityType === "E" ? `E${identityRaw}` : identityRaw;
+      let defaultPassword = `${identityType}#${identityRaw}`;
+
+      const payloadPerson = {
+        Nombre: firstName,
+        Apellido: lastName,
+        Sexo: gender,
+        Cedula: finalIdentity, 
+        // FIX: Enviamos cadenas vacías explícitamente para evitar que el backend asigne 
+        // valores por defecto (como "Calle principal del arsenal...")
+        Direccion: "",
+        Ocupacion: "",
+        Telefono: ""
+      };
+
       if (isEditing) {
-        // ================= MODO EDICIÓN (PATCH) =================
+        payloadPerson.Email = email; 
         const updateResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/update/${currentEditId}`,
           {
             method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              Nombre: firstName,
-              Apellido: lastName,
-              Sexo: gender,
-              Cedula: identity,
-              Email: email,
-            }),
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payloadPerson),
           },
         );
 
@@ -233,43 +242,21 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         notification.setAttribute("type", "success");
         notification.setAttribute("text", "Datos actualizados correctamente");
-
-        // Actualizamos Array Local
-        const parentIndex = parents.findIndex(
-          (p) =>
-            p.DatosPersona.id === currentEditId ||
-            p.DatosPersona.DatosPersonaId === currentEditId,
-        );
-
-        if (parentIndex !== -1) {
-          parents[parentIndex].DatosPersona.Nombre = firstName;
-          parents[parentIndex].DatosPersona.Apellido = lastName;
-          parents[parentIndex].DatosPersona.Cedula = identity;
-          parents[parentIndex].DatosPersona.Sexo = gender;
-          parents[parentIndex].Email = email;
-        }
-
-        // Resetear estado
+        await loadParentsData(true);
+        
         isEditing = false;
         currentEditId = null;
         submitBtn.textContent = "Registrar Representante";
         submitBtn.classList.remove("btn-warning");
+
       } else {
-        // ================= MODO CREACIÓN (POST) =================
+        // --- CREAR ---
         const dataResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/create`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              Nombre: firstName,
-              Apellido: lastName,
-              Sexo: gender,
-              Cedula: identity,
-            }),
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(payloadPerson),
           },
         );
 
@@ -283,49 +270,27 @@ document.addEventListener("DOMContentLoaded", async () => {
           `${window.APP_CONFIG.api_url}/user/register`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify({
               Email: email,
               Rol: "representante",
-              Clave: `V#${identity}`,
+              Clave: defaultPassword, 
               DatosPersonaId: peopleId,
             }),
           },
         );
 
         const userData = await userResponse.json();
-        if (userResponse.status !== 201)
-          throw new Error(userData.message || userData);
+        if (userResponse.status !== 201) throw new Error(userData.message || userData);
 
         notification.setAttribute("type", "success");
-        notification.setAttribute(
-          "text",
-          "Representante registrado correctamente",
-        );
-
-        // Agregar al Array Local
-        parents.push({
-          UsuarioId: userData.id || userData.UsuarioId,
-          DatosPersona: {
-            id: peopleId,
-            DatosPersonaId: peopleId,
-            Apellido: lastName,
-            Cedula: identity,
-            Nombre: firstName,
-            Sexo: gender,
-          },
-          Email: email,
-          Rol: "representante",
-          FechaCreacion: new Date(),
-        });
+        notification.setAttribute("text", "Representante registrado correctamente");
+        await loadParentsData(true);
       }
 
-      // 3. Renderizar y Limpiar
-      renderParents(parents);
       repForm.reset();
+      if(typeIdEntry) typeIdEntry.value = "V";
+
     } catch (error) {
       console.error(error);
       notification.setAttribute("type", "error");

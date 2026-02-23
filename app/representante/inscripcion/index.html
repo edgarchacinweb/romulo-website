@@ -155,7 +155,7 @@
 
             <div class="form-grid">
               <div class="form-group">
-                <label for="nombre">Nombre</label>
+                <label for="nombre">Nombres</label>
                 <input
                   type="text"
                   id="nombre"
@@ -164,7 +164,7 @@
                 />
               </div>
               <div class="form-group">
-                <label for="apellido">Apellido</label>
+                <label for="apellido">Apellidos</label>
                 <input
                   type="text"
                   id="apellido"
@@ -193,19 +193,55 @@
                 >
               </div> 
 
+              <!-- SECCIÓN: OPCIONES DE CÉDULA ESCOLAR -->
+              <div id="schoolIdSettings" class="form-group full-width" style="display: none; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ffffff;">
+                  <div class="checkbox-wrapper" style="margin-bottom: 10px;">
+                    <input type="checkbox" id="useSchoolId" />
+                    <label for="useSchoolId" style="color: #000000; font-weight: bold;">El estudiante no tiene cédula</label>
+                  </div>
+                  
+                  <div id="schoolIdOptions" style="display: none; margin-top: 10px;">
+                      <label for="birthOrder" style="font-size: 0.85rem;">Orden de Nacimiento (Hijos nacidos en el mismo año):</label>
+                      <select id="birthOrder" style="width: 100%; margin-top: 5px;">
+                          <option value="1">1 - Único hijo(a) en ese año</option>
+                          <option value="2">2 - Segundo hijo(a) (Gemelo/Mellizo)</option>
+                          <option value="3">3 - Tercer hijo(a)</option>
+                          <option value="4">4 - Cuarto hijo(a)</option>
+                      </select>
+                      <small style="display:block; margin-top:5px; color:#666;">Se usará la cédula del representante y el año de nacimiento para generar el código.</small>
+                  </div>
+              </div>
+
+              <!-- CONTENEDOR DE CÉDULA CON NACIONALIDAD -->
               <div class="form-group full-width" id="idContainer">
-                <label for="cedula">Cédula de Identidad</label>
-                <input type="number" id="cedula" name="cedula" placeholder="12345678" />
+                <label for="cedula">Cédula de Identidad / Escolar</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <div class="select-wrapper" id="nacionalidadWrapper" style="width: 80px; flex-shrink: 0;">
+                    <select id="nacionalidad" name="nacionalidad">
+                      <option value="V" selected>V</option>
+                      <option value="E">E</option>
+                    </select>
+                  </div>
+                  <input 
+                    type="text" 
+                    id="cedula" 
+                    name="cedula" 
+                    placeholder="Ej: 33000000" 
+                    maxlength="12"
+                    style="flex-grow: 1;"
+                  />
+                </div>
               </div>
 
               <div class="form-group">
                 <label for="fechaNac">Fecha de Nacimiento</label>
+                <!-- MODIFICADO: Rango de años 2008 a 2015 -->
                 <input
                   type="date"
                   id="fechaNac"
                   name="fechaNac"
-                  min="2010-01-01"
-                  max="2020-12-31"
+                  min="2008-01-01"
+                  max="2015-12-31"
                 />
               </div>
               <div class="form-group">
@@ -262,8 +298,9 @@
                   placeholder="Ingrese la dirección completa"
                 ></textarea>
               </div>
+              
               <div class="form-group full-width checkbox-wrapper">
-                <div class="docs-section">
+                <div class="docs-section" style="width: 100%;">
                   <div class="card-header">
                     <svg
                       width="20"
@@ -311,6 +348,7 @@
                         </div>
                       </div>
                     </div>
+                    
                     <div class="doc-upload">
                       <label>Partida de Nacimiento</label>
                       <div class="upload-zone small">
@@ -368,6 +406,37 @@
                         </div>
                       </div>
                     </div>
+
+                    <!-- NUEVO CAMPO: AUTORIZACIÓN LEGAL -->
+                    <div class="doc-upload" id="AutorizacionDoc" style="display: none;">
+                      <label>Autorización Legal / Motivo</label>
+                      <div class="upload-zone small">
+                        <input
+                          type="file"
+                          id="docAutorizacion"
+                          accept=".pdf"
+                          hidden
+                        />
+                        <div class="upload-content">
+                          <svg
+                            class="upload-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                            ></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                          <span>Haga clic para cargar</span>
+                          <small>PDF (máx. 10MB)</small>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- FIN NUEVO CAMPO -->
                   </div>
                 </div>
               </div>

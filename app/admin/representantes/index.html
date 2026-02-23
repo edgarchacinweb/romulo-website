@@ -8,6 +8,21 @@
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/parentsmanager.css" />
 
+    <!-- Estilo adicional para el grupo de cédula -->
+    <style>
+      .cedula-group {
+        display: flex;
+        gap: 10px;
+      }
+      .cedula-type {
+        width: 70px;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background-color: #fff;
+      }
+    </style>
+
     <!-- Configuración -->
     <script src="/src/scripts/config.js" type="module"></script>
 
@@ -84,18 +99,25 @@
                 />
               </div>
 
+              <!-- CAMBIO AQUÍ: Selector de Tipo de Cédula -->
               <div class="form-group">
                 <label for="cedula">Cédula de Identidad</label>
-                <input
-                  type="text"
-                  id="cedula"
-                  placeholder="Ej: 12345678"
-                  required
-                />
+                <div class="cedula-group">
+                  <select id="tipo-cedula" class="cedula-type">
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                  </select>
+                  <input
+                    type="text"
+                    id="cedula"
+                    placeholder="Ej: 12345678"
+                    required
+                  />
+                </div>
               </div>
 
               <div class="form-group">
-                <label for="cedula">Género</label>
+                <label for="sexo">Género</label>
                 <select class="form-select" id="sexo">
                   <option value="Masculino">Masculino</option>
                   <option value="Femenino">Femenino</option>
@@ -107,7 +129,7 @@
                 <input
                   type="email"
                   id="email"
-                  placeholder="Ej: ejemplo@correo.com"
+                  placeholder="Ej: ejemplo@gmail.com"
                   required
                 />
               </div>

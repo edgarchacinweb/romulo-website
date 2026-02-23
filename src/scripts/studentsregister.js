@@ -6,22 +6,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- 1. Variables y Elementos ---
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get("edit_id");
+  const reinscribeId = urlParams.get("reinscribe_id");
+  // Eliminamos dependecia de "nextGrade" en URL para que sea automático
 
   const firstNameField = document.getElementById("nombre");
   const lastNameField = document.getElementById("apellido");
   const genderField = document.getElementById("genero");
+  
+  // Elementos de Cédula y Nacionalidad
   const ciField = document.getElementById("cedula");
+  const nacionalidadSelect = document.getElementById("nacionalidad");
+  const nacionalidadWrapper = document.getElementById("nacionalidadWrapper");
+  
   const dateField = document.getElementById("fechaNac");
   const relationshipField = document.getElementById("parentesco");
   const gradeField = document.getElementById("grado");
   const addressField = document.getElementById("direccion");
 
   const hasIdCheckbox = document.getElementById("hasId");
-  const idInput = document.getElementById("cedula");
   const idFormDoc = document.getElementById("IdDoc");
+  
+  // Elementos Autorización
+  const authDocZone = document.getElementById("AutorizacionDoc");
+  const authDocInput = document.getElementById("docAutorizacion");
+  
+  const sameAddressCheckbox = document.getElementById("sameAddress");
+
+  // Elementos Cédula Escolar
+  const schoolIdSettings = document.getElementById("schoolIdSettings");
+  const useSchoolIdCheckbox = document.getElementById("useSchoolId");
+  const schoolIdOptions = document.getElementById("schoolIdOptions");
+  const birthOrderSelect = document.getElementById("birthOrder");
 
   const btnSubmit = document.getElementById("BtnSubmit");
+  const btnCancel = document.getElementById("BtnCancel");
   const formTitle = document.querySelector(".page-title h2");
+  const mainForm = document.getElementById("inscriptionForm");
 
   const notificationsContainer = document.getElementById("notifications");
   const loader = document.createElement("loader-spinner");
@@ -29,202 +49,499 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let parentData = {};
 
+  // --- FILTRO EN TIEMPO REAL: SOLO LETRAS PARA NOMBRES Y APELLIDOS ---
+  function filterLetters(e) {
+    e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
+  }
+
+  if (firstNameField) firstNameField.addEventListener("input", filterLetters);
+  if (lastNameField) lastNameField.addEventListener("input", filterLetters);
+
+
+  // --- FUNCIÓN: BLOQUEAR SI FALTAN DATOS ---
+  function mostrarBloqueoPerfil(camposFaltantes) {
+      if(mainForm) mainForm.style.display = "none";
+      
+      const modalOverlay = document.createElement("div");
+      Object.assign(modalOverlay.style, {
+          position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+          backgroundColor: "rgba(0,0,0,0.85)", zIndex: 9999, display: "flex",
+          justifyContent: "center", alignItems: "center", padding: "20px"
+      });
+
+      const modalContent = document.createElement("div");
+      Object.assign(modalContent.style, {
+          backgroundColor: "white", padding: "30px", borderRadius: "12px",
+          maxWidth: "500px", width: "100%", textAlign: "center",
+          boxShadow: "0 10px 25px rgba(0,0,0,0.2)"
+      });
+
+      modalContent.innerHTML = `
+          <div style="margin-bottom: 20px;">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+          </div>
+          <h2 style="color:#1f2937; margin-bottom: 10px;">Perfil Incompleto</h2>
+          <p style="color:#4b5563; margin-bottom: 20px; line-height: 1.5;">
+              Para poder inscribir a un estudiante, primero debes completar tu información personal de contacto.
+          </p>
+          <div style="background-color: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 10px; border-radius: 6px; margin-bottom: 25px; text-align: left; font-size: 0.9rem;">
+              <strong>Falta por llenar:</strong>
+              <ul style="margin: 5px 0 0 20px;">
+                  ${camposFaltantes.map(c => `<li>${c}</li>`).join('')}
+              </ul>
+          </div>
+          <a href="/app/representante/editar-perfil/" style="display: inline-block; background-color: #2563eb; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 500; transition: background 0.2s;">
+              Ir a Editar Perfil
+          </a>
+      `;
+
+      modalOverlay.appendChild(modalContent);
+      document.body.appendChild(modalOverlay);
+  }
+
+  // --- FUNCIÓN GENERADORA DE CÉDULA ESCOLAR ---
+  function generarCedulaEscolar() {
+    if (!useSchoolIdCheckbox.checked) return;
+    
+    if (!parentData.Cedula || !dateField.value) {
+        ciField.value = "";
+        ciField.placeholder = "La cédula escolar se genera al seleccionar el orden de nacimiento y fecha de nacimiento";
+        return;
+    }
+
+    const parentIdStr = parentData.Cedula.toString().toUpperCase();
+    let prefix = ""; 
+    
+    if (parentIdStr.startsWith("E")) {
+        prefix = "E";
+    }
+
+    const orden = birthOrderSelect.value; 
+    const anio = dateField.value.split("-")[0].slice(-2);
+    let cedulaMadre = parentIdStr.replace(/\D/g, ""); 
+    cedulaMadre = cedulaMadre.padStart(8, "0");
+
+    const cedulaEscolar = `${prefix}${orden}${anio}${cedulaMadre}`;
+    
+    ciField.value = cedulaEscolar;
+    ciField.readOnly = true;
+    
+    if (idFormDoc) idFormDoc.style.display = "none";
+  }
+
   try {
     document.body.appendChild(loader);
 
-    // --- 2. VALIDACIÓN DE PERIODO (NUEVO) ---
-    // Si NO estamos editando, verificamos si el proceso está abierto
-    if (!editId) {
+    // --- 2. VALIDACIÓN DE PERIODO ---
+    if (!editId && !reinscribeId) {
       const checkPeriodResponse = await fetch(
         `${window.APP_CONFIG.api_url}/students/check_period`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (!checkPeriodResponse.ok) {
-        // Bloquear visualmente el formulario
-        const mainContainer =
-          document.querySelector(".container") || document.body;
-        mainContainer.innerHTML = `
-                <div style="text-align:center; padding: 80px 20px; background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; margin: 50px auto;">
-                    <div style="font-size: 50px; margin-bottom: 20px;">⚠️</div>
-                    <h2 style="color: #dc3545; margin-bottom: 15px;">Proceso de Inscripción Cerrado</h2>
-                    <p style="color: #666; line-height: 1.6;">Actualmente no hay periodos de inscripción activos en el sistema. Por favor, esté atento a los comunicados oficiales del Liceo.</p>
-                    <a href="/app/representante/inicio/" style="display:inline-block; margin-top:25px; padding: 12px 25px; background: #007bff; color: white; border-radius: 8px; text-decoration: none; font-weight: bold;">Volver al Inicio</a>
-                </div>
-            `;
+        const mainContainer = document.querySelector(".container") || document.body;
+        mainContainer.innerHTML = `<div style="text-align:center; padding: 50px;"><h2>Proceso Cerrado</h2></div>`;
         loader.remove();
-        return; // Detener ejecución
+        return;
       }
     }
 
-    // --- 3. Carga Inicial (Grados y Representante) ---
-
-    // Cargar Grados
-    const gradesResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/course/get_all`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    // --- 3. CARGA DE DATOS ---
+    const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, { headers: { Authorization: `Bearer ${token}` } });
+    if(!gradesResponse.ok) throw new Error("Error al consultar los grados escolares.");
     const grades = await gradesResponse.json();
     document.querySelectorAll(".grade-option").forEach((opt, index) => {
-      if (grades[index]) opt.value = grades[index].CursoId;
+      if (grades[index]) opt.value = grades[index].CursoId; 
     });
 
-    // Cargar Representante
-    const parentResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/people/get`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, { headers: { Authorization: `Bearer ${token}` } });
+    if(!parentResponse.ok) throw new Error("Error al obtener los datos del representante.");
     parentData = await parentResponse.json();
 
-    const countResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/students/count/by_parent`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    const camposFaltantes = [];
+    if (!parentData.Telefono || parentData.Telefono.trim() === "") camposFaltantes.push("Teléfono");
+    if (!parentData.Direccion || parentData.Direccion.trim() === "") camposFaltantes.push("Dirección de Habitación");
+    if (!parentData.Ocupacion || parentData.Ocupacion.trim() === "") camposFaltantes.push("Ocupación");
+
+    if (camposFaltantes.length > 0) {
+        loader.remove();
+        mostrarBloqueoPerfil(camposFaltantes);
+        return; 
+    }
+
+    // CORRECCIÓN: Agregar el ID del representante al final de la URL
+    const parentIdForCount = parentData["DatosPersonaId"] || parentData["id"];
+    const countResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${parentIdForCount}`, { headers: { Authorization: `Bearer ${token}` } });
     const countData = await countResponse.json();
     parentData["students"] = countData;
 
-    // --- 4. MODO EDICIÓN: CARGAR DATOS ---
-    if (editId) {
-      if (formTitle) formTitle.textContent = "Corregir Inscripción";
-      btnSubmit.textContent = "Guardar Correcciones";
+    // --- 4. MODO EDICIÓN O REINSCRIPCIÓN ---
+    if (editId || reinscribeId) {
+      const targetId = editId || reinscribeId;
 
-      const studentResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/students/get/${editId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      if (editId) {
+          if (formTitle) formTitle.textContent = "Corregir Inscripción";
+          btnSubmit.textContent = "Guardar Correcciones";
+      } else if (reinscribeId) {
+          if (formTitle) formTitle.textContent = "Reinscripción Estudiantil";
+          btnSubmit.textContent = "Confirmar Reinscripción";
+      }
 
-      if (!studentResponse.ok)
-        throw new Error("No se pudo cargar la información del estudiante");
-
+      const studentResponse = await fetch(`${window.APP_CONFIG.api_url}/students/get/${targetId}`, { headers: { Authorization: `Bearer ${token}` } });
+      
+      // Control de error para evitar llenar variables "undefined" en caso de error
+      if (!studentResponse.ok) {
+          const errData = await studentResponse.json();
+          throw new Error(errData.message || "Error al obtener los datos del estudiante.");
+      }
+      
       const student = await studentResponse.json();
 
-      if (student.DatosPersona) {
-        firstNameField.value = student.DatosPersona.Nombre || "";
-        lastNameField.value = student.DatosPersona.Apellido || "";
-        genderField.value = student.DatosPersona.Sexo || "";
-        ciField.value = student.DatosPersona.Cedula || "";
-        addressField.value = student.DatosPersona.Direccion || "";
+      if (student) {
+        firstNameField.value = student.Nombre || "";
+        lastNameField.value = student.Apellido || "";
+        genderField.value = student.Genero || "";
+        addressField.value = student.Direccion || "";
 
-        if (student.DatosPersona.Cedula) {
-          hasIdCheckbox.checked = true;
-          idFormDoc.style.display = "block";
+        if (student.Parentesco) {
+            relationshipField.value = student.Parentesco;
+            relationshipField.dispatchEvent(new Event('change'));
+        }
+
+        // CARGAR FECHA DE NACIMIENTO Y FOTO
+        if (student.FechaNacimiento) {
+            let parsedDate = student.FechaNacimiento;
+            if (parsedDate.includes(" ")) parsedDate = parsedDate.split(" ")[0]; // Extrae solo YYYY-MM-DD
+            dateField.value = parsedDate;
+        }
+
+        const photoZone = document.getElementById("photoUpload");
+        if (photoZone && targetId) {
+            const photoUrl = `${window.APP_CONFIG.api_url}/docs/get/carnet-${targetId}.webp`;
+            photoZone.style.backgroundImage = `url('${photoUrl}')`;
+            photoZone.classList.add("has-image");
+        }
+
+        // --- MARCAR DOCUMENTOS COMO CARGADOS VISUALMENTE ---
+        const markZoneAsLoaded = (inputId) => {
+            const input = document.getElementById(inputId);
+            if (input) {
+                const zone = input.closest(".upload-zone");
+                if (zone) {
+                    zone.style.borderColor = "#28a745";
+                    zone.style.backgroundColor = "#f8fff9";
+                    const span = zone.querySelector("span");
+                    if (span) {
+                        span.textContent = "PDF en sistema";
+                        span.style.color = "#28a745";
+                        span.style.fontWeight = "bold";
+                    }
+                }
+            }
+        };
+
+        // Por defecto, DNI y Partida de Nacimiento ya están en el sistema para estudiantes registrados
+        markZoneAsLoaded("docDni");
+        markZoneAsLoaded("docPartidaNacimiento");
+
+        // Si requiere autorización según los datos guardados
+        if (student.Parentesco && student.Parentesco !== "Padre" && student.Parentesco !== "Madre") {
+            markZoneAsLoaded("docAutorizacion");
+        }
+
+        // Notas Certificadas: Si es Edición general ya están en el sistema. 
+        // Si es Reinscripción, NO se marcan, para que el usuario suba obligatoriamente las del nuevo año.
+        if (editId) {
+            markZoneAsLoaded("docNotasCertificadas");
+        }
+
+        // --- ASIGNACIÓN DE GRADO Y BLOQUEO PARA REINSCRIPCIÓN ---
+        if (reinscribeId) {
+            // Automáticamente calcular el siguiente grado usando el grado actual de la BD
+            const currentGrade = student.Grado ? parseInt(student.Grado, 10) : 1;
+            const nextGradeNum = currentGrade < 5 ? currentGrade + 1 : 5; // El límite es el último año (ej. 5to)
+
+            // Buscar en el select de grados la opción que coincida con el año subido
+            Array.from(gradeField.options).forEach(opt => {
+                if (opt.text.includes(`${nextGradeNum}`)) {
+                    gradeField.value = opt.value;
+                }
+            });
+
+            // 1. Bloqueo de Grado
+            gradeField.style.pointerEvents = "none";
+            gradeField.style.backgroundColor = "#e9ecef";
+
+            // 2. Bloqueo de Nombres y Apellidos
+            firstNameField.readOnly = true;
+            firstNameField.style.backgroundColor = "#e9ecef";
+            lastNameField.readOnly = true;
+            lastNameField.style.backgroundColor = "#e9ecef";
+
+            // 3. Bloqueo de Fecha de Nacimiento
+            dateField.readOnly = true;
+            dateField.style.pointerEvents = "none"; 
+            dateField.style.backgroundColor = "#e9ecef";
+
+            // 4. Bloqueo de Parentesco
+            relationshipField.style.pointerEvents = "none";
+            relationshipField.style.backgroundColor = "#e9ecef";
+
+            // 5. Bloqueo de Foto de Estudiante
+            const photoInput = document.getElementById("studentPhoto");
+            if (photoInput) photoInput.disabled = true; 
+            if (photoZone) {
+                photoZone.style.pointerEvents = "none"; 
+                const uploadContent = photoZone.querySelector(".upload-content");
+                if (uploadContent) uploadContent.style.display = "none"; 
+            }
+        } else if (editId) {
+            gradeField.value = student.IdCurso;
+        }
+
+        // Parseo de Cédula existente
+        let rawCedula = student.Cedula || "";
+        let limpiaCedula = rawCedula.replace(/-/g, "").trim();
+        
+        if (limpiaCedula.length > 9) {
+            useSchoolIdCheckbox.checked = true;
+            schoolIdOptions.style.display = "block";
+            nacionalidadWrapper.style.display = "none";
+            ciField.value = rawCedula;
+            ciField.readOnly = true;
+            if (idFormDoc) idFormDoc.style.display = "none";
+        } else {
+            useSchoolIdCheckbox.checked = false;
+            nacionalidadWrapper.style.display = "block";
+            ciField.readOnly = false;
+            
+            if (rawCedula.startsWith("V-") || rawCedula.startsWith("E-")) {
+                nacionalidadSelect.value = rawCedula.charAt(0);
+                ciField.value = rawCedula.substring(2);
+            } else if (rawCedula.startsWith("V") || rawCedula.startsWith("E")) {
+                nacionalidadSelect.value = rawCedula.charAt(0);
+                ciField.value = rawCedula.substring(1);
+            } else {
+                nacionalidadSelect.value = "V";
+                ciField.value = rawCedula;
+            }
         }
       }
-
-      if (student.FechaNacimiento) {
-        const birthDate = new Date(student.FechaNacimiento);
-        if (!isNaN(birthDate)) {
-          const yyyy = birthDate.getFullYear();
-          const mm = String(birthDate.getMonth() + 1).padStart(2, "0");
-          const dd = String(birthDate.getDate()).padStart(2, "0");
-          dateField.value = `${yyyy}-${mm}-${dd}`;
-        }
-      }
-
-      relationshipField.value = student.Parentesco || "";
-      if (student.Curso) gradeField.value = student.Curso.CursoId || "";
-
-      document.querySelectorAll(".upload-zone span").forEach((span) => {
-        span.textContent = "Archivo cargado (Suba otro para reemplazar)";
-        span.style.color = "#0056b3";
-        span.style.fontWeight = "bold";
-      });
     }
   } catch (err) {
-    console.error("Error:", err);
+    console.error("Error capturado:", err);
+    // Agregada notificación para evitar el silencio si hay error de red o backend
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", err.message || "Ha ocurrido un error cargando los datos del estudiante.");
+    notificationsContainer?.appendChild(notification);
   } finally {
     loader.remove();
   }
 
-  // --- 5. Lógica de UI ---
-  toggleInputState(idInput, !hasIdCheckbox.checked);
-  hasIdCheckbox.addEventListener("change", (e) => {
-    toggleInputState(idInput, !e.target.checked);
-    idFormDoc.style.display = e.target.checked ? "block" : "none";
-    if (e.target.checked) {
-      idInput.value = "";
-      idInput.focus();
-    } else if (!editId) {
-      idInput.value = `${parentData["Cedula"]}${parentData["students"]["count"] + 1}`;
-    }
+  // --- 5. Lógica de UI Interactiva ---
+
+  // Mostrar archivo de Autorización si parentesco no es Padre/Madre
+  relationshipField.addEventListener("change", (e) => {
+      const val = e.target.value;
+      if (val && val !== "Padre" && val !== "Madre") {
+          authDocZone.style.display = "block";
+      } else {
+          authDocZone.style.display = "none";
+          authDocInput.value = ""; 
+          const zone = authDocInput.closest(".upload-zone");
+          if (zone) {
+              zone.querySelector("span").textContent = "Haga clic para cargar";
+              zone.style.borderColor = "";
+              zone.style.backgroundColor = "";
+              zone.querySelector("span").style.color = "";
+              zone.querySelector("span").style.fontWeight = "";
+          }
+      }
   });
 
-  document.getElementById("sameAddress").addEventListener("change", (e) => {
-    if (e.target.checked) {
-      addressField.value = parentData["Direccion"];
-      addressField.readOnly = true;
-    } else {
-      if (!editId) addressField.value = "";
-      addressField.readOnly = false;
-      addressField.focus();
-    }
+  if (sameAddressCheckbox) {
+      sameAddressCheckbox.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          if (parentData && parentData["Direccion"]) {
+              addressField.value = parentData["Direccion"];
+              addressField.readOnly = true;
+          } else {
+              alert("El representante no tiene dirección registrada en su perfil.");
+              e.target.checked = false;
+          }
+        } else {
+          if (!editId && !reinscribeId) addressField.value = "";
+          addressField.readOnly = false;
+          addressField.focus();
+        }
+      });
+  }
+
+  if (schoolIdSettings) {
+      schoolIdSettings.style.display = "block";
+  }
+
+  gradeField.addEventListener("change", (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex];
+      const selectedText = selectedOption ? selectedOption.text : "";
+
+      if (useSchoolIdCheckbox.checked && !selectedText.includes("1er Año")) {
+          alert("Ha cambiado a un grado distinto a 1er Año. La opción de Cédula Escolar se desactivará.");
+          useSchoolIdCheckbox.checked = false;
+          schoolIdOptions.style.display = "none";
+          nacionalidadWrapper.style.display = "block";
+          ciField.readOnly = false;
+          ciField.value = "";
+          if (idFormDoc) idFormDoc.style.display = "block";
+      }
   });
 
-  function toggleInputState(el, disabled) {
-    if (el) {
-      el.disabled = disabled;
-      el.style.opacity = disabled ? "0.6" : "1";
-    }
+  useSchoolIdCheckbox.addEventListener("change", (e) => {
+      if (e.target.checked) {
+          if (!gradeField.value) {
+              alert("Por favor seleccione primero el Grado a Cursar.");
+              e.target.checked = false;
+              return;
+          }
+
+          const selectedOption = gradeField.options[gradeField.selectedIndex];
+          const selectedText = selectedOption ? selectedOption.text : "";
+
+          if (!selectedText.includes("1er Año")) {
+              alert("El estudiante debe ir al SAIME más cercano a sacarse la cédula.");
+              e.target.checked = false;
+              return;
+          }
+
+          schoolIdOptions.style.display = "block";
+          nacionalidadWrapper.style.display = "none"; // Ocultamos selector V/E
+          hasIdCheckbox.checked = true; 
+          generarCedulaEscolar();
+      } else {
+          schoolIdOptions.style.display = "none";
+          nacionalidadWrapper.style.display = "block"; // Mostramos selector V/E
+          ciField.readOnly = false;
+          ciField.value = "";
+          ciField.placeholder = "Ej: 34000000";
+          if (idFormDoc) idFormDoc.style.display = "block";
+      }
+  });
+
+  birthOrderSelect.addEventListener("change", generarCedulaEscolar);
+  dateField.addEventListener("change", generarCedulaEscolar);
+
+  if (ciField) {
+    ciField.addEventListener("input", function() {
+      if (useSchoolIdCheckbox.checked) return; 
+      
+      this.value = this.value.replace(/[^0-9]/g, ""); // Solo números
+      if (this.value.length > 8) this.value = this.value.slice(0, 8);
+    });
+  }
+  
+  if (btnCancel) {
+      btnCancel.addEventListener("click", () => {
+          window.location.href = "/app/representante/inicio/";
+      });
   }
 
   // --- 6. ENVÍO DEL FORMULARIO ---
   btnSubmit.addEventListener("click", async () => {
     try {
-      if (!firstNameField.value.trim()) throw new Error("Falta el nombre");
-      if (!lastNameField.value.trim()) throw new Error("Falta el apellido");
+      const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+      const nombreVal = firstNameField.value.trim();
+      const apellidoVal = lastNameField.value.trim();
+
+      if (!nombreVal) throw new Error("Falta el nombre");
+      if (!nameRegex.test(nombreVal)) throw new Error("El nombre solo debe contener letras");
+
+      if (!apellidoVal) throw new Error("Falta el apellido");
+      if (!nameRegex.test(apellidoVal)) throw new Error("El apellido solo debe contener letras");
+      
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
+      const birthDate = new Date(dateField.value);
+      const birthYear = birthDate.getUTCFullYear();
+      if (birthYear < 2008 || birthYear > 2015) {
+          throw new Error("El año de nacimiento del estudiante debe estar entre 2008 y 2015");
+      }
+
+      const cedulaValStr = ciField.value.trim();
+      let finalCedulaToSubmit = cedulaValStr;
+      
+      if (useSchoolIdCheckbox.checked) {
+          if (cedulaValStr.length < 11 || cedulaValStr.length > 12) {
+              throw new Error("La Cédula Escolar generada es inválida (longitud incorrecta)");
+          }
+      } else {
+          if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad");
+          const cedulaNum = parseInt(cedulaValStr, 10);
+          const isExtranjero = nacionalidadSelect.value === "E";
+          
+          if (isNaN(cedulaNum) || cedulaNum < 33000000) throw new Error("El número de Cédula de Identidad del estudiante debe ser mayor a 33.000.000");
+          if (!isExtranjero && cedulaNum > 40000000) throw new Error("El número de Cédula de Identidad para Venezolanos (V) no debe exceder los 40.000.000");
+          if (isExtranjero && cedulaNum > 90000000) throw new Error("El número de Cédula de Identidad para Extranjeros (E) no debe exceder los 90.000.000");
+          
+          finalCedulaToSubmit = `${nacionalidadSelect.value}-${cedulaValStr}`;
+      }
 
       document.body.appendChild(loader);
       const formData = new FormData();
 
-      formData.append("Nombre", firstNameField.value.trim());
-      formData.append("Apellido", lastNameField.value.trim());
+      formData.append("Nombre", nombreVal);
+      formData.append("Apellido", apellidoVal);
       formData.append("Genero", genderField.value);
-      formData.append("Cedula", ciField.value.trim());
+      formData.append("Cedula", finalCedulaToSubmit);
 
       const dateParts = dateField.value.split("-");
-      formData.append(
-        "FechaNacimiento",
-        `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`,
-      );
+      formData.append("FechaNacimiento", `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`);
 
       formData.append("Parentesco", relationshipField.value);
       formData.append("IdCurso", gradeField.value);
       formData.append("Direccion", addressField.value.trim());
 
-      if (!editId)
-        formData.append("IdRepresentante", parentData["DatosPersonaId"]);
+      if (!editId && !reinscribeId) formData.append("IdRepresentante", parentData["DatosPersonaId"]);
 
       const filesMap = {
         FotoCarnet: "studentPhoto",
         DocDni: "docDni",
         DocPartidaNacimiento: "docPartidaNacimiento",
         DocNotasCertificadas: "docNotasCertificadas",
+        DocAutorizacion: "docAutorizacion"
       };
 
       for (const [key, id] of Object.entries(filesMap)) {
         const fileInput = document.getElementById(id);
+        
+        if (key === "DocDni" && useSchoolIdCheckbox.checked) continue;
+        if (key === "DocAutorizacion" && (relationshipField.value === "Padre" || relationshipField.value === "Madre" || !relationshipField.value)) continue;
+
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
-        } else if (!editId && key !== "DocDni") {
-          throw new Error(`Falta cargar: ${key}`);
+        } else if (!editId && !reinscribeId) {
+             // Obligatorio para NUEVAS inscripciones
+             if(key === "DocAutorizacion") throw new Error("Debe cargar el Documento de Autorización Legal / Motivo");
+             else if(key === "DocDni") throw new Error("Debe cargar la Cédula de Identidad en formato PDF");
+             else throw new Error(`Falta cargar: ${key}`);
+        } else if (reinscribeId) {
+             // En reinscripción, exigimos actualizar notas obligatoriamente
+             if (key === "DocNotasCertificadas") throw new Error("Para reinscribir, debe cargar las Notas Certificadas del año que acaba de cursar.");
         }
       }
 
+      // Direccionamiento Inteligente
       let url = editId
         ? `${window.APP_CONFIG.api_url}/students/correct_application/${editId}`
-        : `${window.APP_CONFIG.api_url}/students/create`;
-      let method = editId ? "PUT" : "POST";
+        : reinscribeId 
+          ? `${window.APP_CONFIG.api_url}/students/submit_reinscription/${reinscribeId}`
+          : `${window.APP_CONFIG.api_url}/students/create`;
+          
+      let method = editId || reinscribeId ? "PUT" : "POST";
 
       const response = await fetch(url, {
         method: method,
@@ -253,18 +570,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Visual de Inputs de archivo
+  // --- Visual de Inputs de Archivo ---
   document.querySelectorAll('input[type="file"]').forEach((input) => {
     input.addEventListener("change", (e) => {
-      const fileName = e.target.files[0]?.name;
+      const file = e.target.files[0];
       const zone = input.closest(".upload-zone");
-      if (fileName && zone) {
-        zone.querySelector("span").textContent = fileName;
+      if (file && zone) {
+        if (input.id === "studentPhoto") {
+             if (!file.type.startsWith("image/")) {
+                 alert("Solo se permiten imágenes (JPG, PNG).");
+                 input.value = ""; 
+                 return;
+             }
+             const reader = new FileReader();
+             reader.onload = (ev) => {
+                 zone.style.backgroundImage = `url('${ev.target.result}')`;
+                 zone.classList.add("has-image");
+             };
+             reader.readAsDataURL(file);
+        } else {
+            const span = zone.querySelector("span");
+            if (span) {
+                span.textContent = file.name;
+                span.style.color = "#28a745";
+                span.style.fontWeight = "bold";
+            }
+            zone.style.backgroundColor = "#f8fff9";
+        }
         zone.style.borderColor = "#28a745";
       }
     });
-    input
-      .closest(".upload-zone")
-      ?.addEventListener("click", () => input.click());
+    input.closest(".upload-zone")?.addEventListener("click", () => input.click());
   });
 });

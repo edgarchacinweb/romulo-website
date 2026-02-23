@@ -38,15 +38,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sectionsField = document.getElementById("SectionsField");
   const stateField = document.getElementById("StateField");
 
+  // --- FUNCIÓN HELPER PARA FORMATEAR CÉDULA ---
+  const formatCedula = (cedula) => {
+      let str = String(cedula).toUpperCase().trim();
+      let limpia = str.replace(/-/g, ""); // Quitamos guiones para contar bien
+      
+      // Si es Cédula Escolar (más de 9 dígitos puros)
+      if (limpia.length > 9) {
+          if (str.startsWith("E-") || str.startsWith("V-")) return str;
+          if (str.startsWith("E") || str.startsWith("V")) return str.charAt(0) + "-" + str.substring(1);
+          return "V-" + str;
+      }
+
+      // Si es Cédula Regular
+      if (str.startsWith("V-") || str.startsWith("E-")) return str;
+      if (str.startsWith("V")) return "V-" + str.substring(1);
+      if (str.startsWith("E")) return "E-" + str.substring(1);
+      
+      return `V-${str}`;
+  };
+
   // --- Lógica del Modal de Edición (Estado) ---
   if(cancelEditBtn) {
       cancelEditBtn.addEventListener("click", () => {
-          editModal.classList.remove("open"); // CORREGIDO
+          editModal.classList.remove("open");
           currentEditId = null;
       });
   }
 
-  // Cerrar modal al hacer clic fuera (opcional, para consistencia)
   if(editModal) {
       editModal.addEventListener("click", (e) => {
           if (e.target === editModal) {
@@ -79,15 +98,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                   throw new Error(errorData.message || "Error al actualizar");
               }
 
-              // Éxito
-              editModal.classList.remove("open"); // CORREGIDO
+              editModal.classList.remove("open");
               
               const notification = document.createElement("notification-component");
               notification.setAttribute("type", "success");
               notification.setAttribute("text", "Estado actualizado correctamente");
               notifications.appendChild(notification);
               
-              // Recargar la lista para ver cambios
               filterRequests();
 
           } catch (error) {
@@ -102,7 +119,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   }
 
-  // --- Funciones Principales ---
   const accordion = (acc, student) => {
     const headers = acc.querySelectorAll(".accordion-header");
     const containers = acc.querySelectorAll(".accordion");
@@ -112,7 +128,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
 
-    // Lógica del Modal de Rechazo (Existente)
     const modal = document.querySelector(".rejectModal");
     const btnRejectList = acc.querySelector(".btn-reject");
     const btnCancel = document.querySelector(".cancelReject");
@@ -178,10 +193,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       studentsRequest.forEach((student) => {
         const studentBirthdate = new Date(student["FechaNacimiento"]);
-        const studentCard = document.createElement("article");
-        const cedula = new String(student["DatosPersona"]["Cedula"]);
         
-        // Plantilla para documento de cédula
+        // --- CORRECCIÓN DE CÉDULA ESCOLAR VS REGULAR ---
+        const cedulaRaw = String(student["DatosPersona"]["Cedula"]);
+        const cedulaLimpia = cedulaRaw.replace(/-/g, "").trim();
+        // Las cédulas regulares (incluso extrangeras) no superan los 9 dígitos puros
+        const isSchoolId = cedulaLimpia.length > 9; 
+        
+        // Elemento Opcional de Autorización
+        const requiereAutorizacion = student["Parentesco"] !== "Padre" && student["Parentesco"] !== "Madre";
+        
+        let docCount = isSchoolId ? 2 : 3;
+        if (requiereAutorizacion) docCount++;
+
+        const autorizacionElement = requiereAutorizacion ? `
+          <div class="file-item">
+            <div class="file-info">
+              <div class="icon-file green">PDF</div>
+              <div>
+                <p class="file-name">Autorización Legal / Motivo</p>
+                <p class="file-type">Archivo PDF</p>
+              </div>
+            </div>
+            <div class="file-actions">
+              <button class="btn-icon-small btn-download-file" data-file="autorizacion-${student["EstudianteId"]}.pdf">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ` : "";
+
         const cedulaElement = `
           <div class="file-item">
             <div class="file-info">
@@ -203,6 +248,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
 
+        const studentCard = document.createElement("article");
         studentCard.classList.add("student-card");
         studentCard.setAttribute("data-id", student["EstudianteId"]);
         if (!student["Activo"]) studentCard.classList.add("student-reject");
@@ -225,7 +271,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
 
-        // Generación del HTML de la tarjeta
         studentCard.innerHTML = `
           <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div class="student-profile">
@@ -260,7 +305,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
               <div class="info-item">
                 <label>CÉDULA</label>
-                <p>V${student["DatosPersona"]["Cedula"]}</p>
+                <p>${formatCedula(student["DatosPersona"]["Cedula"])}</p>
               </div>
               <div class="info-item">
                 <label>FECHA DE NACIMIENTO</label>
@@ -289,7 +334,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <line x1="10" y1="9" x2="8" y2="9" />
                   </svg>
                   <span>Documentos del Estudiante</span>
-                  <span class="counter-badge">${cedula.length > 8 ? "2" : "3"}</span>
+                  <span class="counter-badge">${docCount}</span>
                 </div>
                 <svg class="chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
               </div>
@@ -304,7 +349,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="partida-nacimiento-${student["EstudianteId"]}.pdf">
+                      <button class="btn-icon-small btn-download-file" data-file="partida-${student["EstudianteId"]}.pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
@@ -322,7 +367,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="notas-certificadas-${student["EstudianteId"]}.pdf">
+                      <button class="btn-icon-small btn-download-file" data-file="notas-${student["EstudianteId"]}.pdf">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
@@ -331,7 +376,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </button>
                     </div>
                   </div>
-                  ${cedula.length > 8 ? "" : cedulaElement}
+                  ${isSchoolId ? "" : cedulaElement}
+                  ${autorizacionElement}
                 </div>
               </div>
             </div>
@@ -350,7 +396,8 @@ document.addEventListener("DOMContentLoaded", async () => {
               <div class="accordion-content">
                 <div class="info-grid mt-2">
                   <div class="info-item"><label>PARENTESCO</label><p>${student["Parentesco"]}</p></div>
-                  <div class="info-item"><label>CÉDULA</label><p>V${student["Representante"]["Cedula"]}</p></div>
+                  <div class="info-item"><label>CÉDULA</label>
+                  <p>${formatCedula(student["Representante"]["Cedula"])}</p></div>
                   <div class="info-item"><label>TELÉFONO</label><p class="link">${student["Representante"]["Telefono"]}</p></div>
                   <div class="info-item"><label>EMAIL</label><p class="link">${student["Representante"]["Email"]}</p></div>
                   <div class="info-item"><label>OCUPACIÓN</label><p>${student["Representante"]["Ocupacion"]}</p></div>
@@ -403,7 +450,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         cardsContainer.appendChild(studentCard);
         accordion(studentCard, student);
 
-        // --- Event Listener para el Lápiz (Abrir Modal) - CORREGIDO ---
+        // --- Event Listener para el Lápiz (Abrir Modal) ---
         const editBtn = studentCard.querySelector(".edit-trigger");
         if (editBtn) {
             editBtn.addEventListener("click", (e) => {
@@ -413,21 +460,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 currentEditId = student["EstudianteId"];
                 editStudentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
                 newStatusSelect.value = student["Estado"]; 
-                editModal.classList.add("open"); // <-- AQUÍ ESTABA LA CLAVE
+                editModal.classList.add("open");
             });
         }
 
-        // Event Listeners de Descarga y Aprobación...
-        // ... (El resto del código sigue igual) ...
+        // Descargar Documentos
         studentCard.querySelectorAll(".btn-download-file").forEach((btn) =>
           btn.addEventListener("click", async () => {
-             // ... lógica descarga ...
              loader.setAttribute("title", "Descargando documento...");
              document.body.appendChild(loader);
-             // ...
-             // (Para ahorrar espacio, usa el bloque de descarga que ya tenías o cópialo del anterior si lo necesitas,
-             // pero el bloque completo de arriba ya incluye todo lo necesario).
-             // NOTA: He incluido la lógica completa en el bloque grande de arriba.
              let objectUrl = undefined;
              try {
                const downloadDocumentResponse = await fetch(
@@ -459,7 +500,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         studentCard.querySelectorAll(".btn-success").forEach((btn) =>
           btn.addEventListener("click", async () => {
-             // ... lógica aprobación ...
              loader.setAttribute("title", "Aprobando solicitud...");
              document.body.appendChild(loader);
              try {
@@ -475,10 +515,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                    },
                  },
                );
-               if (approveResponse.status !== 204) {
+               
+               if (approveResponse.status !== 200 && approveResponse.status !== 204) {
                  const approveError = await approveResponse.json();
                  throw new Error(approveError.message);
                }
+               
                studentCard.remove();
                const notification = document.createElement("notification-component");
                notification.setAttribute("type", "success");
@@ -497,7 +539,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
       });
 
-      // Lógica de confirmación de RECHAZO (Fuera del loop)
       const btnConfirm = document.querySelector(".confirmReject");
       const newBtnConfirm = btnConfirm.cloneNode(true); 
       btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
@@ -537,13 +578,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             },
           );
 
-          if (rejectRegistrationResponse.status !== 204) {
+          if (rejectRegistrationResponse.status !== 200 && rejectRegistrationResponse.status !== 204) {
             const rejectMessage = await rejectRegistrationResponse.json();
             throw new Error(rejectMessage.message);
           }
 
           const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "success");
+          notification.setAttribute("type", "error"); 
           notification.setAttribute("text", "Solicitud rechazada correctamente");
           notifications.appendChild(notification);
           
@@ -575,7 +616,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   // Event Listeners de Filtros
   searchField.addEventListener("change", filterRequests);
-  gradesField.addEventListener("change", filterRequests);
   sectionsField.addEventListener("change", filterRequests);
   stateField.addEventListener("change", filterRequests);
 
@@ -599,7 +639,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       0,
     );
 
-    sections.forEach((section) => {
+    const uniqueGrades = [];
+    const seenGrades = new Set();
+    sections.forEach(s => {
+        if(!seenGrades.has(s["CursoId"])) {
+            seenGrades.add(s["CursoId"]);
+            uniqueGrades.push(s);
+        }
+    });
+
+    uniqueGrades.forEach((section) => {
       const option = document.createElement("option");
       option.setAttribute("value", section["CursoId"]);
       option.textContent = `${section["Grado"]}° Año`;
@@ -629,6 +678,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       option.textContent = numberToLetter(i);
       sectionsField.appendChild(option);
     }
+
+    filterRequests();
   });
 
   document.getElementById("BtnBack").addEventListener("click", () => {

@@ -102,7 +102,7 @@
               <input
                 type="file"
                 id="photoUploadInput"
-                accept="image/png, image/jpeg, image/gif"
+                accept="image/png, image/jpeg"
                 hidden
               />
               <button
@@ -128,8 +128,10 @@
                 Cambiar Foto
               </button>
               <p class="help-text">
-                Formatos soportados: JPG, PNG, GIF (máximo 5MB)
+                Formatos soportados: JPG, PNG (máximo 5MB)
               </p>
+              
+              <!-- SECCIÓN DE CARGAR CÉDULA -->
               <input
                 type="file"
                 id="IdentityUploadInput"
@@ -138,6 +140,7 @@
               />
               <button
                 type="button"
+                id="btnIdentityUpload"
                 class="btn btn-outline upload-btn"
                 onclick="document.getElementById('IdentityUploadInput').click()"
               >
@@ -156,9 +159,12 @@
                   <polyline points="17 8 12 3 7 8"></polyline>
                   <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                Cargar Cédula
+                <span id="btnTextIdentity">Cargar Cédula</span>
               </button>
               <p class="help-text">Formatos soportados: PDF (máximo 5MB)</p>
+              <!-- Nuevo elemento para mostrar el nombre del archivo -->
+              <p id="identityFileName" class="file-name-msg"></p>
+
             </div>
 
             <div class="readonly-fields">
@@ -234,11 +240,14 @@
                 <label for="phone" class="field-label"
                   >Número de Teléfono</label
                 >
+                <!-- CAMBIO AQUÍ: inputmode numeric y maxlength 7 -->
                 <input
                   type="tel"
                   id="phoneField"
                   class="input-field"
                   placeholder="Ej: 1234567"
+                  maxlength="7"
+                  inputmode="numeric" 
                 />
                 <p class="help-text">
                   Selecciona la operadora y escriba su número de 7 dígitos
