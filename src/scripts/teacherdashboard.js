@@ -5,28 +5,6 @@ authorize("docente");
 document.addEventListener("DOMContentLoaded", () => {
   // Seleccionamos todas las tarjetas y botones
   const cards = document.querySelectorAll(".card");
-  const buttons = document.querySelectorAll(".btn-access");
-
-  // Función para manejar clicks en los botones
-  buttons.forEach((btn) => {
-    btn.addEventListener("click", (e) => {
-      // Evitamos que el click se propague al padre (la tarjeta)
-      e.stopPropagation();
-
-      const cardTitle = e.target.closest(".card").querySelector("h3").innerText;
-
-      // Simulación de navegación con feedback visual
-      e.target.innerText = "Cargando...";
-      e.target.style.background = "rgba(255,255,255,0.6)";
-
-      setTimeout(() => {
-        alert(`Navegando al módulo: ${cardTitle}`);
-        // Resetear botón
-        e.target.innerText = "Acceder →";
-        e.target.style.background = "";
-      }, 500);
-    });
-  });
 
   // Efecto Tilt (Inclinación) 3D ligero al mover el mouse
   // Esto es un extra "friki" para que se sienta más dinámico
@@ -55,4 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
         "perspective(1000px) rotateX(0) rotateY(0) scale(1)";
     });
   });
+});
+
+document.getElementById("logout").addEventListener("click", () => {
+  const confirmation = confirm(
+    "¿Estás seguro de que quieres cerrar la sesión?",
+  );
+  if (!confirmation) return;
+  localStorage.clear();
+  window.location.href = "/app/iniciar-sesion";
 });
