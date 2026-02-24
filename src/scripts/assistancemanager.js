@@ -37,14 +37,13 @@ dateInput.valueAsDate = new Date();
 let currentStudents = [];
 let currentClassId = ""; 
 
-// === NUEVO: CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
+// === CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const token = localStorage.getItem("auth");
     const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
 
-    // Hacemos petición al endpoint que ya tienes en subject.py
-    const response = await fetch(`${apiUrl}/subject/list`, {
+    const response = await fetch(`${apiUrl}/subject/teacher`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Llenamos con las materias reales de la base de datos
     subjects.forEach(subject => {
       const option = document.createElement("option");
-      // Guardamos el ID de la materia como data attribute por si lo necesitamos luego
+      // Guardamos el ID de la materia como data attribute
       option.dataset.id = subject.MateriaId;
       option.value = subject.Nombre; 
       option.textContent = subject.Nombre;
@@ -75,35 +74,75 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Evento: Cargar Estudiantes
-btnLoad.addEventListener("click", () => {
-  const subject = subjectSelect.value;
+// Evento: Cargar Estudiantes y obtener el UUID de la Clase
+btnLoad.addEventListener("click", async () => {
+  // Obtenemos el ID real de la materia, no solo su nombre
+  const subjectOption = subjectSelect.options[subjectSelect.selectedIndex];
+  const subjectId = subjectOption ? subjectOption.dataset.id : null;
+  const subjectName = subjectSelect.value;
+  
   const year = yearSelect.value;
   const section = sectionSelect.value;
-  const term = termSelect.options[termSelect.selectedIndex]?.text;
+  const term = termSelect.value;
+  const termName = termSelect.options[termSelect.selectedIndex]?.text;
 
   // Validación: Exigir que todos los campos estén seleccionados
-  if (!subject || !year || !section || termSelect.value === "") {
+  if (!subjectId || !year || !section || term === "") {
     alert("Por favor, selecciona la materia, año, sección y lapso.");
     return;
   }
 
-  // --- EL PRÓXIMO RETO ---
-  // AHORA MISMO: usamos el mock de alumnos fijos (studentsData) y un UUID falso
-  // FUTURO: Aquí deberás hacer OTRO fetch() a tu backend (ej: /class/students) enviando subject, year y section,
-  // para que el backend te devuelva el "ClaseId" real y los alumnos reales de esa sección.
-  currentClassId = "123e4567-e89b-12d3-a456-426614174000"; 
-  currentStudents = JSON.parse(JSON.stringify(studentsData));
+  // Convertimos la sección de Letra a Número para coincidir con tu Base de Datos (integer)
+  const sectionMap = { "A": 1, "B": 2, "C": 3, "D": 4, "E": 5 };
+  const sectionNum = sectionMap[section] || 1;
+
+  try {
+    const token = localStorage.getItem("auth");
+    const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
+
+    // Petición al backend enviando los filtros para obtener el ClaseId real y los alumnos
+    const response = await fetch(`${apiUrl}/class/students?materiaId=${subjectId}&year=${year}&section=${sectionNum}&term=${term}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Asignamos el ID real de tu tabla "Clase"
+      currentClassId = data.ClaseId; 
+      
+      // Mapeamos los estudiantes recibidos desde la BD
+      currentStudents = data.estudiantes.map(e => ({
+        id: e.EstudianteId,
+        name: `${e.Nombre} ${e.Apellido || ""}`.trim(),
+        present: true, // Por defecto marcados como presentes
+        justification: ""
+      }));
+    } else {
+      // FALLBACK: Si falla o el endpoint no existe aún, usamos datos falsos para no quebrar la UI
+      console.warn("El endpoint /class/students no está listo. Usando datos de prueba.");
+      currentClassId = "123e4567-e89b-12d3-a456-426614174000"; 
+      currentStudents = JSON.parse(JSON.stringify(studentsData));
+    }
+  } catch (error) {
+    console.error("Error de red al obtener clase:", error);
+    // FALLBACK
+    currentClassId = "123e4567-e89b-12d3-a456-426614174000"; 
+    currentStudents = JSON.parse(JSON.stringify(studentsData));
+  }
 
   // Actualizar Títulos de la Interfaz
-  displayClassName.textContent = `${subject} - ${year} "${section}"`;
+  displayClassName.textContent = `${subjectName} - ${year} "${section}"`;
   
   // Formatear la fecha
   const dateObj = new Date(dateInput.value);
   // Ajuste para evitar problema de zona horaria (que atrase un día)
   dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
   const formattedDate = dateObj.toLocaleDateString("es-ES", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  displayDate.textContent = `${term} | ${formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)}`;
+  displayDate.textContent = `${termName} | ${formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)}`;
 
   emptyState.classList.add("hidden"); 
   studentsSection.classList.remove("hidden"); 
