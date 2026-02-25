@@ -6,22 +6,38 @@
     <title>Gestión de Asistencia</title>
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/assistancemanager.css" />
+    <style>
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+      }
+      .student-row {
+        flex-wrap: wrap; 
+      }
+      .justification-input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: #475569;
+        background-color: #f8fafc;
+        transition: border-color 0.2s;
+        margin-top: 10px;
+      }
+      .justification-input:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+    </style>
   </head>
   <body>
     <header class="main-header">
       <div class="logo-container">
         <div class="logo-icon">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path
-              d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
         <div class="brand-text">
@@ -29,20 +45,9 @@
           <span class="subtitle">Gestión de Asistencia</span>
         </div>
       </div>
-      <button class="btn-logout">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
+      <button class="btn-logout" onclick="window.location.href='/app/docente/inicio/'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
         Salir
       </button>
@@ -52,54 +57,80 @@
       <section class="card filter-card">
         <div class="card-header">
           <h2>Filtrar Asistencia</h2>
-          <p>Selecciona una clase y una fecha para cargar los estudiantes</p>
+          <p>Selecciona los parámetros de la clase para cargar los estudiantes</p>
         </div>
 
         <div class="filter-grid">
+          
+          <!-- Materia (AHORA ES DINÁMICO) -->
           <div class="form-group">
-            <label for="classSelect">Seleccionar Clase</label>
+            <label for="subjectSelect">Materia</label>
             <div class="select-wrapper">
-              <select id="classSelect">
-                <option value="" disabled selected>Elige una clase</option>
-                <option value="mat1">Matemáticas - 1ro Bachillerato</option>
-                <option value="fis2">Física - 2do Bachillerato</option>
-                <option value="his1">Historia - 1ro Bachillerato</option>
-                <option value="lit3">Literatura - 3ro Bachillerato</option>
+              <select id="subjectSelect">
+                <!-- Se llenará mediante Javascript -->
+                <option value="" disabled selected>Cargando materias...</option>
               </select>
-              <svg
-                class="select-arrow"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M6 9l6 6 6-6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
           </div>
 
+          <!-- Año / Grado -->
           <div class="form-group">
+            <label for="yearSelect">Año (Grado)</label>
+            <div class="select-wrapper">
+              <select id="yearSelect">
+                <option value="" disabled selected>Elige año</option>
+                <option value="1er Año">1er Año</option>
+                <option value="2do Año">2do Año</option>
+                <option value="3er Año">3er Año</option>
+                <option value="4to Año">4to Año</option>
+                <option value="5to Año">5to Año</option>
+              </select>
+              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <!-- Sección -->
+          <div class="form-group">
+            <label for="sectionSelect">Sección</label>
+            <div class="select-wrapper">
+              <select id="sectionSelect">
+                <option value="" disabled selected>Elige sección</option>
+                <option value="A">Sección A</option>
+                <option value="B">Sección B</option>
+                <option value="C">Sección C</option>
+              </select>
+              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <!-- Lapso -->
+          <div class="form-group">
+            <label for="termSelect">Lapso</label>
+            <div class="select-wrapper">
+              <select id="termSelect">
+                <option value="" disabled selected>Elige lapso</option>
+                <option value="1">1er Lapso</option>
+                <option value="2">2do Lapso</option>
+                <option value="3">3er Lapso</option>
+              </select>
+              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <!-- Fecha de la Clase -->
+          <div class="form-group" style="grid-column: 1 / -1;">
             <label for="dateInput">Fecha de la Clase</label>
             <div class="input-wrapper">
-              <input type="date" id="dateInput" value="2026-02-13" />
+              <input type="date" id="dateInput" />
             </div>
           </div>
+
         </div>
 
-        <div class="filter-actions">
+        <div class="filter-actions" style="margin-top: 20px;">
           <button id="btnLoad" class="btn-primary">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             Cargar Estudiantes
@@ -110,10 +141,10 @@
       <section id="emptyState" class="empty-state">
         <div class="empty-content">
           <div class="empty-icon"></div>
-          <h3>Selecciona una clase</h3>
+          <h3>Parámetros incompletos</h3>
           <p>
-            Elige una clase y una fecha para comenzar a registrar la<br />asistencia
-            de los estudiantes
+            Elige la materia, año, sección, lapso y la fecha para comenzar a registrar la<br />asistencia
+            de los estudiantes.
           </p>
         </div>
       </section>
@@ -122,54 +153,28 @@
         <div class="section-header">
           <div class="header-info">
             <div class="class-icon">
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
-                />
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
               </svg>
             </div>
             <div>
-              <h2 id="displayClassName">Matemáticas - 1ro Bachillerato</h2>
-              <p id="displayDate" class="subtitle-date">
-                Jueves, 12 de Febrero de 2026
-              </p>
+              <h2 id="displayClassName">Materia - Año y Sección</h2>
+              <p id="displayDate" class="subtitle-date">Lapso y Fecha</p>
             </div>
           </div>
           <div class="attendance-counter">
             <span id="presentCount" class="counter-big">0</span>
-            <span class="counter-label"
-              >de <span id="totalCount">0</span> presentes</span
-            >
+            <span class="counter-label">de <span id="totalCount">0</span> presentes</span>
           </div>
         </div>
 
         <div class="bulk-actions">
-          <button class="btn-outline" onclick="markAll(true)">
-            Todos Presentes
-          </button>
-          <button class="btn-outline" onclick="markAll(false)">
-            Todos Ausentes
-          </button>
+          <button class="btn-outline" onclick="markAll(true)">Todos Presentes</button>
+          <button class="btn-outline" onclick="markAll(false)">Todos Ausentes</button>
           <button class="btn-outline" onclick="resetAll()">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M23 4v6h-6M1 20v-6h6" />
-              <path
-                d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"
-              />
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
             </svg>
             Reiniciar
           </button>
@@ -178,18 +183,9 @@
         <div class="list-container" id="studentList"></div>
 
         <div class="save-actions">
-          <button class="btn-warning">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-              />
+          <button class="btn-warning" id="btnSave">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
             </svg>

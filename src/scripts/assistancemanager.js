@@ -2,38 +2,14 @@ import authorize from "./auth.js";
 
 authorize("docente");
 
-// Datos simulados (Mock Data)
+// Datos simulados (Mock Data) de Estudiantes - Luego haremos esto dinámico también
 const studentsData = [
-  {
-    id: "A001",
-    name: "Juan Carlos Pérez",
-    present: true,
-  },
-  {
-    id: "A002",
-    name: "María García López",
-    present: true,
-  },
-  {
-    id: "A003",
-    name: "Carlos Rodríguez Sánchez",
-    present: true,
-  },
-  {
-    id: "A004",
-    name: "Ana Martínez Ruiz",
-    present: false,
-  },
-  {
-    id: "A005",
-    name: "Felipe Díaz Morales",
-    present: false,
-  },
-  {
-    id: "A006",
-    name: "Lucia Fernández Castro",
-    present: true,
-  },
+  { id: "A001", name: "Juan Carlos Pérez", present: true, justification: "" },
+  { id: "A002", name: "María García López", present: true, justification: "" },
+  { id: "A003", name: "Carlos Rodríguez Sánchez", present: true, justification: "" },
+  { id: "A004", name: "Ana Martínez Ruiz", present: false, justification: "Cita médica" },
+  { id: "A005", name: "Felipe Díaz Morales", present: false, justification: "" },
+  { id: "A006", name: "Lucia Fernández Castro", present: true, justification: "" },
 ];
 
 // Elementos del DOM
@@ -41,32 +17,135 @@ const btnLoad = document.getElementById("btnLoad");
 const emptyState = document.getElementById("emptyState");
 const studentsSection = document.getElementById("studentsSection");
 const studentList = document.getElementById("studentList");
-const classSelect = document.getElementById("classSelect");
 const displayClassName = document.getElementById("displayClassName");
+const displayDate = document.getElementById("displayDate");
 const presentCountSpan = document.getElementById("presentCount");
 const totalCountSpan = document.getElementById("totalCount");
+const btnSave = document.getElementById("btnSave"); 
+
+// Selectores
+const subjectSelect = document.getElementById("subjectSelect");
+const yearSelect = document.getElementById("yearSelect");
+const sectionSelect = document.getElementById("sectionSelect");
+const termSelect = document.getElementById("termSelect");
+const dateInput = document.getElementById("dateInput");
+
+// Asignar fecha de hoy por defecto al input de fecha
+dateInput.valueAsDate = new Date();
 
 // Estado local
 let currentStudents = [];
+let currentClassId = ""; 
 
-// Evento: Cargar Estudiantes
-btnLoad.addEventListener("click", () => {
-  const selectedClass = classSelect.options[classSelect.selectedIndex].text;
+// === CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const token = localStorage.getItem("auth");
+    const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
 
-  // Validación simple
-  if (classSelect.value === "") {
-    alert("Por favor, selecciona una clase primero.");
+    const response = await fetch(`${apiUrl}/subject/teacher`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) throw new Error("No se pudieron cargar las materias");
+
+    const subjects = await response.json();
+
+    // Limpiamos el selector
+    subjectSelect.innerHTML = '<option value="" disabled selected>Elige materia</option>';
+
+    // Llenamos con las materias reales de la base de datos
+    subjects.forEach(subject => {
+      const option = document.createElement("option");
+      // Guardamos el ID de la materia como data attribute
+      option.dataset.id = subject.MateriaId;
+      option.value = subject.Nombre; 
+      option.textContent = subject.Nombre;
+      subjectSelect.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error("Error cargando materias:", error);
+    subjectSelect.innerHTML = '<option value="" disabled selected>Error al cargar materias</option>';
+  }
+});
+
+// Evento: Cargar Estudiantes y obtener el UUID de la Clase
+btnLoad.addEventListener("click", async () => {
+  // Obtenemos el ID real de la materia, no solo su nombre
+  const subjectOption = subjectSelect.options[subjectSelect.selectedIndex];
+  const subjectId = subjectOption ? subjectOption.dataset.id : null;
+  const subjectName = subjectSelect.value;
+  
+  const year = yearSelect.value;
+  const section = sectionSelect.value;
+  const term = termSelect.value;
+  const termName = termSelect.options[termSelect.selectedIndex]?.text;
+
+  // Validación: Exigir que todos los campos estén seleccionados
+  if (!subjectId || !year || !section || term === "") {
+    alert("Por favor, selecciona la materia, año, sección y lapso.");
     return;
   }
 
-  // Copiamos los datos para no mutar el original en este ejemplo simple
-  // JSON.parse/stringify crea una copia profunda
-  currentStudents = JSON.parse(JSON.stringify(studentsData));
+  // Convertimos la sección de Letra a Número para coincidir con tu Base de Datos (integer)
+  const sectionMap = { "A": 1, "B": 2, "C": 3, "D": 4, "E": 5 };
+  const sectionNum = sectionMap[section] || 1;
 
-  // UI Updates
-  displayClassName.textContent = selectedClass;
-  emptyState.classList.add("hidden"); // Ocultar estado vacío
-  studentsSection.classList.remove("hidden"); // Mostrar lista
+  try {
+    const token = localStorage.getItem("auth");
+    const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
+
+    // Petición al backend enviando los filtros para obtener el ClaseId real y los alumnos
+    const response = await fetch(`${apiUrl}/class/students?materiaId=${subjectId}&year=${year}&section=${sectionNum}&term=${term}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Asignamos el ID real de tu tabla "Clase"
+      currentClassId = data.ClaseId; 
+      
+      // Mapeamos los estudiantes recibidos desde la BD
+      currentStudents = data.estudiantes.map(e => ({
+        id: e.EstudianteId,
+        name: `${e.Nombre} ${e.Apellido || ""}`.trim(),
+        present: true, // Por defecto marcados como presentes
+        justification: ""
+      }));
+    } else {
+      // FALLBACK: Si falla o el endpoint no existe aún, usamos datos falsos para no quebrar la UI
+      console.warn("El endpoint /class/students no está listo. Usando datos de prueba.");
+      currentClassId = "123e4567-e89b-12d3-a456-426614174000"; 
+      currentStudents = JSON.parse(JSON.stringify(studentsData));
+    }
+  } catch (error) {
+    console.error("Error de red al obtener clase:", error);
+    // FALLBACK
+    currentClassId = "123e4567-e89b-12d3-a456-426614174000"; 
+    currentStudents = JSON.parse(JSON.stringify(studentsData));
+  }
+
+  // Actualizar Títulos de la Interfaz
+  displayClassName.textContent = `${subjectName} - ${year} "${section}"`;
+  
+  // Formatear la fecha
+  const dateObj = new Date(dateInput.value);
+  // Ajuste para evitar problema de zona horaria (que atrase un día)
+  dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+  const formattedDate = dateObj.toLocaleDateString("es-ES", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  displayDate.textContent = `${termName} | ${formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)}`;
+
+  emptyState.classList.add("hidden"); 
+  studentsSection.classList.remove("hidden"); 
 
   renderStudents();
   updateStats();
@@ -74,31 +153,43 @@ btnLoad.addEventListener("click", () => {
 
 // Función para renderizar la lista
 function renderStudents() {
-  studentList.innerHTML = ""; // Limpiar lista
+  studentList.innerHTML = ""; 
 
   currentStudents.forEach((student, index) => {
     const row = document.createElement("div");
     row.className = "student-row";
+    row.style.display = "flex";
+    row.style.flexDirection = "column";
 
-    // Iconos SVG como strings
     const checkIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
     const statusIcon = student.present
       ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>`
       : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
 
     row.innerHTML = `
+        <div style="display: flex; align-items: center; width: 100%; justify-content: space-between;">
             <div class="check-container">
                 <div class="custom-checkbox ${student.present ? "checked" : ""}" onclick="toggleAttendance(${index})">
                     ${student.present ? checkIcon : ""}
                 </div>
             </div>
-            <div class="student-info">
+            <div class="student-info" style="flex-grow: 1; margin-left: 15px;">
                 <span class="student-name">${student.name}</span>
             </div>
             <div class="status-badge ${student.present ? "present" : "absent"}">
                 ${statusIcon}
             </div>
-        `;
+        </div>
+        
+        ${!student.present ? `
+        <div style="width: 100%; margin-top: 10px; padding-left: 45px;">
+            <input type="text" 
+                   class="justification-input" 
+                   placeholder="Escribe el motivo de la inasistencia (opcional)" 
+                   value="${student.justification || ''}" 
+                   onchange="updateJustification(${index}, this.value)">
+        </div>` : ''}
+    `;
 
     studentList.appendChild(row);
   });
@@ -107,29 +198,71 @@ function renderStudents() {
 // Función para alternar asistencia individual
 window.toggleAttendance = (index) => {
   currentStudents[index].present = !currentStudents[index].present;
-  renderStudents(); // Re-renderizar para actualizar iconos y estilos
+  if(currentStudents[index].present) {
+      currentStudents[index].justification = "";
+  }
+  renderStudents(); 
   updateStats();
 };
 
-// Función para actualizar contadores
+window.updateJustification = (index, value) => {
+  currentStudents[index].justification = value;
+};
+
 function updateStats() {
   const presentCount = currentStudents.filter((s) => s.present).length;
   presentCountSpan.textContent = presentCount;
   totalCountSpan.textContent = currentStudents.length;
 }
 
-// Funciones de Lote (Bulk Actions)
 window.markAll = (status) => {
-  currentStudents.forEach((s) => (s.present = status));
+  currentStudents.forEach((s) => {
+      s.present = status;
+      if(status) s.justification = "";
+  });
   renderStudents();
   updateStats();
 };
 
 window.resetAll = () => {
-  // Reinicia al estado por defecto (asumimos true para el ejemplo o recargamos)
-  // En este caso, pondré a todos como ausentes para que el profesor empiece de cero,
-  // o podrías volver a copiar studentsData original.
   currentStudents = JSON.parse(JSON.stringify(studentsData));
   renderStudents();
   updateStats();
 };
+
+// Enviar datos al Backend Flask (assistance.py)
+if (btnSave) {
+  btnSave.addEventListener("click", async () => {
+    
+    const payload = {
+      ClaseId: currentClassId,
+      EstudianteId: currentStudents.map(s => s.id),
+      Activo: currentStudents.map(s => s.present),
+      Justificacion: currentStudents.map(s => s.present ? "" : (s.justification || "Sin justificar"))
+    };
+
+    try {
+      const token = localStorage.getItem("auth") || "TU_TOKEN_AQUI";
+      const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
+
+      const response = await fetch(`${apiUrl}/assistance/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` 
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.status === 201) {
+        alert("¡Asistencia guardada exitosamente!");
+      } else {
+        const errorData = await response.json();
+        alert(`Error al guardar: ${errorData.message || 'Error desconocido'}`);
+      }
+    } catch (error) {
+      console.error("Error en la petición:", error);
+      alert("Error de conexión al guardar la asistencia.");
+    }
+  });
+}
