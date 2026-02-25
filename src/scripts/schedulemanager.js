@@ -12,6 +12,8 @@ let subjects = [];
 let teachers = [];
 let schedule = [];
 let courses = [];
+let termList = [];
+let selectedTerm = undefined;
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -47,6 +49,7 @@ const loadSchedules = async (term, period) => {
     if (!scheduleResponse.ok) throw new Error(scheduleAnswer.message);
 
     schedule = [...scheduleAnswer];
+
     notification.setAttribute("type", "success");
     notification.setAttribute(
       "text",
@@ -63,6 +66,8 @@ const loadSchedules = async (term, period) => {
 };
 
 const renderTeacherSelector = (assignedSubjects) => {
+  const disabledValue =
+    selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
   const tableList = document.getElementById("table-list");
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
 
@@ -81,7 +86,7 @@ const renderTeacherSelector = (assignedSubjects) => {
         ${subjectName}
       </div>
         <div class="select-wrapper full-width">
-        <select class="select-gray teacher-selector" data-subject="${subject}">
+        <select class="select-gray teacher-selector" data-subject="${subject}"${disabledValue}>
           ${teachersList.reduce((prev, current) => prev + `<option value="${current["DocenteId"]}">${current["DatosPersona"]["Nombre"]} ${current["DatosPersona"]["Apellido"]}</option>`, "")}
         </select>
       </div>
@@ -97,6 +102,8 @@ const filter = async (grade, section) => {
   const notifications = document.getElementById("notifications");
 
   try {
+    const disabledValue =
+      selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
     const level =
       courses.find((c) => c["CursoId"] === grade)["Grado"] < 4
         ? "Secundaria"
@@ -127,27 +134,27 @@ const filter = async (grade, section) => {
             ${
               minutes > 15
                 ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Lunes">
+              <select class="select-pill select-subject Lunes"${disabledValue}>
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Martes">
+              <select class="select-pill select-subject Martes"${disabledValue}>
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Miércoles">
+              <select class="select-pill select-subject Miércoles"${disabledValue}>
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Jueves">
+              <select class="select-pill select-subject Jueves"${disabledValue}>
                 ${options}
               </select>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <select class="select-pill select-subject Viernes">
+              <select class="select-pill select-subject Viernes"${disabledValue}>
                 ${options}
               </select>
             </div>`
@@ -181,7 +188,7 @@ const filter = async (grade, section) => {
       );
     }, "");
 
-    emptyState.remove();
+    emptyState.style.display = "none";
     scheduleCard.innerHTML = `
     <div class="card-header border-bottom">
             <div class="icon-title">
@@ -274,7 +281,10 @@ const filter = async (grade, section) => {
               </svg>
               Exportar PDF
             </button>
-            <button class="btn btn-primary" id="btn-submit">
+            ${
+              disabledValue.length === 0
+                ? `
+              <button class="btn btn-primary" id="btn-submit">
               <svg
                 width="18"
                 height="18"
@@ -293,9 +303,14 @@ const filter = async (grade, section) => {
               </svg>
               Guardar Cambios
             </button>
+              `
+                : ""
+            }
           </div>
         </footer>
     `;
+    if (!document.getElementById("results-container"))
+      document.querySelector(".container").appendChild(scheduleContainer);
     scheduleContainer.appendChild(scheduleCard);
 
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
@@ -358,101 +373,109 @@ const filter = async (grade, section) => {
     );
 
     // -- Guardando Horario
-    document
-      .getElementById("btn-submit")
-      .addEventListener("click", async () => {
-        loader.setAttribute("title", "Guardando horario...");
-        document.body.appendChild(loader);
+    if (document.getElementById("btn-submit")) {
+      document
+        .getElementById("btn-submit")
+        .addEventListener("click", async () => {
+          loader.setAttribute("title", "Guardando horario...");
+          document.body.appendChild(loader);
 
-        const updatedSchedule = [];
-        document.querySelectorAll(".select-subject").forEach((s) => {
-          if (s.value === "") return;
-          const scheduleBlockId = s.parentElement.getAttribute("data-row");
-          const teacher = document.querySelector(
-            `[data-subject="${s.value}"]`,
-          ).value;
-          updatedSchedule.push({
-            CursoId: grade,
-            BloqueHorarioId: scheduleBlockId,
-            DocenteId: teacher,
-            MateriaId: s.value,
-            Seccion: section,
-            Dia: s.classList[2],
+          const updatedSchedule = [];
+          document.querySelectorAll(".select-subject").forEach((s) => {
+            if (s.value === "") return;
+            const scheduleBlockId = s.parentElement.getAttribute("data-row");
+            const teacher = document.querySelector(
+              `[data-subject="${s.value}"]`,
+            ).value;
+            updatedSchedule.push({
+              CursoId: grade,
+              BloqueHorarioId: scheduleBlockId,
+              DocenteId: teacher,
+              MateriaId: s.value,
+              Seccion: section,
+              Dia: s.classList[2],
+            });
           });
-        });
-
-        const notification = document.createElement("notification-component");
-
-        try {
-          updatedSchedule.forEach((us) => {
-            const repeatedElement = schedule.find(
-              (s) =>
-                s["BloqueHorarioId"] === us["BloqueHorarioId"] &&
-                s["Dia"] === us["Dia"] &&
-                s["DocenteId"] === us["DocenteId"] &&
-                s["CursoId"] !== us["CursoId"] &&
-                s["Seccion"] !== us["Seccion"],
-            );
-
-            const teacher = teachers.find(
-              (t) => t["DocenteId"] === us["DocenteId"],
-            );
-
-            if (repeatedElement) {
-              const block = scheduleBlocks.find(
-                (sb) =>
-                  sb["BloqueHorarioId"] === repeatedElement["BloqueHorarioId"],
-              );
-              throw new Error(
-                `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
-              );
-            }
-
-            const academicHours = teachers.find(
-              (t) => t["DocenteId"] === us["DocenteId"],
-            )["HorasAcademicas"];
-
-            const teacherHours = [...schedule, ...updatedSchedule].filter(
-              (t) => t["DocenteId"] === us["DocenteId"],
-            ).length;
-
-            if (teacherHours > academicHours) {
-              throw new Error(
-                `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} superó su límite de horas académicas semanales`,
-              );
-            }
-          });
-
-          const updateSchedulePromise = await fetch(
-            `${window.APP_CONFIG.api_url}/schedule/create`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify(updatedSchedule),
-            },
-          );
-
-          if (!updateSchedulePromise.ok) {
-            const updateScheduleResponse = await updateSchedulePromise.json();
-            throw new Error(updateScheduleResponse.message);
-          }
 
           const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "success");
-          notification.setAttribute("text", "¡Horario Guardado Correctamente!");
-          notifications.appendChild(notification);
-        } catch (Error) {
-          console.error(Error.stack);
-          notification.setAttribute("type", "error");
-          notification.setAttribute("text", Error.message);
-        } finally {
-          notifications.appendChild(notification);
-          loader.remove();
-        }
-      });
+
+          try {
+            updatedSchedule.forEach((us) => {
+              const repeatedElement = schedule.find(
+                (s) =>
+                  s["BloqueHorarioId"] === us["BloqueHorarioId"] &&
+                  s["Dia"] === us["Dia"] &&
+                  s["DocenteId"] === us["DocenteId"] &&
+                  s["CursoId"] !== us["CursoId"] &&
+                  s["Seccion"] !== us["Seccion"],
+              );
+
+              const teacher = teachers.find(
+                (t) => t["DocenteId"] === us["DocenteId"],
+              );
+
+              if (repeatedElement) {
+                const block = scheduleBlocks.find(
+                  (sb) =>
+                    sb["BloqueHorarioId"] ===
+                    repeatedElement["BloqueHorarioId"],
+                );
+                throw new Error(
+                  `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
+                );
+              }
+
+              const academicHours = teachers.find(
+                (t) => t["DocenteId"] === us["DocenteId"],
+              )["HorasAcademicas"];
+
+              const teacherHours = [...schedule, ...updatedSchedule].filter(
+                (t) => t["DocenteId"] === us["DocenteId"],
+              ).length;
+
+              if (teacherHours > academicHours) {
+                throw new Error(
+                  `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} superó su límite de horas académicas semanales`,
+                );
+              }
+            });
+
+            const updateSchedulePromise = await fetch(
+              `${window.APP_CONFIG.api_url}/schedule/create`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(updatedSchedule),
+              },
+            );
+
+            if (!updateSchedulePromise.ok) {
+              const updateScheduleResponse = await updateSchedulePromise.json();
+              throw new Error(updateScheduleResponse.message);
+            }
+
+            const notification = document.createElement(
+              "notification-component",
+            );
+            notification.setAttribute("type", "success");
+            notification.setAttribute(
+              "text",
+              "¡Horario Guardado Correctamente!",
+            );
+            notifications.appendChild(notification);
+          } catch (Error) {
+            console.error(Error.stack);
+            notification.setAttribute("type", "error");
+            notification.setAttribute("text", Error.message);
+          } finally {
+            notifications.appendChild(notification);
+            loader.remove();
+          }
+        });
+    }
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
@@ -467,6 +490,7 @@ const filter = async (grade, section) => {
 const updateSections = (sectionData) => {
   const sectionField = document.getElementById("sectionField");
   sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
+
   if (sectionField.getAttribute("disabled") !== null)
     sectionField.removeAttribute("disabled");
 
@@ -475,6 +499,58 @@ const updateSections = (sectionData) => {
     newSectionOption.setAttribute("value", sectionData["Seccion"]);
     newSectionOption.textContent = numberToLetter(i);
     sectionField.appendChild(newSectionOption);
+  }
+};
+
+const updateGrades = async (term) => {
+  let error = undefined;
+  const sectionsResponse = await fetch(
+    `${window.APP_CONFIG.api_url}/course/sections${term ? "/".concat(term) : ""}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const sections = await sectionsResponse.json();
+  if (!sectionsResponse.ok) error = new Error(sections.message);
+
+  gradeField.innerHTML = '<option value="">Selecciona el grado</option>';
+  sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
+
+  if (sections.length === 0)
+    error = new Error(
+      "No hay estudiantes registrados en este período escolar.",
+    );
+
+  sections.forEach((s) => {
+    const newGradeOption = document.createElement("option");
+    newGradeOption.setAttribute("value", s["CursoId"]);
+    newGradeOption.textContent = s["Grado"];
+    gradeField.appendChild(newGradeOption);
+
+    gradeField.addEventListener("change", () => updateSections(s));
+  });
+
+  if (error && error.message) {
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", error.message);
+    document.getElementById("notifications").appendChild(notification);
+    if (document.getElementById("results-container"))
+      document.getElementById("results-container").remove();
+    document.getElementById("empty-state").style.display = "flex";
+    gradeField.setAttribute("disabled", "");
+    sectionField.setAttribute("disabled", "");
+    throw error;
+  } else {
+  }
+
+  if (gradeField.getAttribute("disabled") !== null) {
+    gradeField.removeAttribute("disabled");
+    // sectionField.removeAttribute("disabled");
   }
 };
 
@@ -498,29 +574,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.body.appendChild(loader);
 
   try {
-    const sectionsResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/course/sections`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    const sections = await sectionsResponse.json();
-    if (!sectionsResponse.ok) throw new Error(sections.message);
-
-    gradeField.innerHTML = '<option value="">Selecciona el grado</option>';
-    sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
-    sections.forEach((s) => {
-      const newGradeOption = document.createElement("option");
-      newGradeOption.setAttribute("value", s["CursoId"]);
-      newGradeOption.textContent = s["Grado"];
-      gradeField.appendChild(newGradeOption);
-
-      gradeField.addEventListener("change", () => updateSections(s));
-    });
+    await updateGrades();
 
     const termResponse = await fetch(
       `${window.APP_CONFIG.api_url}/school_term/list`,
@@ -534,6 +588,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const terms = await termResponse.json();
     if (!termResponse.ok) throw new Error(terms.message);
+    termList = [...terms];
 
     termField.querySelectorAll("option").forEach((o) => o.remove());
     terms.forEach((t) => {
@@ -543,11 +598,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       termField.appendChild(newOption);
     });
 
-    if (sections.length === 0)
-      throw new Error(
-        "No hay estudiantes registrados en este período escolar.",
-      );
-
+    selectedTerm = termField.value;
     const scheduleBlocksResponse = await fetch(
       `${window.APP_CONFIG.api_url}/schedule/blocks`,
       {
@@ -616,9 +667,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     termField.options[termField.selectedIndex].textContent,
   );
   termField.addEventListener("change", async () => {
+    selectedTerm = termField.value;
+    if (document.getElementById("results-container")) {
+      document.getElementById("results-container").remove();
+      emptyState.style.display = "flex";
+    }
+    await updateGrades(termField.value);
     await loadSchedules(
       termField.value,
-      termField.options(termField.selectedIndex).textContent,
+      termField.options[termField.selectedIndex].textContent,
     );
   });
 });
