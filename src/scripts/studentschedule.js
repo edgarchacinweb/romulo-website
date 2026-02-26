@@ -27,65 +27,42 @@ const calcMinutesDifferences = (time1, time2) => {
   return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
 };
 
-const loadSchedules = async (term, period) => {
-  const loader = document.createElement("loader-spinner");
-  const notification = document.createElement("notification-component");
-  const notifications = document.getElementById("notifications");
-  document.body.appendChild(loader);
-
-  try {
-    const scheduleResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/schedule/list/${term}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const scheduleAnswer = await scheduleResponse.json();
-    if (!scheduleResponse.ok) throw new Error(scheduleAnswer.message);
-
-    schedule = [...scheduleAnswer];
-    notification.setAttribute("type", "success");
-    notification.setAttribute(
-      "text",
-      `Horarios Cargados del Período Escolar ${period}.`,
-    );
-  } catch (Error) {
-    console.error(Error.stack);
-    notification.setAttribute("type", "error");
-    notification.setAttribute("text", Error.message);
-  } finally {
-    notifications.appendChild(notification);
-    loader.remove();
-  }
-};
-
-const renderTeacherSelector = (assignedSubjects) => {
+const renderTeacherSelector = (selectedSchedule) => {
   const tableList = document.getElementById("table-list");
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
+  const selectedTeachers = [];
+  selectedSchedule.forEach((s) => {
+    if (
+      !selectedTeachers.find(
+        (t) =>
+          t["DocenteId"] === s["DocenteId"] &&
+          t["MateriaId"] === s["MateriaId"],
+      )
+    )
+      selectedTeachers.push(s);
+  });
 
-  assignedSubjects.forEach((subject) => {
-    const subjectName = subjects.find((s) => s["MateriaId"] === subject)[
+  selectedTeachers.forEach((t) => {
+    const subjectName = subjects.find((s) => s["MateriaId"] === t["MateriaId"])[
       "Nombre"
     ];
-    const tableItem = document.createElement("div");
-    tableItem.classList.add("table-row");
-    const teachersList = teachers.filter((t) =>
-      t["Materias"].find((m) => m["MateriaId"] === subject),
+
+    const selectedTeacher = teachers.find(
+      (teacher) => teacher["DocenteId"] === t["DocenteId"],
     );
 
+    const tableItem = document.createElement("div");
+    tableItem.classList.add("table-row");
+
     tableItem.innerHTML = `
-      <div class="materia-cell">
+      <div class="materia-cell subject-cell">
         ${subjectName}
       </div>
-        <div class="select-wrapper full-width">
-        <select class="select-gray teacher-selector" data-subject="${subject}">
-          ${teachersList.reduce((prev, current) => prev + `<option value="${current["DocenteId"]}">${current["DatosPersona"]["Nombre"]} ${current["DatosPersona"]["Apellido"]}</option>`, "")}
-        </select>
+      <div class="materia-cell">
+        ${selectedTeacher["DatosPersona"]["Nombre"]} ${selectedTeacher["DatosPersona"]["Apellido"]}
+      </div>
+      <div class="materia-cell cedula-cell">
+        V${selectedTeacher["DatosPersona"]["Cedula"]}
       </div>
       `;
 
@@ -94,27 +71,78 @@ const renderTeacherSelector = (assignedSubjects) => {
 };
 
 const filter = async (grade, section) => {
+  // Configurando reporte
+  document.querySelector(".print__grade").textContent =
+    `${grade}° Año - Sección ${section}`;
+
+  const scheduleReport = document.querySelector(".print__schedule-data");
+  scheduleReport.innerHTML = "";
+
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
 
+  const courseId = courses.find((c) => c["Grado"] === grade)["CursoId"];
+  const numberSection = ["A", "B", "C", "D", "E", "F"].indexOf(section) + 1;
+
+  const selectedSchedule = schedule.filter(
+    (s) => s["Seccion"] === numberSection && s["CursoId"] === courseId,
+  );
+
   try {
-    const courseId = courses.find((c) => c["Grado"] === grade)["CursoId"];
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
       const minutes = calcMinutesDifferences(
         item["HoraInicio"],
         item["HoraFin"],
       );
-      console.log(subjects);
 
-      const scheduleSubjects = schedule.filter(
+      const selectedBlock = schedule.filter(
         (s) =>
           s["CursoId"] === courseId &&
-          s["Seccion"] ===
-            ["A", "B", "C", "D", "E", "F"].indexOf(section) + 1 &&
+          s["Seccion"] === numberSection &&
           s["BloqueHorarioId"] === item["BloqueHorarioId"],
       );
-      // console.log(scheduleSubjects);
+
+      const blocks = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(
+        (day) => {
+          const thisBlock = selectedBlock.find((s) => s["Dia"] === day);
+          const subject = subjects.find(
+            (s) => thisBlock?.MateriaId === s?.MateriaId,
+          );
+          return subject?.Nombre;
+        },
+      );
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+      <tr>
+        <td class="print__block">
+          <p class="print__block-text">Bloque ${index + 1}</p>
+          <p class="print__block-time">${item["HoraInicio"]} - ${item["HoraFin"]}</p>
+        </td>
+      `;
+
+      tr.innerHTML +=
+        minutes > 15
+          ? `
+          <td class="print__subject">${blocks[0] ?? ""}</td>
+          <td class="print__subject">${blocks[1] ?? ""}</td>
+          <td class="print__subject">${blocks[2] ?? ""}</td>
+          <td class="print__subject">${blocks[3] ?? ""}</td>
+          <td class="print__subject">${blocks[4] ?? ""}</td>
+        </tr>
+        `
+          : `
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+        </tr>
+        `;
+
+      scheduleReport.appendChild(tr);
+
       return (
         prev +
         `
@@ -125,19 +153,29 @@ const filter = async (grade, section) => {
             ${
               minutes > 15
                 ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <span></span>
+              <span>
+                ${blocks[0] ?? ""}
+              </span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <span></span>
+              <span>
+              ${blocks[1] ?? ""}
+              </span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <span></span>
+              <span>
+              ${blocks[2] ?? ""}
+              </span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <span></span>
+              <span>
+              ${blocks[3] ?? ""}
+              </span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <span></span>
+              <span>
+              ${blocks[4] ?? ""}
+              </span>
             </div>`
                 : `<div class="grid-cell">
               <span>RECESO</span>
@@ -181,9 +219,6 @@ const filter = async (grade, section) => {
               </svg>
               <h2>Asignación de Materias</h2>
             </div>
-            <p class="card-subtitle">
-              Selecciona la materia para cada bloque de horario por día
-            </p>
           </div>
 
           <div class="schedule-grid">
@@ -219,15 +254,13 @@ const filter = async (grade, section) => {
               </svg>
               <h2>Asignación de Docentes por Materia</h2>
             </div>
-            <p class="card-subtitle">
-              Selecciona el docente que impartirá cada materia para esta sección
-            </p>
           </div>
 
           <div class="table-list" id="table-list">
             <div class="table-header">
               <span>Materia</span>
               <span>Docente Asignado</span>
+              <span>Cédula de Identidad</span>
             </div>
           </div>
         </section>
@@ -235,7 +268,7 @@ const filter = async (grade, section) => {
         <footer class="action-footer card">
           <div></div>
           <div class="footer-buttons">
-            <button class="btn btn-outline">
+            <button class="btn btn-outline" id="btn-pdf">
               <svg
                 width="18"
                 height="18"
@@ -252,52 +285,10 @@ const filter = async (grade, section) => {
               </svg>
               Exportar PDF
             </button>
-            <button class="btn btn-primary" id="btn-submit">
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-                />
-                <polyline points="17 21 17 13 7 13 7 21" />
-                <polyline points="7 3 7 8 15 8" />
-              </svg>
-              Guardar Cambios
-            </button>
           </div>
         </footer>
     `;
     scheduleContainer.appendChild(scheduleCard);
-
-    const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-
-    const selectedSchedule = schedule.filter(
-      (s) => s["Seccion"] === parseInt(section) && s["CursoId"] === grade,
-    );
-
-    scheduleBlocks.forEach((sb) => {
-      const id = sb["BloqueHorarioId"];
-      const row = document.querySelectorAll(`[data-row="${id}"]`);
-      row.forEach((r, index) => {
-        const data = selectedSchedule.find(
-          (s) => s["BloqueHorarioId"] === id && s["Dia"] == days[index],
-        );
-
-        if (data) {
-          const select = r.querySelector(`.${days[index]}`);
-          select
-            .querySelector(`[value="${data["MateriaId"]}"`)
-            .setAttribute("selected", "");
-        }
-      });
-    });
 
     const teachersResponse = await fetch(
       `${window.APP_CONFIG.api_url}/teacher/list`,
@@ -315,15 +306,11 @@ const filter = async (grade, section) => {
 
     teachers = [...teachersAnswer];
 
-    let assignedSubjects = Array.from(
-      new Set(
-        schedule
-          .filter((s) => s["Seccion"] == section && s["CursoId"] === grade)
-          .map((s) => s["MateriaId"]),
-      ),
-    );
+    renderTeacherSelector(selectedSchedule);
 
-    renderTeacherSelector(assignedSubjects);
+    document
+      .getElementById("btn-pdf")
+      .addEventListener("click", () => window.print());
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
@@ -336,13 +323,6 @@ const filter = async (grade, section) => {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // Referencias a los elementos del DOM
-  const emptyState = document.getElementById("empty-state");
-  const notifications = document.getElementById("notifications");
-  const resultsContainer = document.getElementById("results-container");
-  const blocks = [];
-  const teachers = [];
-
   // Cargar todas las secciones y períodos académicos
   const loader = document.createElement("loader-spinner");
   const notificationsContainer = document.getElementById("notifications");
@@ -449,7 +429,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentId = studentField.value;
     const student = students.find((s) => s["EstudianteId"] === studentId);
 
-    console.log(student["Curso"]["Grado"], student["Curso"]["Seccion"]);
     filter(student["Curso"]["Grado"], student["Curso"]["Seccion"]);
   });
 

@@ -19,58 +19,18 @@
       src="/src/components/notifications-container.component.js"
       type="module"
     ></script>
+
+    <!-- Exportar PDF -->
   </head>
   <body>
     <notifications-container id="notifications"></notifications-container>
-    <header class="main-header">
-      <div class="logo-area">
-        <div class="logo-icon">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
-        </div>
-        <div class="logo-text">
-          <h1>Control de Estudios</h1>
-          <span>Administración de Horarios Estudiantiles</span>
-        </div>
-      </div>
-      <a href="/app/representante/inicio/" class="btn btn-outline" id="btn-back">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <polyline points="16 17 21 12 16 7" />
-          <line x1="21" y1="12" x2="9" y2="12" />
-        </svg>
-        Salir
-      </a>
-    </header>
-
-    <main class="container">
-      <section class="card filter-card">
-        <div class="card-header">
-          <div class="icon-title">
+    <div id="show-schedule">
+      <header class="main-header">
+        <div class="logo-area">
+          <div class="logo-icon">
             <svg
-              class="text-blue"
-              width="20"
-              height="20"
+              width="24"
+              height="24"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -78,52 +38,147 @@
               stroke-linecap="round"
               stroke-linejoin="round"
             >
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
             </svg>
-            <h2>Filtros de Horario</h2>
           </div>
-          <p class="card-subtitle">
-            Selecciona el estudiante para cargar el horario correspondiente
-          </p>
+          <div class="logo-text">
+            <h1>Control de Estudios</h1>
+            <span>Administración de Horarios Estudiantiles</span>
+          </div>
         </div>
-
-        <div class="filter-grid">
-          <div class="form-group">
-            <label>Estudiante</label>
-            <div class="select-wrapper">
-              <select id="studentField">
-                <option>Cargando...</option>
-              </select>
-            </div>
-          </div>
-      </section>
-
-      <div id="empty-state" class="empty-state">
-        <div class="empty-icon-bg">
+        <a
+          href="/app/representante/inicio/"
+          class="btn btn-outline"
+          id="btn-back"
+        >
           <svg
-            width="40"
-            height="40"
+            width="18"
+            height="18"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#64748b"
+            stroke="currentColor"
             stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
           >
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
-        </div>
-        <h3>Selecciona un estudiante para buscar su horario</h3>
-        <p>
-          Utiliza los filtros superiores para seleccionar el horario del estudiante
-        </p>
-      </div>
+          Salir
+        </a>
+      </header>
 
-      <div id="results-container" class="schedule-container"></div>
-    </main>
+      <main class="container">
+        <section class="card filter-card">
+          <div class="card-header">
+            <div class="icon-title">
+              <svg
+                class="text-blue"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+              </svg>
+              <h2>Filtros de Horario</h2>
+            </div>
+            <p class="card-subtitle">
+              Selecciona el estudiante para cargar el horario correspondiente
+            </p>
+          </div>
+
+          <div class="filter-grid">
+            <div class="form-group">
+              <label>Estudiante</label>
+              <div class="select-wrapper">
+                <select id="studentField">
+                  <option>Cargando...</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon-bg">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#64748b"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+          </div>
+          <h3>Selecciona un estudiante para buscar su horario</h3>
+          <p>
+            Utiliza los filtros superiores para seleccionar el horario del
+            estudiante
+          </p>
+        </div>
+
+        <div id="results-container" class="schedule-container"></div>
+      </main>
+    </div>
+    <div id="print-schedule">
+      <article class="print__header">
+        <section class="print__image">
+          <img src="/src/assets/images/romulo.webp" class="print__logo" />
+        </section>
+        <section class="print__institution">
+          <p class="print__letterhead">República Bolivariana de Venezuela</p>
+          <p class="print__letterhead">
+            Ministerio del Poder Popular para la Educación
+          </p>
+          <p class="print__letterhead">Liceo Naciona "Don Rómulo Gallegos"</p>
+          <p class="print__letterhead">Maracay, Edo. Aragua</p>
+        </section>
+      </article>
+      <article class="print__info">
+        <p class="print__grade">1° Año - Sección A</p>
+      </article>
+      <article class="print__schedule">
+        <table class="print__table">
+          <thead>
+            <tr>
+              <th>Bloque</th>
+              <th>Lunes</th>
+              <th>Martes</th>
+              <th>Miércoles</th>
+              <th>Jueves</th>
+              <th>Viernes</th>
+            </tr>
+          </thead>
+          <tbody class="print__schedule-data">
+            <!-- <tr>
+              <td class="print__block">
+                <p class="print__block-text">Bloque 1</p>
+                <p class="print__block-time">07:00 - 07:40</p>
+              </td>
+              <td class="print__subject">Matemáticas</td>
+              <td class="print__subject">Física</td>
+              <td class="print__subject">Informática</td>
+              <td class="print__subject">Biología</td>
+              <td class="print__subject">Química</td>
+            </tr> -->
+          </tbody>
+        </table>
+      </article>
+    </div>
 
     <script src="/src/scripts/config.js" type="module"></script>
     <script src="/src/scripts/studentschedule.js" type="module"></script>

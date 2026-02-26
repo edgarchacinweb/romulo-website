@@ -239,11 +239,14 @@ select {
   border-bottom: 1px solid var(--border-color);
 }
 
-.table-header span:first-child {
+.table-header span:nth-child(1) {
   width: 40%;
 }
-.table-header span:last-child {
-  width: 60%;
+.table-header span:nth-child(2) {
+  width: 40%;
+}
+.table-header span:nth-child(3) {
+  width: 18%;
 }
 
 .table-row {
@@ -265,8 +268,24 @@ select {
   font-weight: 500;
 }
 
+.cedula-cell {
+  width: 18%;
+}
+
+.subject-cell {
+  font-weight: bold;
+}
+
+.grid-cell,
+.grid-head {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .grid-cell span {
   text-align: center;
+  text-transform: uppercase;
 }
 
 .dot {
@@ -371,5 +390,84 @@ select:disabled {
   }
   .schedule-grid {
     min-width: 800px; /* Force scroll on small screens */
+  }
+}
+
+@media screen {
+  #print-schedule {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    margin: 0;
+    size: portrait;
+  }
+
+  #show-schedule {
+    display: none;
+  }
+
+  #print-schedule {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3rem;
+  }
+
+  .print__logo {
+    margin-top: 2rem;
+    width: 125px;
+  }
+
+  .print__header {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .print__letterhead {
+    text-align: center;
+  }
+
+  .print__grade {
+    width: 100%;
+    font-size: 1.3rem;
+  }
+
+  th,
+  td {
+    width: 130px;
+    border: 2px solid #333333;
+    border-radius: 3px;
+  }
+
+  th {
+    font-weight: bold;
+    font-size: 1.5rem;
+  }
+
+  .print__block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-weight: bold;
+    padding: 0 5px;
+  }
+
+  .print__block-text {
+    font-size: 1.3rem;
+  }
+
+  .print__block-time {
+    opacity: 0.7;
+  }
+
+  .print__subject {
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 0.9rem;
   }
 }
