@@ -295,6 +295,10 @@ select {
   border-radius: 6px;
 }
 
+select:disabled {
+  pointer-events: none;
+}
+
 .full-width {
   width: 60%;
 }

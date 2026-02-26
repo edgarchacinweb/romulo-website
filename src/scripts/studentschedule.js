@@ -125,7 +125,7 @@ const filter = async (grade, section) => {
             ${
               minutes > 15
                 ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
-              <span>${subjects.find((s) => s["MateriaId"] === scheduleSubjects.find((s) => s["Dia"] === "Lunes")["MateriaId"])["Nombre"]}</span>
+              <span></span>
             </div>
             <div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
               <span></span>
