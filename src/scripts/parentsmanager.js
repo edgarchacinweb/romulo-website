@@ -304,6 +304,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 document.getElementById("BtnBack").addEventListener("click", (event) => {
   event.preventDefault();
+  
+  // SOLUCIÓN: Guardamos la URL antes de que el evento expire
+  const targetUrl = event.currentTarget.href; 
+  
   document.body.style.animation = "goodByePage 0.8s forwards";
-  setTimeout(() => (document.location.href = event.target.href), 1000);
+  
+  // Usamos la variable guardada en lugar de buscarla en el evento original
+  setTimeout(() => (document.location.href = targetUrl), 1000);
 });
