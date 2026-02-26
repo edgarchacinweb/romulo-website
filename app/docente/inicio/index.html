@@ -69,7 +69,7 @@
           <h3>Visualizar Horario</h3>
           <p>Consulta tu horario de clases</p>
           <!-- También puedes hacer lo mismo con los otros botones cuando tengas esas páginas -->
-          <button class="btn-access">Acceder &rarr;</button>
+          <button class="btn-access" id="schedule">Acceder &rarr;</button>
         </article>
 
         <article class="card card--grades">
@@ -107,7 +107,12 @@
           <h3>Gestión de Asistencias</h3>
           <p>Controla asistencia de estudiantes</p>
           <!-- AQUI ESTÁ LA CORRECCIÓN: Agregado onclick con la ruta ajustada -->
-          <button class="btn-access" onclick="window.location.href='../asistencia/index.html'">Acceder &rarr;</button>
+          <button
+            class="btn-access"
+            onclick="window.location.href = '../asistencia/index.html'"
+          >
+            Acceder &rarr;
+          </button>
         </article>
 
         <article class="card card--logout">

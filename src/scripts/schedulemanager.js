@@ -550,7 +550,6 @@ const updateGrades = async (term) => {
 
   if (gradeField.getAttribute("disabled") !== null) {
     gradeField.removeAttribute("disabled");
-    // sectionField.removeAttribute("disabled");
   }
 };
 
