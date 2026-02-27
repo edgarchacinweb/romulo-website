@@ -29,6 +29,8 @@ const calcMinutesDifferences = (time1, time2) => {
 
 const renderTeacherSelector = (selectedSchedule) => {
   const tableList = document.getElementById("table-list");
+  const scheduleReport = document.querySelectorAll(".print__schedule-data");
+  scheduleReport[1].innerHTML = "";
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
   const selectedTeachers = [];
   selectedSchedule.forEach((s) => {
@@ -67,6 +69,18 @@ const renderTeacherSelector = (selectedSchedule) => {
       `;
 
     tableList.appendChild(tableItem);
+
+    const teacherItem = document.createElement("tr");
+
+    teacherItem.innerHTML = `
+    <tr>
+      <td class="print__subject-teacher">${subjectName}</td>
+      <td class="print__teacher">${selectedTeacher["DatosPersona"]["Nombre"]} ${selectedTeacher["DatosPersona"]["Apellido"]}</td>
+      <td class="print__subject">V-${selectedTeacher["DatosPersona"]["Cedula"]}</td>
+    </tr>
+    `;
+
+    scheduleReport[1].appendChild(teacherItem);
   });
 };
 
@@ -75,8 +89,8 @@ const filter = async (grade, section) => {
   document.querySelector(".print__grade").textContent =
     `${grade}° Año - Sección ${section}`;
 
-  const scheduleReport = document.querySelector(".print__schedule-data");
-  scheduleReport.innerHTML = "";
+  const scheduleReport = document.querySelectorAll(".print__schedule-data");
+  scheduleReport[0].innerHTML = "";
 
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
@@ -141,7 +155,7 @@ const filter = async (grade, section) => {
         </tr>
         `;
 
-      scheduleReport.appendChild(tr);
+      scheduleReport[0].appendChild(tr);
 
       return (
         prev +
