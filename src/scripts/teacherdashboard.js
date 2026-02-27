@@ -53,3 +53,10 @@ document.getElementById("califications").addEventListener("click", () => {
     1000,
   );
 });
+
+document.getElementById("schedule").addEventListener("click", () => {
+  document.body.style.overflow = "hidden";
+  document.body.style.animation = "goodByePage 0.8s forwards";
+
+  setTimeout(() => (window.location.href = "/app/docente/horarios/"), 1000);
+});

@@ -1,19 +1,20 @@
 import authorize from "./auth.js";
 import numberToLetter from "./utils.js";
 
-authorize("representante");
+authorize("docente");
 
 const token = localStorage.getItem("auth");
 const emptyState = document.getElementById("empty-state");
 const scheduleContainer = document.getElementById("results-container");
-const studentField = document.getElementById("studentField");
+const gradeField = document.getElementById("gradeField");
+const sectionField = document.getElementById("sectionField");
 const scheduleCard = document.createElement("section");
 let scheduleBlocks = [];
 let subjects = [];
 let teachers = [];
-let students = [];
 let schedule = [];
 let courses = [];
+let teacherId = undefined;
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -27,61 +28,70 @@ const calcMinutesDifferences = (time1, time2) => {
   return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
 };
 
-const renderTeacherSelector = (selectedSchedule) => {
-  const tableList = document.getElementById("table-list");
-  const scheduleReport = document.querySelectorAll(".print__schedule-data");
-  scheduleReport[1].innerHTML = "";
-  tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
-  const selectedTeachers = [];
-  selectedSchedule.forEach((s) => {
-    if (
-      !selectedTeachers.find(
-        (t) =>
-          t["DocenteId"] === s["DocenteId"] &&
-          t["MateriaId"] === s["MateriaId"],
-      )
-    )
-      selectedTeachers.push(s);
-  });
+const updateSections = (sectionData) => {
+  const sectionField = document.getElementById("sectionField");
+  sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
 
-  selectedTeachers.forEach((t) => {
-    const subjectName = subjects.find((s) => s["MateriaId"] === t["MateriaId"])[
-      "Nombre"
-    ];
+  if (sectionField.getAttribute("disabled") !== null)
+    sectionField.removeAttribute("disabled");
 
-    const selectedTeacher = teachers.find(
-      (teacher) => teacher["DocenteId"] === t["DocenteId"],
+  for (let i = 1; i <= sectionData["Seccion"]; i++) {
+    const newSectionOption = document.createElement("option");
+    newSectionOption.setAttribute("value", sectionData["Seccion"]);
+    newSectionOption.textContent = numberToLetter(i);
+    sectionField.appendChild(newSectionOption);
+  }
+};
+
+const updateGrades = async (term) => {
+  let error = undefined;
+  const sectionsResponse = await fetch(
+    `${window.APP_CONFIG.api_url}/course/sections${term ? "/".concat(term) : ""}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  const sections = await sectionsResponse.json();
+  if (!sectionsResponse.ok) error = new Error(sections.message);
+
+  gradeField.innerHTML = '<option value="">Selecciona el grado</option>';
+  sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
+
+  if (sections.length === 0)
+    error = new Error(
+      "No hay estudiantes registrados en este período escolar.",
     );
 
-    const tableItem = document.createElement("div");
-    tableItem.classList.add("table-row");
+  sections.forEach((s) => {
+    const newGradeOption = document.createElement("option");
+    newGradeOption.setAttribute("value", s["CursoId"]);
+    newGradeOption.textContent = s["Grado"];
+    gradeField.appendChild(newGradeOption);
 
-    tableItem.innerHTML = `
-      <div class="materia-cell subject-cell">
-        ${subjectName}
-      </div>
-      <div class="materia-cell">
-        ${selectedTeacher["DatosPersona"]["Nombre"]} ${selectedTeacher["DatosPersona"]["Apellido"]}
-      </div>
-      <div class="materia-cell cedula-cell">
-        V${selectedTeacher["DatosPersona"]["Cedula"]}
-      </div>
-      `;
-
-    tableList.appendChild(tableItem);
-
-    const teacherItem = document.createElement("tr");
-
-    teacherItem.innerHTML = `
-    <tr>
-      <td class="print__subject-teacher">${subjectName}</td>
-      <td class="print__teacher">${selectedTeacher["DatosPersona"]["Nombre"]} ${selectedTeacher["DatosPersona"]["Apellido"]}</td>
-      <td class="print__subject">V-${selectedTeacher["DatosPersona"]["Cedula"]}</td>
-    </tr>
-    `;
-
-    scheduleReport[1].appendChild(teacherItem);
+    gradeField.addEventListener("change", () => updateSections(s));
   });
+
+  if (error && error.message) {
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", error.message);
+    document.getElementById("notifications").appendChild(notification);
+    if (document.getElementById("results-container"))
+      document.getElementById("results-container").remove();
+    document.getElementById("empty-state").style.display = "flex";
+    gradeField.setAttribute("disabled", "");
+    sectionField.setAttribute("disabled", "");
+    throw error;
+  } else {
+  }
+
+  if (gradeField.getAttribute("disabled") !== null) {
+    gradeField.removeAttribute("disabled");
+  }
 };
 
 const filter = async (grade, section) => {
@@ -89,14 +99,16 @@ const filter = async (grade, section) => {
   document.querySelector(".print__grade").textContent =
     `${grade}° Año - Sección ${section}`;
 
-  const scheduleReport = document.querySelectorAll(".print__schedule-data");
-  scheduleReport[0].innerHTML = "";
+  const scheduleReport = document.querySelector(".print__schedule-data");
+  scheduleReport.innerHTML = "";
 
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
 
-  const courseId = courses.find((c) => c["Grado"] === grade)["CursoId"];
+  const courseId = courses.find((c) => c["Grado"] === parseInt(grade))[
+    "CursoId"
+  ];
   const numberSection = ["A", "B", "C", "D", "E", "F"].indexOf(section) + 1;
 
   const selectedSchedule = schedule.filter(
@@ -155,7 +167,7 @@ const filter = async (grade, section) => {
         </tr>
         `;
 
-      scheduleReport[0].appendChild(tr);
+      scheduleReport.appendChild(tr);
 
       return (
         prev +
@@ -247,38 +259,6 @@ const filter = async (grade, section) => {
           </div>
         </section>
 
-        <section class="card">
-          <div class="card-header border-bottom">
-            <div class="icon-title">
-              <svg
-                class="text-blue"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
-              <h2>Asignación de Docentes por Materia</h2>
-            </div>
-          </div>
-
-          <div class="table-list" id="table-list">
-            <div class="table-header">
-              <span>Materia</span>
-              <span>Docente Asignado</span>
-              <span>Cédula de Identidad</span>
-            </div>
-          </div>
-        </section>
-
         <footer class="action-footer card">
           <div></div>
           <div class="footer-buttons">
@@ -303,24 +283,6 @@ const filter = async (grade, section) => {
         </footer>
     `;
     scheduleContainer.appendChild(scheduleCard);
-
-    const teachersResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/teacher/list`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const teachersAnswer = await teachersResponse.json();
-    if (!teachersResponse.ok) throw new Error(teachersAnswer.message);
-
-    teachers = [...teachersAnswer];
-
-    renderTeacherSelector(selectedSchedule);
 
     document
       .getElementById("btn-pdf")
@@ -377,22 +339,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!subjectsPromise.ok) throw new Error(subjectsResponse.message);
     subjects = [...subjectsResponse];
 
-    const parentPromise = await fetch(
-      `${window.APP_CONFIG.api_url}/people/get`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const parentResponse = await parentPromise.json();
-    if (!parentPromise.ok) throw new Error(parentResponse.message);
-
-    const studentsPromise = await fetch(
-      `${window.APP_CONFIG.api_url}/students/by_parent/${parentResponse["DatosPersonaId"]}`,
+    // Obteniendo último período escolar
+    const schoolTermPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/school_term/get`,
       {
         method: "GET",
         headers: {
@@ -402,21 +351,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     );
 
-    const studentsResponse = await studentsPromise.json();
-    if (!studentsPromise.ok) throw new Error(studentsResponse.message);
+    const schoolTermResponse = await schoolTermPromise.json();
+    if (!schoolTermPromise.ok) throw new Error(schoolTermResponse.message);
 
-    students = [...studentsResponse];
-    studentField.innerHTML = `<option value="">Selecciona un Estudiante</option>`;
-    students.forEach((student) => {
-      const option = document.createElement("option");
-      option.setAttribute("value", student["EstudianteId"]);
-      option.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]} - ${student["DatosPersona"]["Cedula"]}`;
-      studentField.appendChild(option);
-    });
+    // Obteniendo ID del docente
+    const teacherIdPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/teacher/get`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const teacherIdResponse = await teacherIdPromise.json();
+    if (!teacherIdPromise.ok) throw new Error(teacherIdResponse.message);
+    teacherId = teacherIdResponse.DocenteId;
 
     // Obteniendo datos de horarios
     const schedulePromise = await fetch(
-      `${window.APP_CONFIG.api_url}/schedule/list/${students[0]["Curso"]["PeriodoEscolarId"]}`,
+      `${window.APP_CONFIG.api_url}/schedule/list/${schoolTermResponse.id}`,
       {
         method: "GET",
         headers: {
@@ -428,7 +384,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const scheduleResponse = await schedulePromise.json();
     if (!schedulePromise.ok) throw new Error(scheduleResponse.message);
-    schedule = [...scheduleResponse];
+    schedule = [...scheduleResponse].filter(
+      (s) => s["DocenteId"] === teacherId,
+    );
+
+    updateGrades(schoolTermResponse.id);
+    sectionField.addEventListener("change", () => {
+      filter(
+        gradeField.options[gradeField.selectedIndex].textContent,
+        sectionField.options[sectionField.selectedIndex].textContent,
+      );
+    });
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -438,13 +404,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } finally {
     loader.remove();
   }
-
-  studentField.addEventListener("change", () => {
-    const studentId = studentField.value;
-    const student = students.find((s) => s["EstudianteId"] === studentId);
-
-    filter(student["Curso"]["Grado"], student["Curso"]["Seccion"]);
-  });
 
   // Cargando grados
   const gradesPromise = await fetch(
@@ -464,6 +423,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 document.getElementById("btn-back").addEventListener("click", (e) => {
   e.preventDefault();
+  const url = e.target.href;
   document.body.style.animation = "goodByePage 0.8s forwards";
-  setTimeout(() => (window.location.href = "/app/representante/inicio"), 1000);
+  setTimeout(() => (window.location.href = url), 1000);
 });

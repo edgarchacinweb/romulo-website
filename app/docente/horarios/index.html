@@ -19,6 +19,8 @@
       src="/src/components/notifications-container.component.js"
       type="module"
     ></script>
+
+    <!-- Exportar PDF -->
   </head>
   <body>
     <notifications-container id="notifications"></notifications-container>
@@ -29,11 +31,11 @@
             <img src="/src/assets/images/romulo.webp" />
           </div>
           <div class="logo-text">
-            <h1>Control de Estudios</h1>
-            <span>Administración de Horarios Estudiantiles</span>
+            <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
+            <span>Emisión de Horarios Estudiantiles</span>
           </div>
         </div>
-        <a href="/app/admin/dashboard/" class="btn btn-outline" id="btn-back">
+        <a href="/app/docente/inicio/" class="btn btn-outline" id="btn-back">
           <svg
             width="18"
             height="18"
@@ -72,14 +74,14 @@
               <h2>Filtros de Horario</h2>
             </div>
             <p class="card-subtitle">
-              Selecciona el grado, sección y período escolar para cargar el
-              horario correspondiente
+              Selecciona el año y la sección para cargar el horario
+              correspondiente
             </p>
           </div>
 
           <div class="filter-grid">
             <div class="form-group">
-              <label>Grado Estudiantil</label>
+              <label>Año académico</label>
               <div class="select-wrapper">
                 <select id="gradeField">
                   <option>Cargando...</option>
@@ -89,20 +91,9 @@
             <div class="form-group">
               <label>Sección</label>
               <div class="select-wrapper">
-                <select id="sectionField" disabled>
-                  <option>Cargando...</option>
-                </select>
+                <select id="sectionField" disabled></select>
               </div>
             </div>
-            <div class="form-group">
-              <label>Período Escolar</label>
-              <div class="select-wrapper">
-                <select id="termField">
-                  <option>Cargando...</option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group btn-container"></div>
           </div>
         </section>
 
@@ -124,10 +115,10 @@
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           </div>
-          <h3>Selecciona un horario para editar</h3>
+          <h3>Selecciona el año y la sección para buscar tu horario</h3>
           <p>
-            Utiliza los filtros superiores para seleccionar el grado, sección y
-            período escolar del horario que deseas visualizar o modificar.
+            Utiliza los filtros superiores para seleccionar el horario de clases
+            por año y sección
           </p>
         </div>
 
@@ -149,7 +140,7 @@
         </section>
       </article>
       <article class="print__info">
-        <p class="print__grade">1° Año - Sección A</p>
+        <p class="print__grade"></p>
       </article>
       <article class="print__schedule">
         <table class="print__table">
@@ -166,33 +157,9 @@
           <tbody class="print__schedule-data"></tbody>
         </table>
       </article>
-      <hr />
-      <hr />
-      <article class="print__schedule">
-        <table class="print__table">
-          <thead>
-            <tr>
-              <th>Materia</th>
-              <th>Docente Asignado</th>
-              <th>C.I</th>
-            </tr>
-          </thead>
-          <tbody class="print__schedule-data"></tbody>
-        </table>
-      </article>
-      <article class="signature__container">
-        <div class="print__signature">
-          <div class="signature__line"></div>
-          <p class="signature__name">Firma de la Directora</p>
-          <p>Prof. Emily Álvarez</p>
-        </div>
-        <div class="print__signature">
-          <div class="signature__line"></div>
-          <p class="signature__name">Sello de la Institución</p>
-        </div>
-      </article>
     </div>
+
     <script src="/src/scripts/config.js" type="module"></script>
-    <script src="/src/scripts/schedulemanager.js" type="module"></script>
+    <script src="/src/scripts/teacherschedule.js" type="module"></script>
   </body>
 </html>

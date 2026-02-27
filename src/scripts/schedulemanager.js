@@ -96,6 +96,105 @@ const renderTeacherSelector = (assignedSubjects) => {
   });
 };
 
+const exportToPdf = async (grade, section) => {
+  const course = courses.find((c) => c["CursoId"] === grade)["Grado"];
+  document.querySelector(".print__grade").textContent =
+    `${course}° Año - Sección ${section}`;
+  const scheduleReport = document.querySelectorAll(".print__schedule-data");
+  scheduleReport[0].innerHTML = "";
+
+  scheduleBlocks.forEach((item, index) => {
+    const minutes = calcMinutesDifferences(item["HoraInicio"], item["HoraFin"]);
+    const selectedBlock = schedule.filter(
+      (s) =>
+        s["CursoId"] === grade &&
+        s["Seccion"] === parseInt(section) &&
+        s["BloqueHorarioId"] === item["BloqueHorarioId"],
+    );
+
+    const blocks = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(
+      (day) => {
+        const thisBlock = selectedBlock.find((s) => s["Dia"] === day);
+        const subject = subjects.find(
+          (s) => thisBlock?.MateriaId === s?.MateriaId,
+        );
+        return subject?.Nombre;
+      },
+    );
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <tr>
+        <td class="print__block">
+          <p class="print__block-text">Bloque ${index + 1}</p>
+          <p class="print__block-time">${item["HoraInicio"]} - ${item["HoraFin"]}</p>
+        </td>
+      `;
+
+    tr.innerHTML +=
+      minutes > 15
+        ? `
+          <td class="print__subject">${blocks[0] ?? ""}</td>
+          <td class="print__subject">${blocks[1] ?? ""}</td>
+          <td class="print__subject">${blocks[2] ?? ""}</td>
+          <td class="print__subject">${blocks[3] ?? ""}</td>
+          <td class="print__subject">${blocks[4] ?? ""}</td>
+        </tr>
+        `
+        : `
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+          <td class="print__subject">RECESO</td>
+        </tr>
+        `;
+
+    scheduleReport[0].appendChild(tr);
+  });
+
+  // agregando docentes
+  const selectedSchedule = schedule.filter(
+    (s) => s["CursoId"] === grade && s["Seccion"] === parseInt(section),
+  );
+  scheduleReport[1].innerHTML = "";
+  const selectedTeachers = [];
+  selectedSchedule.forEach((s) => {
+    if (
+      !selectedTeachers.find(
+        (t) =>
+          t["DocenteId"] === s["DocenteId"] &&
+          t["MateriaId"] === s["MateriaId"],
+      )
+    )
+      selectedTeachers.push(s);
+  });
+
+  selectedTeachers.forEach((t) => {
+    const subjectName = subjects.find((s) => s["MateriaId"] === t["MateriaId"])[
+      "Nombre"
+    ];
+
+    const selectedTeacher = teachers.find(
+      (teacher) => teacher["DocenteId"] === t["DocenteId"],
+    );
+
+    const tableItem = document.createElement("tr");
+
+    tableItem.innerHTML = `
+    <tr>
+      <td class="print__subject-teacher">${subjectName}</td>
+      <td class="print__teacher">${selectedTeacher["DatosPersona"]["Nombre"]} ${selectedTeacher["DatosPersona"]["Apellido"]}</td>
+      <td class="print__subject">V-${selectedTeacher["DatosPersona"]["Cedula"]}</td>
+    </tr>
+    `;
+
+    scheduleReport[1].appendChild(tableItem);
+  });
+
+  window.print();
+};
+
 const filter = async (grade, section) => {
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
@@ -264,7 +363,7 @@ const filter = async (grade, section) => {
         <footer class="action-footer card">
           <div></div>
           <div class="footer-buttons">
-            <button class="btn btn-outline">
+            <button class="btn btn-outline" id="btn-pdf">
               <svg
                 width="18"
                 height="18"
@@ -476,6 +575,10 @@ const filter = async (grade, section) => {
           }
         });
     }
+
+    document
+      .getElementById("btn-pdf")
+      .addEventListener("click", () => exportToPdf(grade, section));
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
@@ -550,7 +653,6 @@ const updateGrades = async (term) => {
 
   if (gradeField.getAttribute("disabled") !== null) {
     gradeField.removeAttribute("disabled");
-    // sectionField.removeAttribute("disabled");
   }
 };
 

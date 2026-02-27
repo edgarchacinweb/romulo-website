@@ -26,6 +26,12 @@ class NotificationContainerComponent extends HTMLElement {
           align-items: center;
           gap: 5px;
         }
+
+        @media print {
+          div {
+            display: none;
+          }
+        }
       </style>
       <div>
         <section class="notifications" id="notificationContainer">

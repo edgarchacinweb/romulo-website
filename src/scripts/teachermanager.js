@@ -18,176 +18,127 @@ const subjectsContainer = document.querySelector(".materias-seleccionadas");
 const hoursField = document.getElementById("horas");
 const emailField = document.getElementById("correo");
 const locationField = document.getElementById("direccion");
+let subjectsSelectHtml = "";
 
 const addTeacherCard = (teacher) => {
   const teachersCardContainer = document.getElementById("teacher-list");
-  const card = document.createElement("article");
-  card.classList.add("teachers__card");
+  const card = document.createElement("div");
+  card.classList.add("teacher-card");
   card.innerHTML = `
-                  <section class="card__info">
-                    <h3 class="card__name">${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h3>
-                    <h4 class="card__identity">Cédula: V${teacher["DatosPersona"]["Cedula"]}</h4>
-                  </section>
-                  <section class="card__data">
-                    <div class="card__field">
-                      <svg
-                        width="24"
-                        height="24"
-                        stroke="currentColor"
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                      >
-                        <path d="M2.59 1.322l2.844-1.322 4.041 7.889-2.724 1.342c-.538 1.259 2.159 6.289 3.297 6.372.09-.058 2.671-1.328 2.671-1.328l4.11 7.932s-2.764 1.354-2.854 1.396c-.598.273-1.215.399-1.842.397-5.649-.019-12.086-10.43-12.133-17.33-.016-2.407.745-4.387 2.59-5.348zm1.93 1.274l-1.023.504c-5.294 2.762 4.177 21.185 9.648 18.686l.972-.474-2.271-4.383-1.026.501c-3.163 1.547-8.262-8.219-5.055-9.938l1.007-.498-2.252-4.398zm15.48 14.404h-1v-13h1v13zm-2-2h-1v-9h1v9zm4-1h-1v-7h1v7zm-6-1h-1v-5h1v5zm-2-1h-1v-3h1v3zm10 0h-1v-3h1v3zm-12-1h-1v-1h1v1z"/>
-                      </svg>
-                      <p class="card__text">${teacher["DatosPersona"]["Telefono"]}</p>
-                    </div>
-                    <div class="card__field">
-                      <svg
-                        width="24"
-                        height="24"
-                        stroke="currentColor"
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                      >
-                        <path d="M24 23h-24v-13.275l2-1.455v-7.27h20v7.272l2 1.453v13.275zm-20-10.472v-9.528h16v9.527l-8 5.473-8-5.472zm14-.528h-12v-1h12v1zm0-3v1h-12v-1h12zm-7-1h-5v-3h5v3zm7 0h-6v-1h6v1zm0-2h-6v-1h6v1z"/>
-                      </svg>
-                      <p class="card__text">${teacher["Usuario"]["Email"]}</p>
-                    </div>
-                    <div class="card__field">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        stroke="currentColor"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M23 5v13.883l-1 .117v-16c-3.895.119-7.505.762-10.002 2.316-2.496-1.554-6.102-2.197-9.998-2.316v16l-1-.117v-13.883h-1v15h9.057c1.479 0 1.641 1 2.941 1 1.304 0 1.461-1 2.942-1h9.06v-15h-1zm-12 13.645c-1.946-.772-4.137-1.269-7-1.484v-12.051c2.352.197 4.996.675 7 1.922v11.613zm9-1.484c-2.863.215-5.054.712-7 1.484v-11.613c2.004-1.247 4.648-1.725 7-1.922v12.051z"/>
-                      </svg>
-                      <p class="card__text">${teacher["Materias"].map((m) => m["Nombre"]).join(", ")}</p>
-                    </div>
-                    <div class="card__field">
-                      <svg
-                        width="24"
-                        height="24" stroke="currentColor" fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                      >
-                        <path d="M24 19h-1v-2.2c-1.853 4.237-6.083 7.2-11 7.2-6.623 0-12-5.377-12-12h1c0 6.071 4.929 11 11 11 4.66 0 8.647-2.904 10.249-7h-2.249v-1h4v4zm-11.036 0h-1.886c-.34-.957-.437-1.571-1.177-1.878h-.001c-.743-.308-1.251.061-2.162.494l-1.333-1.333c.427-.899.804-1.415.494-2.163-.308-.74-.926-.839-1.878-1.177v-1.886c.954-.339 1.57-.437 1.878-1.178.308-.743-.06-1.248-.494-2.162l1.333-1.333c.918.436 1.421.801 2.162.494l.001-.001c.74-.307.838-.924 1.177-1.877h1.886c.34.958.437 1.57 1.177 1.877l.001.001c.743.308 1.252-.062 2.162-.494l1.333 1.333c-.435.917-.801 1.421-.494 2.161v.001c.307.739.915.835 1.878 1.178v1.886c-.953.338-1.571.437-1.878 1.178-.308.743.06 1.249.494 2.162l-1.333 1.333c-.92-.438-1.42-.802-2.157-.496-.746.31-.844.926-1.183 1.88zm-.943-4.667c-1.289 0-2.333-1.044-2.333-2.333 0-1.289 1.044-2.334 2.333-2.334 1.289 0 2.333 1.045 2.333 2.334 0 1.289-1.044 2.333-2.333 2.333zm-8.021-5.333h-4v-4h1v2.2c1.853-4.237 6.083-7.2 11-7.2 6.623 0 12 5.377 12 12h-1c0-6.071-4.929-11-11-11-4.66 0-8.647 2.904-10.249 7h2.249v1z"/>
-                      </svg>
-                      <p class="card__text">${teacher["DatosPersona"]["Ocupacion"]}</p>
-                    </div>
-                    <div class="card__field">
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        width="24"
-                        height="24"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                      >
-                        <path d="M19.004 1c-.947 0-1.895.268-2.719.803 3.17 1.218 5.694 3.739 6.914 6.909.534-.823.801-1.77.801-2.717 0-2.761-2.236-4.995-4.996-4.995m-7.004 20c-4.411 0-8.001-3.59-8.001-8 0-4.413 3.59-8.001 8.001-8.001 4.412 0 8.002 3.588 8.002 8.001 0 4.41-3.59 8-8.002 8m10.002-8c0-5.522-4.475-10.001-10.002-10.001-5.523 0-10.001 4.479-10.001 10.001 0 4.316 3.087 10 10.001 10 6.93 0 10.002-5.693 10.002-10m-21.199-4.285c-.535-.824-.802-1.772-.802-2.718 0-2.757 2.233-4.995 4.991-4.995.948 0 1.896.268 2.721.803-3.172 1.217-5.692 3.739-6.91 6.91m12.196 4.285v-5h-1.999v6.998h5.999v-1.998h-4z"/>
-                      </svg>
-                      <p class="card__text">${teacher["HorasAcademicas"]} horas/semana</p>
-                    </div>
-                    <div class="card__field">
-                      <svg
-                        stroke="currentColor"
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12 0c-3.313 0-6 2.687-6 6 0 2.972 2.164 5.433 5 5.91v8.09h2v-8.089c2.836-.477 5-2.938 5-5.91 0-3.314-2.687-6.001-6-6.001zm-.707 4.508c-.549.65-1.423.8-1.953.333s-.516-1.372.034-2.022c.548-.65 1.422-.799 1.952-.333.53.467.515 1.372-.033 2.022zm8.707 11.492h-5v2h3.764l.5 1h-4.264v1.175l.783 1.825h-7.488l.705-1.643v-1.357h-2.042l-1.011-1h3.053v-2h-5l-4 8h24l-4-8zm-12.794 6h-3.97l1.764-3.528 1.516 1.528h1.549l-.859 2zm8.808-2h3.75l1 2h-3.892l-.858-2z"/>
-                      </svg>
-                      <p class="card__text">${teacher["DatosPersona"]["Direccion"]}</p>
-                    </div>
-                  </section>
-                  <section class="card__button">
-                    <button class="card__delete">
-                      <svg
-                        width="24"
-                        height="24"
-                        stroke="currentColor"
-                        fill="currentColor"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill-rule="evenodd"
-                        clip-rule="evenodd"
-                      >
-                        <path d="M19 24h-14c-1.104 0-2-.896-2-2v-16h18v16c0 1.104-.896 2-2 2m-9-14c0-.552-.448-1-1-1s-1 .448-1 1v9c0 .552.448 1 1 1s1-.448 1-1v-9zm6 0c0-.552-.448-1-1-1s-1 .448-1 1v9c0 .552.448 1 1 1s1-.448 1-1v-9zm6-5h-20v-2h6v-1.5c0-.827.673-1.5 1.5-1.5h5c.825 0 1.5.671 1.5 1.5v1.5h6v2zm-12-2h4v-1h-4v1z"/>
-                      </svg>
-                      <span>Eliminar</span>
-                    </button>
-                    <button class="card__edit">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        stroke="currentColor"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M18.363 8.464l1.433 1.431-12.67 12.669-7.125 1.436 1.439-7.127 12.665-12.668 1.431 1.431-12.255 12.224-.726 3.584 3.584-.723 12.224-12.257zm-.056-8.464l-2.815 2.817 5.691 5.692 2.817-2.821-5.693-5.688zm-12.318 18.718l11.313-11.316-.705-.707-11.313 11.314.705.709z"/>
-                      </svg>
-                      <span>Editar</span>
-                    </button>
-                  </section>
-      `;
+    <div class="card-header">
+    <div class="avatar-box">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    </div>
+    <h2>${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h2>
+  </div>
+
+  <div class="card-body">
+    <ul class="info-list">
+      
+      <li class="info-item divider">
+        <div class="icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
+            <line x1="7" y1="8" x2="11" y2="8"></line>
+            <line x1="7" y1="12" x2="17" y2="12"></line>
+            <line x1="7" y1="16" x2="13" y2="16"></line>
+            <circle cx="15" cy="8" r="1.5"></circle>
+          </svg>
+        </div>
+        <div class="text-box">
+          <span class="label">Cédula de Identidad</span>
+          <span class="value">V-${teacher["DatosPersona"]["Cedula"]}</span>
+        </div>
+      </li>
+
+      <li class="info-item divider">
+        <div class="icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+          </svg>
+        </div>
+        <div class="text-box">
+          <span class="label">Teléfono</span>
+          <span class="value">+${teacher["DatosPersona"]["Telefono"]}</span>
+        </div>
+      </li>
+
+      <li class="info-item divider">
+        <div class="icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+          </svg>
+        </div>
+        <div class="text-box">
+          <span class="label">Correo Electrónico</span>
+          <span class="value">${teacher["Usuario"]["Email"]}</span>
+        </div>
+      </li>
+
+      <li class="info-item divider">
+        <div class="icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+        </div>
+        <div class="text-box">
+          <span class="label">Ubicación</span>
+          <span class="value">${teacher["DatosPersona"]["Direccion"]}</span>
+        </div>
+      </li>
+
+      <li class="info-item">
+        <div class="icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <div class="text-box">
+          <span class="label">Horas Semanales</span>
+          <span class="value">${teacher["HorasAcademicas"]} horas</span>
+        </div>
+      </li>
+    </ul>
+
+    <div class="subjects-section">
+      <div class="subjects-header">
+        <div class="icon-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+          </svg>
+        </div>
+        <span>Materias que Imparte</span>
+      </div>
+
+      <div class="subjects-list">
+        ${teacher["Materias"].reduce((prev, current) => {
+          return (
+            prev +
+            `
+          <div class="subject-item ${current["Nivel"].toLowerCase() === "secundaria" ? "subject-blue" : "subject-purple"}">
+            <span class="subject-name">${current["Nombre"]}</span>
+            <span class="badge">${current["Nivel"]}</span>
+          </div>
+          `
+          );
+        }, "")}
+      </div>
+    </div>
+  </div>
+  `;
   teachersCardContainer.appendChild(card);
 
-  card.querySelector(".card__delete").addEventListener("click", async () => {
-    const notification = document.createElement("notification-component");
-    const notifications = document.getElementById("notifications");
-    const loader = document.createElement("loader-spinner");
-    loader.setAttribute("title", "Borrando docente...");
-    const token = localStorage.getItem("auth");
-    const confirmation = confirm(
-      "¿Estás seguro de que quieres deshabilitar al docente?",
-    );
-    if (!confirmation) return;
-    document.body.appendChild(loader);
-
-    try {
-      const removeTeacherResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/teacher/remove/${teacher["DocenteId"]}`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      if (removeTeacherResponse.status !== 204) {
-        const removeTeacherAnswer = await removeTeacherResponse.json();
-        throw new Error(removeTeacherAnswer.message);
-      }
-
-      card.remove();
-      const teachersCounter = document.getElementById("active-teachers");
-      teachersCounter.textContent = parseInt(teachersCounter.textContent) - 1;
-      notification.setAttribute("type", "success");
-      notification.setAttribute("text", "Docente eliminado correctamente.");
-    } catch (Error) {
-      console.error(Error.message);
-      notification.setAttribute("type", "error");
-      notification.setAttribute("text", Error.message);
-    } finally {
-      loader.remove();
-      notifications.appendChild(notification);
-    }
-  });
-
-  card.querySelector(".card__edit").addEventListener("click", async () => {
+  card.addEventListener("click", async () => {
+    subjectField.innerHTML = subjectsSelectHtml;
+    const phone = teacher["DatosPersona"]["Telefono"].split("-");
     document.getElementById("submit-btn").textContent = "Actualizar docente";
+
     firstNameField.value = teacher["DatosPersona"]["Nombre"];
     lastNameField.value = teacher["DatosPersona"]["Apellido"];
     identityField.value = teacher["DatosPersona"]["Cedula"];
@@ -195,6 +146,8 @@ const addTeacherCard = (teacher) => {
     emailField.value = teacher["Usuario"]["Email"];
     hoursField.value = parseInt(teacher["HorasAcademicas"]);
     locationField.value = teacher["DatosPersona"]["Direccion"];
+    phonePrefixField.value = phone[0];
+    phoneField.value = phone[1];
   });
 };
 
@@ -230,7 +183,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       selectedSubjects = selectedSubjects.filter(
         (subject) => subject["MateriaId"] !== id,
       );
-      console.log(selectedSubjects);
       if (addSubjectBtn.classList.contains("disabled"))
         addSubjectBtn.classList.remove("disabled");
     });
@@ -302,6 +254,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       subject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
       subjectList.appendChild(subject);
     });
+
+    subjectsSelectHtml = subjectList.innerHTML;
   }
 
   loader.remove();
@@ -414,8 +368,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         Ocupacion: occupation,
         Direccion: location,
       };
-
-      console.log(selectedSubjects);
 
       const registerTeacherResponse = await fetch(
         `${window.APP_CONFIG.api_url}/teacher/create`,
