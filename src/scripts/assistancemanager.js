@@ -31,7 +31,8 @@ dateInput.valueAsDate = new Date();
 let currentStudents = [];
 let currentClassId = ""; 
 let lapsosData = []; 
-let currentFilter = 'all'; // Pestaña actual: 'all', 'present', 'absent'
+let currentFilter = 'all'; 
+let isAttendanceSaved = false; 
 
 // === CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
 document.addEventListener("DOMContentLoaded", async () => {
@@ -39,7 +40,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("auth");
     const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
 
-    // --- OBTENER LAPSOS REALES DESDE LA BD ---
     try {
       const lapsosResponse = await fetch(`${apiUrl}/lapsos/current`, {
         method: "GET",
@@ -118,7 +118,7 @@ dateInput.addEventListener("change", (e) => {
   calcularLapsoPorFecha(e.target.value);
 });
 
-// Evento: Cargar Estudiantes y obtener el UUID de la Clase
+// Evento: Cargar Estudiantes
 btnLoad.addEventListener("click", async () => {
   const subjectOption = subjectSelect.options[subjectSelect.selectedIndex];
   const subjectId = subjectOption ? subjectOption.dataset.id : null;
@@ -128,6 +128,7 @@ btnLoad.addEventListener("click", async () => {
   const section = sectionSelect.value;
   const term = termSelect.value;
   const termName = termDisplay.value; 
+  const selectedDate = dateInput.value;
 
   if (!subjectId || !year || !section || term === "") {
     alert("Por favor, selecciona la materia, año, sección y verifica que la fecha pertenezca a un lapso válido.");
@@ -141,7 +142,8 @@ btnLoad.addEventListener("click", async () => {
     const token = localStorage.getItem("auth");
     const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
 
-    const response = await fetch(`${apiUrl}/assistance/students?materiaId=${subjectId}&year=${year}&section=${sectionNum}&term=${term}`, {
+    // --- AQUÍ ESTÁ LA CLAVE: ENVIAMOS LA FECHA EN LA URL ---
+    const response = await fetch(`${apiUrl}/assistance/students?materiaId=${subjectId}&year=${year}&section=${sectionNum}&term=${term}&fecha=${selectedDate}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -153,12 +155,14 @@ btnLoad.addEventListener("click", async () => {
       const data = await response.json();
       currentClassId = data.ClaseId; 
       
-      // Mapeamos los estudiantes. INICIALMENTE NADIE ESTÁ PRESENTE NI AUSENTE (null)
+      // --- CAPTURAMOS SI LA ASISTENCIA ESTÁ GUARDADA ---
+      isAttendanceSaved = data.AsistenciaCargada || false;
+      
       currentStudents = data.estudiantes.map(e => ({
         id: e.EstudianteId,
         name: `${e.Nombre} ${e.Apellido || ""}`.trim(),
-        present: null, // <-- ESTADO "PENDIENTE" POR DEFECTO
-        justification: ""
+        present: e.Presente !== undefined ? e.Presente : null, // Mapea desde la BD o queda en null
+        justification: e.Justificacion || ""
       }));
 
       if(currentStudents.length === 0) {
@@ -179,6 +183,40 @@ btnLoad.addEventListener("click", async () => {
     return;
   }
 
+  // --- CONFIGURAR UI SEGÚN EL ESTADO RECUPERADO DE LA BD ---
+  if (isAttendanceSaved) {
+      if (btnSave) {
+          btnSave.disabled = true;
+          btnSave.innerHTML = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+              </svg> 
+              Asistencia Cargada
+          `;
+          btnSave.style.backgroundColor = "#10b981"; 
+          btnSave.style.borderColor = "#10b981";
+          btnSave.style.color = "white";
+          btnSave.style.cursor = "not-allowed";
+      }
+      const bulkActions = document.querySelector('.bulk-actions-small');
+      if (bulkActions) bulkActions.style.display = 'none';
+  } else {
+      if (btnSave) {
+          btnSave.disabled = false;
+          btnSave.style = ""; 
+          btnSave.innerHTML = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                <polyline points="17 21 17 13 7 13 7 21" />
+                <polyline points="7 3 7 8 15 8" />
+              </svg>
+              Guardar Asistencia
+          `;
+      }
+      const bulkActions = document.querySelector('.bulk-actions-small');
+      if (bulkActions) bulkActions.style.display = 'flex';
+  }
+
   // Actualizar Títulos de la Interfaz
   displayClassName.textContent = `${subjectName} - ${year} "${section}"`;
   
@@ -194,11 +232,10 @@ btnLoad.addEventListener("click", async () => {
   setFilter('all'); 
 });
 
-// Función para cambiar de Pestaña (Lista Completa, Presentes, Ausentes)
+// Función para cambiar de Pestaña
 window.setFilter = (filter) => {
   currentFilter = filter;
   
-  // Actualizar visualmente la pestaña activa
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.remove('active');
     if (btn.dataset.tab === filter) {
@@ -209,16 +246,14 @@ window.setFilter = (filter) => {
   renderStudents();
 };
 
-// Función para renderizar la lista basada en el filtro
 function renderStudents() {
   studentList.innerHTML = ""; 
 
-  // Filtramos los estudiantes pero mantenemos su "índice original" para no romper el array al guardar
   const filteredStudents = currentStudents.map((student, index) => ({...student, originalIndex: index}))
     .filter(student => {
       if (currentFilter === 'present') return student.present === true;
       if (currentFilter === 'absent') return student.present === false;
-      return true; // 'all' muestra todos (pendientes, presentes y ausentes)
+      return true; 
     });
 
   if (filteredStudents.length === 0) {
@@ -235,13 +270,14 @@ function renderStudents() {
     const row = document.createElement("div");
     row.className = "student-row";
     
-    // Etiqueta visual del estado del estudiante
     let statusBadge = `<span class="student-status-badge" style="background:#f1f5f9; color:#64748b;">Pendiente</span>`;
     if (student.present === true) {
         statusBadge = `<span class="student-status-badge" style="background:#dcfce7; color:#166534;">Presente</span>`;
     } else if (student.present === false) {
         statusBadge = `<span class="student-status-badge" style="background:#fee2e2; color:#991b1b;">Ausente</span>`;
     }
+
+    const disabledStyle = isAttendanceSaved ? 'opacity: 0.6; cursor: not-allowed;' : '';
 
     row.innerHTML = `
         <div class="student-header">
@@ -251,10 +287,16 @@ function renderStudents() {
             </div>
             
             <div class="mark-buttons">
-                <button class="btn-mark present ${student.present === true ? 'active' : ''}" onclick="markStudent(${student.originalIndex}, true)">
+                <button class="btn-mark present ${student.present === true ? 'active' : ''}" 
+                        onclick="markStudent(${student.originalIndex}, true)" 
+                        ${isAttendanceSaved ? 'disabled' : ''} 
+                        style="${disabledStyle}">
                     ✔️ Presente
                 </button>
-                <button class="btn-mark absent ${student.present === false ? 'active' : ''}" onclick="markStudent(${student.originalIndex}, false)">
+                <button class="btn-mark absent ${student.present === false ? 'active' : ''}" 
+                        onclick="markStudent(${student.originalIndex}, false)" 
+                        ${isAttendanceSaved ? 'disabled' : ''} 
+                        style="${disabledStyle}">
                     ❌ Ausente
                 </button>
             </div>
@@ -266,7 +308,9 @@ function renderStudents() {
                    class="justification-input" 
                    placeholder="Escribe el motivo de la inasistencia (opcional)" 
                    value="${student.justification || ''}" 
-                   onchange="updateJustification(${student.originalIndex}, this.value)">
+                   onchange="updateJustification(${student.originalIndex}, this.value)"
+                   ${isAttendanceSaved ? 'readonly' : ''}
+                   style="${isAttendanceSaved ? 'background-color: #f1f5f9; cursor: not-allowed;' : ''}">
         </div>` : ''}
     `;
 
@@ -276,20 +320,21 @@ function renderStudents() {
   updateStats();
 }
 
-// Función para marcar Asistencia individual explícita
 window.markStudent = (index, status) => {
+  if (isAttendanceSaved) return; 
+
   currentStudents[index].present = status;
   if(status === true) {
-      currentStudents[index].justification = ""; // Limpiar justificación si lo marcamos presente
+      currentStudents[index].justification = ""; 
   }
   renderStudents(); 
 };
 
 window.updateJustification = (index, value) => {
+  if (isAttendanceSaved) return; 
   currentStudents[index].justification = value;
 };
 
-// Actualizar los contadores de las pestañas
 function updateStats() {
   const presentCount = currentStudents.filter((s) => s.present === true).length;
   const absentCount = currentStudents.filter((s) => s.present === false).length;
@@ -299,8 +344,9 @@ function updateStats() {
   if(countAllSpan) countAllSpan.textContent = currentStudents.length;
 }
 
-// Botones de acción masiva (por si el profesor quiere ahorrar tiempo)
 window.markAll = (status) => {
+  if (isAttendanceSaved) return; 
+
   currentStudents.forEach((s) => {
       s.present = status;
       if(status === true) s.justification = "";
@@ -308,15 +354,14 @@ window.markAll = (status) => {
   renderStudents();
 };
 
-// Enviar datos al Backend Flask (assistance.py)
 if (btnSave) {
   btnSave.addEventListener("click", async () => {
-    
-    // VALIDACIÓN IMPORTANTE: Asegurarnos de que NADIE se haya quedado en "Pendiente" (null)
+    if (isAttendanceSaved) return;
+
     const estudiantesPendientes = currentStudents.filter(s => s.present === null);
     if (estudiantesPendientes.length > 0) {
         alert(`⚠️ Faltan ${estudiantesPendientes.length} estudiantes por evaluar.\n\nPor favor, marca si están Presentes o Ausentes antes de guardar la asistencia.`);
-        setFilter('all'); // Devolverlo a la lista completa para que vea quién le falta
+        setFilter('all'); 
         return;
     }
 
@@ -324,10 +369,12 @@ if (btnSave) {
         alert("Advertencia: Se utilizará un ID de clase genérico debido a que la tabla 'Clase' podría no estar completamente configurada en su base de datos, pero la asistencia será procesada.");
     }
 
+    // --- ENVIAMOS LA FECHA TAMBIÉN AL GUARDAR ---
     const payload = {
       ClaseId: currentClassId,
+      Fecha: dateInput.value, 
       EstudianteId: currentStudents.map(s => s.id),
-      Activo: currentStudents.map(s => s.present), // Ahora seguro mandará true o false
+      Activo: currentStudents.map(s => s.present), 
       Justificacion: currentStudents.map(s => s.present ? "" : (s.justification || "Sin justificar"))
     };
 
@@ -346,6 +393,26 @@ if (btnSave) {
 
       if (response.status === 201) {
         alert("¡Asistencia guardada exitosamente!");
+        
+        isAttendanceSaved = true;
+        
+        btnSave.disabled = true;
+        btnSave.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg> 
+            Asistencia Cargada
+        `;
+        btnSave.style.backgroundColor = "#10b981"; 
+        btnSave.style.borderColor = "#10b981";
+        btnSave.style.color = "white";
+        btnSave.style.cursor = "not-allowed";
+
+        const bulkActions = document.querySelector('.bulk-actions-small');
+        if (bulkActions) bulkActions.style.display = 'none';
+
+        renderStudents();
+
       } else {
         const errorData = await response.json();
         alert(`Error al guardar: ${errorData.message || 'Error desconocido'}`);
