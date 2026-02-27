@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         `
                           <div class="subject-card">
                             <div class="card-info">
-                              <h4>${subject["Nombre"]}</h4>
+                              <h4>${subject["Nombre"].toUpperCase()}</h4>
                               <span>${getCurrentDate(subject["Fecha"])}</span>
                             </div>
                             <button class="btn-delete" title="Eliminar materia" data-id=${subject["MateriaId"]}>
@@ -155,9 +155,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const name = nameInput.value.trim();
     if (
       !name.length > 3 ||
-      name.length > 20 ||
+      name.length > 25 ||
       !new RegExp(
-        /^(?=[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\.]{3,})[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(?:\.[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)*(?:\s(?=[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\.]{3,})[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+(?:\.[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+)*)*$/,
+        /^(?! )(?!.* $)(?!.* {2})(?!.*[.,]{2})(?=.*[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ])[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ., ]+$/,
       ).test(name)
     )
       return;
@@ -241,10 +241,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       const newSubject = {
-        Nombre: name
-          .split(" ")
-          .map((m) => m[0].toUpperCase() + m.substr(1).toLowerCase())
-          .join(" "),
+        Nombre: name.toUpperCase(),
         Nivel: level,
         Fecha: "",
       };
