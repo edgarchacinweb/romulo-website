@@ -30,59 +30,99 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modalStatus = document.getElementById("modalStatus");
     const modalNote = document.getElementById("modalNote");
     
-    let currentAttendanceData = []; // Guardará la data de la tabla
-    let currentEditRecordId = null; // ID del registro que se está editando
+    // VARIABLES DE ESTADO PARA FILTRADO DINÁMICO
+    let currentAttendanceData = []; 
+    let currentEditRecordId = null; 
+    let allTeachers = []; // Guardamos todos los docentes y sus materias
+    let allSubjects = []; // Guardamos la lista completa de materias como respaldo
 
     // Por defecto colocamos la fecha de hoy
     fechaSelect.valueAsDate = new Date();
 
+    /**
+     * Función auxiliar para poblar el selector de materias
+     * @param {Array} list - Lista de materias a mostrar
+     */
+    function populateSubjectsDropdown(list) {
+        materiaSelect.innerHTML = '<option value="">Seleccione una Materia</option>';
+        list.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m.MateriaId;
+            opt.textContent = m.Nombre;
+            materiaSelect.appendChild(opt);
+        });
+    }
+
     // 1. CARGAR SELECTS DE FILTROS AL INICIAR
     async function loadFilters() {
         try {
-            // Cargar Cursos (Años y Secciones)
+            // --- CARGAR CURSOS (AÑOS Y SECCIONES) ---
             const cursosRes = await fetch(`${apiUrl}/course/sections`, { headers: { "Authorization": `Bearer ${token}` } });
             if (cursosRes.ok) {
                 const cursos = await cursosRes.json();
                 cursos.forEach(c => {
                     const opt = document.createElement("option");
                     opt.value = c.CursoId;
-                    
-                    // Transformamos el grado ("1er", "2do", etc.) y la sección (1 -> "A", 2 -> "B", etc.)
                     const gradoTexto = { 1: "1er", 2: "2do", 3: "3er", 4: "4to", 5: "5to" }[c.Grado] || `${c.Grado}°`;
                     const seccionLetra = String.fromCharCode(64 + parseInt(c.Seccion));
-                    
                     opt.textContent = `${gradoTexto} Año - Sección ${seccionLetra}`;
                     cursoSelect.appendChild(opt);
                 });
             }
 
-            // Cargar Docentes
-            const docentesRes = await fetch(`${apiUrl}/people/teachers`, { headers: { "Authorization": `Bearer ${token}` } });
+            // --- CARGAR DOCENTES ---
+            const docentesRes = await fetch(`${apiUrl}/teacher/list`, { 
+                headers: { "Authorization": `Bearer ${token}` } 
+            });
+
             if (docentesRes.ok) {
-                const docentes = await docentesRes.json();
-                docentes.forEach(d => {
+                allTeachers = await docentesRes.json();
+                docenteSelect.innerHTML = '<option value="">Seleccione un Docente</option>';
+                
+                allTeachers.forEach(d => {
                     const opt = document.createElement("option");
-                    opt.value = d.DocenteId || d.UsuarioId;
-                    opt.textContent = `${d.Nombre} ${d.Apellido}`;
+                    opt.value = d.DocenteId;
+                    const nombre = d.DatosPersona?.Nombre || "Sin nombre";
+                    const apellido = d.DatosPersona?.Apellido || "";
+                    opt.textContent = `${nombre} ${apellido}`;
                     docenteSelect.appendChild(opt);
                 });
             }
 
-            // Cargar Materias
-            const materiasRes = await fetch(`${apiUrl}/subject/get_all`, { headers: { "Authorization": `Bearer ${token}` } });
+            // --- CARGAR MATERIAS (INICIALMENTE TODAS) ---
+            const materiasRes = await fetch(`${apiUrl}/subject/list`, { 
+                headers: { "Authorization": `Bearer ${token}` } 
+            });
             if (materiasRes.ok) {
-                const materias = await materiasRes.json();
-                materias.forEach(m => {
-                    const opt = document.createElement("option");
-                    opt.value = m.MateriaId;
-                    opt.textContent = m.Nombre;
-                    materiaSelect.appendChild(opt);
-                });
+                allSubjects = await materiasRes.json();
+                populateSubjectsDropdown(allSubjects);
             }
         } catch (error) {
             console.error("Error cargando filtros:", error);
         }
     }
+
+    // === LÓGICA DE FILTRADO DINÁMICO: DOCENTE -> MATERIAS ===
+    docenteSelect.addEventListener("change", () => {
+        const selectedTeacherId = docenteSelect.value;
+        
+        if (!selectedTeacherId) {
+            // Si deselecciona al docente, volvemos a mostrar todas las materias del sistema
+            populateSubjectsDropdown(allSubjects);
+            return;
+        }
+
+        // Buscamos el objeto del docente seleccionado en nuestra lista guardada
+        const teacher = allTeachers.find(t => t.DocenteId === selectedTeacherId);
+        
+        if (teacher && teacher.Materias && teacher.Materias.length > 0) {
+            // Cargamos solo las materias que este profesor tiene vinculadas
+            populateSubjectsDropdown(teacher.Materias);
+        } else {
+            // Caso borde: El docente no tiene materias asignadas en la BD
+            materiaSelect.innerHTML = '<option value="">El docente no tiene materias asignadas</option>';
+        }
+    });
 
     loadFilters();
 
@@ -102,7 +142,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         btnBuscar.disabled = true;
 
         try {
-            // NOTA: Esta ruta en el backend debe ser creada para que el ADMIN pueda consultar cualquier asistencia
             const queryParams = new URLSearchParams({
                 cursoId: cursoId,
                 fecha: fecha,
@@ -126,14 +165,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     renderTable(data);
                 }
             } else {
-                // Bloque Fallback (Mock Data): Para que puedas ver el diseño si el backend no tiene la ruta aún
-                console.warn("Ruta backend no encontrada, mostrando datos de prueba visuales.");
+                console.warn("Ruta backend /assistance/admin/report no encontrada o error.");
                 mockDataVisualTest(); 
             }
         } catch (error) {
             console.error("Error:", error);
             alert("Error de conexión al consultar los reportes.");
-            mockDataVisualTest(); // Fallback temporal para diseño
+            mockDataVisualTest();
         } finally {
             btnBuscar.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Buscar Asistencia`;
             btnBuscar.disabled = false;
@@ -143,8 +181,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 3. RENDERIZAR LA TABLA DE RESULTADOS
     function renderTable(data) {
         reportCard.style.display = "block";
-        
-        // Configurar Cabeceras
         const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
         const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
         const docenteText = docenteSelect.value ? docenteSelect.options[docenteSelect.selectedIndex].text : "Varios";
@@ -156,13 +192,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         currentAttendanceData.forEach(record => {
             const tr = document.createElement("tr");
-            
-            // Estado visual
             let statusBadge = record.Activo 
                 ? `<span class="badge present">Presente</span>` 
                 : `<span class="badge absent">Ausente</span>`;
             
-            // Si el Admin lo editó antes, mostrar un badge extra
             let adminBadge = record.EditadoPorAdmin ? `<br><span class="badge edited" style="margin-top:4px; display:inline-block;">Editado por Admin</span>` : "";
 
             tr.innerHTML = `
@@ -185,61 +218,42 @@ document.addEventListener("DOMContentLoaded", async () => {
         currentEditRecordId = id;
         modalStudentName.textContent = nombre;
         modalStatus.value = statusActual ? "true" : "false";
-        modalNote.value = ""; // Limpiar nota
-        btnSaveEdit.disabled = true; // Bloquear botón hasta que escriba nota
-        
+        modalNote.value = ""; 
+        btnSaveEdit.disabled = true;
         editModal.style.display = "flex";
     };
 
-    const hideModal = () => { editModal.style.display = "none"; currentEditId = null; };
+    const hideModal = () => { editModal.style.display = "none"; currentEditRecordId = null; };
     closeModal.addEventListener("click", hideModal);
     btnCancelEdit.addEventListener("click", hideModal);
 
-    // Validación estricta: La nota es OBLIGATORIA para que el Admin modifique
     modalNote.addEventListener("input", (e) => {
-        if (e.target.value.trim().length >= 10) {
-            btnSaveEdit.disabled = false;
-        } else {
-            btnSaveEdit.disabled = true;
-        }
+        btnSaveEdit.disabled = e.target.value.trim().length < 10;
     });
 
     btnSaveEdit.addEventListener("click", async () => {
         const newStatus = modalStatus.value === "true";
         const adminNote = modalNote.value.trim();
-
         btnSaveEdit.textContent = "Guardando...";
         btnSaveEdit.disabled = true;
 
         try {
-            // NOTA: Ruta sugerida para el backend -> PUT /assistance/admin/edit/<AsistenciaId>
             const response = await fetch(`${apiUrl}/assistance/admin/edit/${currentEditRecordId}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    Activo: newStatus,
-                    NotaAdmin: adminNote
-                })
+                body: JSON.stringify({ Activo: newStatus, NotaAdmin: adminNote })
             });
 
             if (response.ok) {
                 alert("Registro actualizado correctamente.");
                 hideModal();
-                btnBuscar.click(); // Recargar la tabla
+                btnBuscar.click(); 
             } else {
-                // Simulación para prueba visual (Si la ruta no existe, aplicamos en memoria)
-                const record = currentAttendanceData.find(r => r.AsistenciaId === currentEditRecordId);
-                if(record) {
-                    record.Activo = newStatus;
-                    record.EditadoPorAdmin = true;
-                    record.NotaAdmin = adminNote;
-                }
-                alert("Simulación: Actualizado en memoria (Ruta backend pendiente).");
+                alert("Ruta de edición no implementada en backend.");
                 hideModal();
-                renderTable({ asistencias: currentAttendanceData });
             }
         } catch (error) {
             console.error(error);
@@ -253,26 +267,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnDownloadPdf.addEventListener("click", () => {
         const element = document.getElementById('pdfContent');
         const opt = {
-            margin:       [10, 10, 10, 10], // top, left, bottom, right
+            margin:       [10, 10, 10, 10],
             filename:     `Reporte_Asistencia_${fechaSelect.value}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
-
-        // El html2pdf ignorará los elementos con la clase "html2pdf__ignore" (ej. los botones)
         html2pdf().set(opt).from(element).save();
     });
 
-    // ==========================================
-    // MOCK DATA: PARA PRUEBAS DE INTERFAZ
-    // ==========================================
     function mockDataVisualTest() {
         const mockData = {
             asistencias: [
                 { AsistenciaId: "A1", NombreEstudiante: "Pedro Pérez", Activo: true, JustificacionDocente: "", EditadoPorAdmin: false, NotaAdmin: "" },
                 { AsistenciaId: "A2", NombreEstudiante: "María Gómez", Activo: false, JustificacionDocente: "Problemas de salud", EditadoPorAdmin: false, NotaAdmin: "" },
-                { AsistenciaId: "A3", NombreEstudiante: "Carlos Sánchez", Activo: false, JustificacionDocente: "Sin justificar", EditadoPorAdmin: true, NotaAdmin: "El representante trajo justificativo médico el día siguiente." }
+                { AsistenciaId: "A3", NombreEstudiante: "Carlos Sánchez", Activo: false, JustificacionDocente: "Sin justificar", EditadoPorAdmin: true, NotaAdmin: "El representante trajo justificativo médico." }
             ]
         };
         currentAttendanceData = mockData.asistencias;
