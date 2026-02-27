@@ -163,13 +163,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   addSubjectBtn.addEventListener("click", () => {
     if (subjectField.options.length === 1)
       addSubjectBtn.classList.add("disabled");
+      
     const selectedElement = subjectField.options[subjectField.selectedIndex];
     const id = subjectField.value;
-    const subject = selectedElement.textContent;
+    const subjectFullText = selectedElement.textContent; // Ej: "Matemáticas - Secundaria"
+    
+    // SOLUCIÓN: Separamos el Nombre de la materia y el Nivel
+    // asumiendo que el texto viene en formato "Nombre - Nivel"
+    const [subjectName, subjectLevel] = subjectFullText.split(" - ");
+    
     selectedElement.remove();
-    selectedSubjects.push({ MateriaId: id, Nombre: subject });
+    
+    // Ahora guardamos tanto el Nombre como el Nivel por separado
+    selectedSubjects.push({ 
+        MateriaId: id, 
+        Nombre: subjectName, 
+        Nivel: subjectLevel || "" 
+    });
+    
     const newSubject = document.createElement("p");
-    newSubject.textContent = subject;
+    newSubject.textContent = subjectFullText;
     newSubject.classList.add("materia");
     subjectsContainer.appendChild(newSubject);
     console.log(selectedSubjects);
@@ -177,7 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     newSubject.addEventListener("click", () => {
       const newOption = document.createElement("option");
       newOption.setAttribute("value", id);
-      newOption.textContent = subject;
+      newOption.textContent = subjectFullText;
       subjectField.appendChild(newOption);
       newSubject.remove();
       selectedSubjects = selectedSubjects.filter(
@@ -200,7 +213,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
 
     const teachersData = await teachersResponse.json();
@@ -230,7 +243,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-    },
+    }
   );
 
   if (subjectsResponse.status !== 200) {
@@ -383,7 +396,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             Email: email,
             Horas: hours,
           }),
-        },
+        }
       );
 
       const registerTeacherAnswer = await registerTeacherResponse.json();
