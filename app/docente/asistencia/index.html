@@ -12,9 +12,6 @@
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1.5rem;
       }
-      .student-row {
-        flex-wrap: wrap; 
-      }
       .justification-input {
         width: 100%;
         padding: 8px 12px;
@@ -30,6 +27,111 @@
         outline: none;
         border-color: #3b82f6;
       }
+      
+      /* Nuevos estilos para los Controles y Pestañas de Asistencia */
+      .attendance-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 1rem;
+      }
+      .attendance-tabs {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .tab-btn {
+        padding: 8px 16px;
+        border: none;
+        background: #f1f5f9;
+        color: #64748b;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      .tab-btn:hover {
+        background: #e2e8f0;
+      }
+      .tab-btn.active {
+        background: #3b82f6;
+        color: white;
+      }
+      .bulk-actions-small {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn-bulk {
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      .btn-bulk.present { color: #10b981; border-color: #10b981; }
+      .btn-bulk.absent { color: #ef4444; border-color: #ef4444; }
+      .btn-bulk:hover { background: #f8fafc; }
+
+      /* Estilos para las tarjetas de cada estudiante */
+      .student-row {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        background: white;
+        transition: box-shadow 0.2s;
+      }
+      .student-row:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+      .student-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+      }
+      .student-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 1.05rem;
+      }
+      .student-status-badge {
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        margin-left: 8px;
+        font-weight: bold;
+        text-transform: uppercase;
+      }
+      .mark-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+      .btn-mark {
+        padding: 6px 16px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        background: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 500;
+        color: #64748b;
+      }
+      .btn-mark.present:hover { border-color: #10b981; color: #10b981; }
+      .btn-mark.absent:hover { border-color: #ef4444; color: #ef4444; }
+      .btn-mark.present.active { background: #10b981; border-color: #10b981; color: white; }
+      .btn-mark.absent.active { background: #ef4444; border-color: #ef4444; color: white; }
     </style>
   </head>
   <body>
@@ -62,19 +164,16 @@
 
         <div class="filter-grid">
           
-          <!-- Materia (AHORA ES DINÁMICO) -->
           <div class="form-group">
             <label for="subjectSelect">Materia</label>
             <div class="select-wrapper">
               <select id="subjectSelect">
-                <!-- Se llenará mediante Javascript -->
                 <option value="" disabled selected>Cargando materias...</option>
               </select>
               <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
           </div>
 
-          <!-- Año / Grado -->
           <div class="form-group">
             <label for="yearSelect">Año (Grado)</label>
             <div class="select-wrapper">
@@ -90,7 +189,6 @@
             </div>
           </div>
 
-          <!-- Sección -->
           <div class="form-group">
             <label for="sectionSelect">Sección</label>
             <div class="select-wrapper">
@@ -104,18 +202,14 @@
             </div>
           </div>
 
-          <!-- Lapso (AHORA ES AUTOMÁTICO) -->
           <div class="form-group">
             <label for="termDisplay">Lapso</label>
             <div class="input-wrapper">
-              <!-- Este input es solo visual para el usuario -->
               <input type="text" id="termDisplay" readonly style="background-color: #f1f5f9; cursor: not-allowed; color: #475569; width: 100%; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px;" placeholder="Calculando lapso..." />
-              <!-- Este input oculto guarda el ID real del lapso (1, 2 o 3) para mandarlo al backend -->
               <input type="hidden" id="termSelect" value="" />
             </div>
           </div>
 
-          <!-- Fecha de la Clase -->
           <div class="form-group" style="grid-column: 1 / -1;">
             <label for="dateInput">Fecha de la Clase</label>
             <div class="input-wrapper">
@@ -159,24 +253,28 @@
               <p id="displayDate" class="subtitle-date">Lapso y Fecha</p>
             </div>
           </div>
-          <div class="attendance-counter">
-            <span id="presentCount" class="counter-big">0</span>
-            <span class="counter-label">de <span id="totalCount">0</span> presentes</span>
+        </div>
+
+        <!-- NUEVOS CONTROLES DE ASISTENCIA: Pestañas y Acciones rápidas -->
+        <div class="attendance-controls">
+          <div class="attendance-tabs">
+            <button class="tab-btn active" data-tab="all" onclick="setFilter('all')">
+              Lista Completa (<span id="countAll">0</span>)
+            </button>
+            <button class="tab-btn" data-tab="present" onclick="setFilter('present')">
+              Presentes (<span id="countPresent">0</span>)
+            </button>
+            <button class="tab-btn" data-tab="absent" onclick="setFilter('absent')">
+              Ausentes (<span id="countAbsent">0</span>)
+            </button>
+          </div>
+          <div class="bulk-actions-small">
+            <button class="btn-bulk present" onclick="markAll(true)">✔️ Marcar Todos Presentes</button>
+            <button class="btn-bulk absent" onclick="markAll(false)">❌ Marcar Todos Ausentes</button>
           </div>
         </div>
 
-        <div class="bulk-actions">
-          <button class="btn-outline" onclick="markAll(true)">Todos Presentes</button>
-          <button class="btn-outline" onclick="markAll(false)">Todos Ausentes</button>
-          <button class="btn-outline" onclick="resetAll()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M23 4v6h-6M1 20v-6h6" />
-              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-            </svg>
-            Reiniciar
-          </button>
-        </div>
-
+        <!-- CONTENEDOR DE LA LISTA -->
         <div class="list-container" id="studentList"></div>
 
         <div class="save-actions">
@@ -186,7 +284,7 @@
               <polyline points="17 21 17 13 7 13 7 21" />
               <polyline points="7 3 7 8 15 8" />
             </svg>
-            Guardar Cambios
+            Guardar Asistencia
           </button>
         </div>
       </section>
