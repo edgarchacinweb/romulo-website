@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reportes de Asistencia - Admin</title>
+
+    <!-- Estilos CSS globales y del dashboard -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/dashboard.css" />
+
+    <!-- Librería para generar PDF desde el frontend -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+      .filters-container {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+      }
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #475569;
+        font-size: 0.9rem;
+      }
+      .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background-color: #f8fafc;
+      }
+      .btn-search {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: 0.2s;
+      }
+      .btn-search:hover { background-color: #2563eb; }
+      
+      /* Estilos de la Tabla */
+      .report-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        padding: 24px;
+        display: none; /* Oculto por defecto */
+      }
+      .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #f1f5f9;
+      }
+      .btn-pdf {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-pdf:hover { background-color: #dc2626; }
+      
+      .table-responsive { overflow-x: auto; }
+      .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+      }
+      .attendance-table th, .attendance-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .attendance-table th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+      }
+      .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+      }
+      .badge.present { background: #dcfce7; color: #166534; }
+      .badge.absent { background: #fee2e2; color: #991b1b; }
+      .badge.edited { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+      
+      .btn-edit-small {
+        background: transparent;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: 0.2s;
+      }
+      .btn-edit-small:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+      /* Modal Estilos */
+      .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.5); display: none;
+        justify-content: center; align-items: center; z-index: 1000;
+      }
+      .modal-content {
+        background: white; width: 90%; max-width: 500px;
+        border-radius: 12px; padding: 24px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      }
+      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+      .modal-header h3 { margin: 0; color: #1e293b; }
+      .close-modal { cursor: pointer; color: #64748b; font-size: 1.5rem; background: none; border: none; }
+      .note-textarea {
+        width: 100%; min-height: 100px; padding: 10px; border: 1px solid #cbd5e1;
+        border-radius: 6px; margin-top: 10px; font-family: inherit; resize: vertical;
+      }
+      .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+      .btn-cancel { background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
+      .btn-save { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+      .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+
+      /* Botón de retroceso colocado en el Header */
+      .btn-back-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: #eff6ff;
+        color: #2563eb !important;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: 1px solid #bfdbfe;
+      }
+      .btn-back-header:hover {
+        background-color: #dbeafe;
+        transform: translateX(-4px); /* Pequeño empuje a la izquierda para invitar a "volver" */
+      }
+    </style>
+  </head>
+  <body>
+    <section class="notifications" id="notifications"></section>
+
+    <!-- SIDEBAR SIMPLIFICADO: Solo Logo -->
+    <aside class="sidebar">
+      <div>
+        <div class="logo">
+          <img src="/src/assets/images/romulo.png" alt="Logo" />
+          <h2>Liceo Romulo Gallegos</h2>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <!-- HEADER CON FLEXBOX PARA ALINEAR TÍTULO A LA IZQUIERDA Y BOTÓN A LA DERECHA -->
+      <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <h1 style="margin: 0;">Gestión de Asistencia - Administrador</h1>
+        
+        <a href="/app/admin/dashboard/index.html" class="btn-back-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Volver al Menú
+        </a>
+      </header>
+
+      <!-- FILTROS -->
+      <section class="filters-container">
+        <h3 style="margin-bottom: 15px; color: #1e293b;">Filtrar Reporte</h3>
+        <div class="filter-grid">
+          <div class="form-group">
+            <label>Año y Sección</label>
+            <select id="cursoSelect" class="form-control">
+              <option value="">Seleccione un Curso</option>
+              <!-- Dinámico -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Docente</label>
+            <select id="docenteSelect" class="form-control">
+              <option value="">Seleccione un Docente</option>
+              <!-- Dinámico -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Materia</label>
+            <select id="materiaSelect" class="form-control">
+              <option value="">Seleccione una Materia</option>
+              <!-- Dinámico -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha Específica</label>
+            <input type="date" id="fechaSelect" class="form-control" />
+          </div>
+        </div>
+        <button id="btnBuscar" class="btn-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Buscar Asistencia
+        </button>
+      </section>
+
+      <!-- CONTENEDOR DEL REPORTE (A IMPRIMIR) -->
+      <section class="report-card" id="reportCard">
+        <div id="pdfContent">
+            <div class="report-header">
+            <div>
+                <h2 id="reportTitle" style="color: #0f172a; margin-bottom: 5px;">Reporte de Asistencia</h2>
+                <p id="reportSubtitle" style="color: #64748b; font-size: 0.95rem;">Docente: - | Fecha: -</p>
+            </div>
+            <!-- El botón de PDF se ocultará automáticamente al generar el PDF gracias a html2pdf -->
+            <button id="btnDownloadPdf" class="btn-pdf html2pdf__ignore">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Descargar PDF
+            </button>
+            </div>
+
+            <div class="table-responsive">
+            <table class="attendance-table">
+                <thead>
+                <tr>
+                    <th>Estudiante</th>
+                    <th>Estado</th>
+                    <th>Motivo (Docente)</th>
+                    <th>Nota Admin</th>
+                    <th class="html2pdf__ignore">Acción</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody">
+                <!-- Filas Dinámicas -->
+                </tbody>
+            </table>
+            </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- MODAL DE EDICIÓN DE ASISTENCIA -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Editar Asistencia</h3>
+          <button class="close-modal" id="closeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom: 15px;"><strong>Estudiante: </strong><span id="modalStudentName"></span></p>
+          
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>Nuevo Estado de Asistencia</label>
+            <select id="modalStatus" class="form-control">
+              <option value="true">Presente</option>
+              <option value="false">Ausente</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Nota de Edición <span style="color: red;">*</span> (Obligatorio)</label>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">Debes justificar por qué estás alterando el registro original del docente.</p>
+            <textarea id="modalNote" class="note-textarea" placeholder="Ej: Se comprobó justificativo médico posterior a la clase..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" id="btnCancelEdit">Cancelar</button>
+          <button class="btn-save" id="btnSaveEdit" disabled>Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/src/scripts/config.js"></script>
+    <script src="/src/scripts/admin_asistencia.js" type="module"></script>
+  </body>
+</html>
