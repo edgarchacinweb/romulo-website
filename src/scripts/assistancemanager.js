@@ -28,6 +28,7 @@ const subjectSelect = document.getElementById("subjectSelect");
 const yearSelect = document.getElementById("yearSelect");
 const sectionSelect = document.getElementById("sectionSelect");
 const termSelect = document.getElementById("termSelect");
+const termDisplay = document.getElementById("termDisplay"); // NUEVO
 const dateInput = document.getElementById("dateInput");
 
 // Asignar fecha de hoy por defecto al input de fecha
@@ -36,12 +37,33 @@ dateInput.valueAsDate = new Date();
 // Estado local
 let currentStudents = [];
 let currentClassId = ""; 
+let lapsosData = []; // NUEVO: Para guardar los lapsos de la base de datos
 
 // === CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const token = localStorage.getItem("auth");
     const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
+
+    // --- NUEVO: OBTENER LAPSOS REALES DESDE LA BD ---
+    try {
+      const lapsosResponse = await fetch(`${apiUrl}/lapsos/current`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (lapsosResponse.ok) {
+        const data = await lapsosResponse.json();
+        lapsosData = data.lapsos;
+        calcularLapsoPorFecha(dateInput.value); // Calcular inmediatamente para la fecha de hoy
+      }
+    } catch (error) {
+      console.error("Error cargando lapsos:", error);
+      if(termDisplay) termDisplay.value = "Error al cargar fechas";
+    }
+    // ------------------------------------------------
 
     const response = await fetch(`${apiUrl}/subject/teacher`, {
       method: "GET",
@@ -74,6 +96,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// --- NUEVO: FUNCION PARA CALCULAR LAPSO SEGÚN LA FECHA ---
+function calcularLapsoPorFecha(fechaStr) {
+  if (!fechaStr || lapsosData.length === 0) return;
+
+  // Le agregamos T12:00:00 para forzar el mediodía y evitar bugs de zona horaria del navegador
+  const fechaSeleccionada = new Date(fechaStr + "T12:00:00"); 
+
+  let lapsoEncontrado = null;
+
+  for (const lapso of lapsosData) {
+    const inicio = new Date(lapso.fecha_inicio + "T00:00:00");
+    const fin = new Date(lapso.fecha_fin + "T23:59:59"); // Hasta el final de ese día
+
+    if (fechaSeleccionada >= inicio && fechaSeleccionada <= fin) {
+      lapsoEncontrado = lapso;
+      break;
+    }
+  }
+
+  if (lapsoEncontrado) {
+    const nombresLapso = { 1: "1er Lapso", 2: "2do Lapso", 3: "3er Lapso" };
+    termDisplay.value = nombresLapso[lapsoEncontrado.lapso] || `${lapsoEncontrado.lapso}° Lapso`;
+    termSelect.value = lapsoEncontrado.lapso; // Guardamos el número para el backend
+  } else {
+    termDisplay.value = "Fecha fuera de periodo";
+    termSelect.value = "";
+  }
+}
+
+// Escuchar cuando el profesor cambia la fecha en el calendario
+dateInput.addEventListener("change", (e) => {
+  calcularLapsoPorFecha(e.target.value);
+});
+// ---------------------------------------------------------
+
 // Evento: Cargar Estudiantes y obtener el UUID de la Clase
 btnLoad.addEventListener("click", async () => {
   // Obtenemos el ID real de la materia, no solo su nombre
@@ -84,11 +141,11 @@ btnLoad.addEventListener("click", async () => {
   const year = yearSelect.value;
   const section = sectionSelect.value;
   const term = termSelect.value;
-  const termName = termSelect.options[termSelect.selectedIndex]?.text;
+  const termName = termDisplay.value; // MODIFICADO: Ahora lee del input visual
 
   // Validación: Exigir que todos los campos estén seleccionados
   if (!subjectId || !year || !section || term === "") {
-    alert("Por favor, selecciona la materia, año, sección y lapso.");
+    alert("Por favor, selecciona la materia, año, sección y verifica que la fecha pertenezca a un lapso válido.");
     return;
   }
 

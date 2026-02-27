@@ -104,17 +104,14 @@
             </div>
           </div>
 
-          <!-- Lapso -->
+          <!-- Lapso (AHORA ES AUTOMÁTICO) -->
           <div class="form-group">
-            <label for="termSelect">Lapso</label>
-            <div class="select-wrapper">
-              <select id="termSelect">
-                <option value="" disabled selected>Elige lapso</option>
-                <option value="1">1er Lapso</option>
-                <option value="2">2do Lapso</option>
-                <option value="3">3er Lapso</option>
-              </select>
-              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <label for="termDisplay">Lapso</label>
+            <div class="input-wrapper">
+              <!-- Este input es solo visual para el usuario -->
+              <input type="text" id="termDisplay" readonly style="background-color: #f1f5f9; cursor: not-allowed; color: #475569; width: 100%; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px;" placeholder="Calculando lapso..." />
+              <!-- Este input oculto guarda el ID real del lapso (1, 2 o 3) para mandarlo al backend -->
+              <input type="hidden" id="termSelect" value="" />
             </div>
           </div>
 
