@@ -76,35 +76,45 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (cursosRes.ok) {
                 const cursos = await cursosRes.json();
                 cursoSelect.innerHTML = '<option value="">Seleccione un Curso</option>';
+                
+                // CORRECCIÓN: El backend devuelve la cantidad máxima de secciones.
+                // Debemos iterar para generar la sección A, B, C... según corresponda.
                 cursos.forEach(c => {
-                    const opt = document.createElement("option");
-                    opt.value = c.CursoId;
-                    // Guardamos la sección en un atributo de datos para el filtro de horarios
-                    opt.dataset.section = c.Seccion;
+                    const numSections = parseInt(c.Seccion) || 1;
                     
-                    const gradoTexto = { 1: "1er", 2: "2do", 3: "3er", 4: "4to", 5: "5to" }[c.Grado] || `${c.Grado}°`;
-                    const seccionLetra = String.fromCharCode(64 + parseInt(c.Seccion));
-                    opt.textContent = `${gradoTexto} Año - Sección ${seccionLetra}`;
-                    cursoSelect.appendChild(opt);
+                    for (let i = 1; i <= numSections; i++) {
+                        const opt = document.createElement("option");
+                        opt.value = c.CursoId;
+                        // Guardamos la sección REAL (1, 2, 3...) en el dataset
+                        opt.dataset.section = i; 
+                        
+                        const gradoTexto = { 1: "1er", 2: "2do", 3: "3er", 4: "4to", 5: "5to" }[c.Grado] || `${c.Grado}°`;
+                        const seccionLetra = String.fromCharCode(64 + i); // 1->A, 2->B
+                        opt.textContent = `${gradoTexto} Año - Sección ${seccionLetra}`;
+                        cursoSelect.appendChild(opt);
+                    }
                 });
             }
 
             // --- CARGAR PERIODO ACTIVO Y HORARIOS PARA VINCULACIÓN ---
-            // Nota: Intentamos con /school_term/list que es la ruta administrativa común
             const termRes = await fetch(`${apiUrl}/school_term/list`, { headers: { "Authorization": `Bearer ${token}` } });
             if (termRes.ok) {
                 const terms = await termRes.json();
-                // Usamos == para capturar true booleano, string o numérico
-                const activeTerm = terms.find(t => t.Activo == true);
+                
+                // CORRECCIÓN: Búsqueda robusta del periodo activo. Evita que falle si el backend envía 1 o "true"
+                let activeTerm = terms.find(t => t.Activo === true || t.activo === true || t.Activo === 1 || String(t.Activo).toLowerCase() === "true");
+                
+                // Fallback de seguridad: si no encuentra uno activo, toma el primero (igual que en schedulemanager.js)
+                if (!activeTerm && terms.length > 0) {
+                    activeTerm = terms[0];
+                }
                 
                 if (activeTerm) {
-                    // CORRECCIÓN: Ruta cambiada de /list/ a /get_all/ para coincidir con el backend real
-                    const scheduleRes = await fetch(`${apiUrl}/schedule/get_all/${activeTerm.PeriodoEscolarId}`, { 
+                    const scheduleRes = await fetch(`${apiUrl}/schedule/list/${activeTerm.PeriodoEscolarId}`, { 
                         headers: { "Authorization": `Bearer ${token}` } 
                     });
                     if (scheduleRes.ok) {
                         const scheduleData = await scheduleRes.json();
-                        // Manejar si el backend devuelve el array directo o envuelto en un objeto
                         allSchedules = Array.isArray(scheduleData) ? scheduleData : (scheduleData.horario || []);
                     }
                 }
@@ -146,7 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         // Buscamos en el horario qué docentes imparten clases en ese curso y sección
-        // Usamos == para evitar problemas de tipos (string vs int)
+        // Nota: usamos == para permitir igualdad entre string ("1") y número (1)
         const teacherIdsInCourse = [...new Set(
             allSchedules
                 .filter(s => s.CursoId == selectedCursoId && s.Seccion == selectedSectionNum)
@@ -242,13 +252,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                     renderTable(data);
                 }
             } else {
-                console.warn("Ruta backend /assistance/admin/report no encontrada o error.");
-                mockDataVisualTest(); 
+                const errorData = await response.json();
+                alert(`Error al buscar asistencias: ${errorData.message}`);
+                reportCard.style.display = "none";
             }
         } catch (error) {
             console.error("Error:", error);
             alert("Error de conexión al consultar los reportes.");
-            mockDataVisualTest();
         } finally {
             btnBuscar.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Buscar Asistencia`;
             btnBuscar.disabled = false;
@@ -273,7 +283,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? `<span class="badge present">Presente</span>` 
                 : `<span class="badge absent">Ausente</span>`;
             
-            let adminBadge = record.EditadoPorAdmin ? `<br><span class="badge edited" style="margin-top:4px; display:inline-block;">Editado por Admin</span>` : "";
+            let adminBadge = record.EditadoPorAdmin ? `<br><span class="badge edited" style="margin-top:4px; display:inline-block; font-size: 0.75rem; background:#fef3c7; color:#92400e; padding: 2px 6px; border-radius:4px;">Editado por Admin</span>` : "";
 
             tr.innerHTML = `
                 <td style="font-weight: 500; color: #1e293b;">${record.NombreEstudiante}</td>
@@ -327,9 +337,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (response.ok) {
                 alert("Registro actualizado correctamente.");
                 hideModal();
-                btnBuscar.click(); 
+                btnBuscar.click(); // Recargar la tabla
             } else {
-                alert("Ruta de edición no implementada en backend.");
+                const errorData = await response.json();
+                alert(`Error al actualizar: ${errorData.message}`);
                 hideModal();
             }
         } catch (error) {
@@ -352,16 +363,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
         html2pdf().set(opt).from(element).save();
     });
-
-    function mockDataVisualTest() {
-        const mockData = {
-            asistencias: [
-                { AsistenciaId: "A1", NombreEstudiante: "Pedro Pérez", Activo: true, JustificacionDocente: "", EditadoPorAdmin: false, NotaAdmin: "" },
-                { AsistenciaId: "A2", NombreEstudiante: "María Gómez", Activo: false, JustificacionDocente: "Problemas de salud", EditadoPorAdmin: false, NotaAdmin: "" },
-                { AsistenciaId: "A3", NombreEstudiante: "Carlos Sánchez", Activo: false, JustificacionDocente: "Sin justificar", EditadoPorAdmin: true, NotaAdmin: "El representante trajo justificativo médico." }
-            ]
-        };
-        currentAttendanceData = mockData.asistencias;
-        renderTable(mockData);
-    }
 });
