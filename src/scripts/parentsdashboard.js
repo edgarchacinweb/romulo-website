@@ -53,33 +53,15 @@ const formatCedula = (cedula) => {
     
     // 1. DETECCIÓN DE CÉDULA ESCOLAR (> 9 dígitos)
     if (str.length > 9) {
-        // A. Si empieza por E (Escolar Extranjero: E110...), se deja igual.
-        if (str.startsWith("E")) {
-            return str;
-        }
-        // B. Si ya tiene V (por si acaso), se deja igual.
-        if (str.startsWith("V")) {
-            return str;
-        }
-        // C. Si son solo números largos (Escolar Venezolano: 1120...), AGREGAMOS "V-"
+        if (str.startsWith("E")) return str;
+        if (str.startsWith("V")) return str;
         return "V-" + str;
     }
 
     // 2. LÓGICA PARA CÉDULA REGULAR (<= 9 dígitos)
-    // Caso 1: Ya tiene formato correcto (V-1234 o E-1234)
-    if (str.startsWith("V-") || str.startsWith("E-")) {
-        return str;
-    }
-    
-    // Caso 2: Empieza por V o E pero sin guion (V1234 -> V-1234)
-    if (str.startsWith("V")) {
-        return "V-" + str.substring(1);
-    }
-    if (str.startsWith("E")) {
-        return "E-" + str.substring(1);
-    }
-    
-    // Caso 3: Son solo números cortos (Cédula Regular Venezolana por defecto)
+    if (str.startsWith("V-") || str.startsWith("E-")) return str;
+    if (str.startsWith("V")) return "V-" + str.substring(1);
+    if (str.startsWith("E")) return "E-" + str.substring(1);
     return `V-${str}`;
 };
 
@@ -134,26 +116,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     studentsData.forEach((student) => {
-      // Intentamos obtener la fecha de varias formas posibles
       const rawDate = student.FechaNacimiento || student.fechaNacimiento || student.fechanacimiento;
-
       const card = document.createElement("div");
       const gender = student.DatosPersona.Sexo === "Femenino" ? "female" : "male";
       const estado = student.EstadoEstudiante.Estado; 
       const currentGrade = parseInt(student.Curso.Grado);
       const currentPeriodId = student.Curso.PeriodoEscolarId;
       
-      // --- MANEJO SEGURO DE FECHAS ---
       const birthdateObj = parseDate(rawDate);
       let dateDisplay = "No registrada";
       let ageDisplay = "??";
 
       if (birthdateObj) {
-          // Ajustamos +1 al mes porque getMonth() devuelve 0-11
           const day = String(birthdateObj.getDate()).padStart(2, '0');
           const month = String(birthdateObj.getMonth() + 1).padStart(2, '0');
           const year = birthdateObj.getFullYear();
-          
           dateDisplay = `${day}/${month}/${year}`;
           ageDisplay = calcularEdadExacta(birthdateObj);
       }
@@ -175,24 +152,35 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
         `;
       } 
-      else if (
-          estado === "inscrito" && 
-          currentGrade < 6 && 
-          activeEnrollmentPeriod && 
-          activeEnrollmentPeriod.open === true &&
-          activeEnrollmentPeriod.periodoEscolarId !== currentPeriodId 
-      ) {
-         const nextGrade = currentGrade + 1;
-         actionButtonsHTML = `
-          <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
-             <button class="btn-reinscribe" 
-                data-id="${student.EstudianteId}" 
-                data-next="${nextGrade}"
-                style="display: block; width: 100%; padding: 10px; background-color: #6366f1; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
-                <i class="fas fa-graduation-cap"></i> Reinscribir a ${nextGrade}° Año
+      else if (estado === "inscrito") {
+          actionButtonsHTML = `
+          <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem; display: flex; flex-direction: column; gap: 10px;">
+             <button class="btn-download-form" data-id="${student.EstudianteId}"
+                style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background-color: #10b981; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Descargar Planilla
              </button>
-          </div>
-        `;
+         `;
+
+          // Botón opcional de reinscripción si cumple las reglas de periodo
+          if (
+              currentGrade < 6 && 
+              activeEnrollmentPeriod && 
+              activeEnrollmentPeriod.open === true &&
+              activeEnrollmentPeriod.periodoEscolarId !== currentPeriodId 
+          ) {
+             const nextGrade = currentGrade + 1;
+             actionButtonsHTML += `
+               <button class="btn-reinscribe" 
+                  data-id="${student.EstudianteId}" 
+                  data-next="${nextGrade}"
+                  style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; background-color: #6366f1; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                  Reinscribir a ${nextGrade}° Año
+               </button>
+             `;
+          }
+          actionButtonsHTML += `</div>`;
       }
 
       // CORRECCIÓN APLICADA AQUÍ:
@@ -262,6 +250,53 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       cardContainer.appendChild(card);
 
+      // --- EVENTO: Descargar Planilla ---
+      const downloadBtn = card.querySelector(".btn-download-form");
+      if(downloadBtn) {
+          downloadBtn.addEventListener("click", async () => {
+             const studentId = downloadBtn.getAttribute("data-id");
+             const studentName = student.DatosPersona.Nombre;
+             
+             // Mostramos loader
+             const loader = document.createElement("loader-spinner");
+             loader.setAttribute("title", "Generando planilla PDF...");
+             document.body.appendChild(loader);
+
+             try {
+                const response = await fetch(`${window.APP_CONFIG.api_url}/students/enrollment_form/${studentId}`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Error al generar la planilla");
+                }
+
+                // Descarga
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                
+                const anchor = document.createElement("a");
+                anchor.href = objectUrl;
+                anchor.download = `Planilla_Inscripcion_${studentName}.pdf`;
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+                URL.revokeObjectURL(objectUrl);
+                
+             } catch (error) {
+                console.error(error);
+                const notification = document.createElement("notification-component");
+                notification.setAttribute("type", "error");
+                notification.setAttribute("text", error.message);
+                notificationsContainer.appendChild(notification);
+             } finally {
+                loader.remove();
+             }
+          });
+      }
+
       const reinscribeBtn = card.querySelector(".btn-reinscribe");
       if(reinscribeBtn) {
           reinscribeBtn.addEventListener("click", () => {
@@ -271,7 +306,6 @@ document.addEventListener("DOMContentLoaded", async () => {
              const confirmAction = confirm(`¿Desea iniciar el proceso de reinscripción para ${nextGrade}° Año?`);
              if (!confirmAction) return;
 
-             // REDIRECCIÓN AL FORMULARIO PASANDO PARÁMETROS
              window.location.href = `/app/representante/inscripcion/?reinscribe_id=${studentId}&next=${nextGrade}`;
           });
       }
