@@ -49,12 +49,9 @@ body {
   gap: 12px;
 }
 
-.logo-icon {
-  background-color: var(--primary-blue);
-  color: white;
-  padding: 8px;
+.logo-icon img {
+  width: 70px;
   border-radius: 8px;
-  display: flex;
 }
 
 .logo-text h1 {
