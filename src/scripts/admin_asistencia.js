@@ -33,15 +33,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // VARIABLES DE ESTADO PARA FILTRADO DINÁMICO
     let currentAttendanceData = []; 
     let currentEditRecordId = null; 
-    let allTeachers = []; // Guardamos todos los docentes y sus materias
-    let allSubjects = []; // Guardamos la lista completa de materias como respaldo
+    let allTeachers = []; // Todos los docentes registrados
+    let allSubjects = []; // Todas las materias registradas
+    let allSchedules = []; // El horario completo para cruzar datos
 
     // Por defecto colocamos la fecha de hoy
     fechaSelect.valueAsDate = new Date();
 
     /**
      * Función auxiliar para poblar el selector de materias
-     * @param {Array} list - Lista de materias a mostrar
      */
     function populateSubjectsDropdown(list) {
         materiaSelect.innerHTML = '<option value="">Seleccione una Materia</option>';
@@ -53,6 +53,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    /**
+     * Función auxiliar para poblar el selector de docentes
+     */
+    function populateTeachersDropdown(list) {
+        docenteSelect.innerHTML = '<option value="">Seleccione un Docente</option>';
+        list.forEach(d => {
+            const opt = document.createElement("option");
+            opt.value = d.DocenteId;
+            const nombre = d.DatosPersona?.Nombre || "Sin nombre";
+            const apellido = d.DatosPersona?.Apellido || "";
+            opt.textContent = `${nombre} ${apellido}`;
+            docenteSelect.appendChild(opt);
+        });
+    }
+
     // 1. CARGAR SELECTS DE FILTROS AL INICIAR
     async function loadFilters() {
         try {
@@ -60,9 +75,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const cursosRes = await fetch(`${apiUrl}/course/sections`, { headers: { "Authorization": `Bearer ${token}` } });
             if (cursosRes.ok) {
                 const cursos = await cursosRes.json();
+                cursoSelect.innerHTML = '<option value="">Seleccione un Curso</option>';
                 cursos.forEach(c => {
                     const opt = document.createElement("option");
                     opt.value = c.CursoId;
+                    // Guardamos la sección en un atributo de datos para el filtro de horarios
+                    opt.dataset.section = c.Seccion;
+                    
                     const gradoTexto = { 1: "1er", 2: "2do", 3: "3er", 4: "4to", 5: "5to" }[c.Grado] || `${c.Grado}°`;
                     const seccionLetra = String.fromCharCode(64 + parseInt(c.Seccion));
                     opt.textContent = `${gradoTexto} Año - Sección ${seccionLetra}`;
@@ -70,56 +89,111 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
             }
 
-            // --- CARGAR DOCENTES ---
-            const docentesRes = await fetch(`${apiUrl}/teacher/list`, { 
-                headers: { "Authorization": `Bearer ${token}` } 
-            });
-
-            if (docentesRes.ok) {
-                allTeachers = await docentesRes.json();
-                docenteSelect.innerHTML = '<option value="">Seleccione un Docente</option>';
+            // --- CARGAR PERIODO ACTIVO Y HORARIOS PARA VINCULACIÓN ---
+            // Nota: Intentamos con /school_term/list que es la ruta administrativa común
+            const termRes = await fetch(`${apiUrl}/school_term/list`, { headers: { "Authorization": `Bearer ${token}` } });
+            if (termRes.ok) {
+                const terms = await termRes.json();
+                // Usamos == para capturar true booleano, string o numérico
+                const activeTerm = terms.find(t => t.Activo == true);
                 
-                allTeachers.forEach(d => {
-                    const opt = document.createElement("option");
-                    opt.value = d.DocenteId;
-                    const nombre = d.DatosPersona?.Nombre || "Sin nombre";
-                    const apellido = d.DatosPersona?.Apellido || "";
-                    opt.textContent = `${nombre} ${apellido}`;
-                    docenteSelect.appendChild(opt);
-                });
+                if (activeTerm) {
+                    // CORRECCIÓN: Ruta cambiada de /list/ a /get_all/ para coincidir con el backend real
+                    const scheduleRes = await fetch(`${apiUrl}/schedule/get_all/${activeTerm.PeriodoEscolarId}`, { 
+                        headers: { "Authorization": `Bearer ${token}` } 
+                    });
+                    if (scheduleRes.ok) {
+                        const scheduleData = await scheduleRes.json();
+                        // Manejar si el backend devuelve el array directo o envuelto en un objeto
+                        allSchedules = Array.isArray(scheduleData) ? scheduleData : (scheduleData.horario || []);
+                    }
+                }
             }
 
-            // --- CARGAR MATERIAS (INICIALMENTE TODAS) ---
-            const materiasRes = await fetch(`${apiUrl}/subject/list`, { 
-                headers: { "Authorization": `Bearer ${token}` } 
-            });
+            // --- CARGAR DOCENTES ---
+            const docentesRes = await fetch(`${apiUrl}/teacher/list`, { headers: { "Authorization": `Bearer ${token}` } });
+            if (docentesRes.ok) {
+                allTeachers = await docentesRes.json();
+                populateTeachersDropdown(allTeachers);
+            }
+
+            // --- CARGAR MATERIAS ---
+            const materiasRes = await fetch(`${apiUrl}/subject/list`, { headers: { "Authorization": `Bearer ${token}` } });
             if (materiasRes.ok) {
                 allSubjects = await materiasRes.json();
                 populateSubjectsDropdown(allSubjects);
             }
         } catch (error) {
-            console.error("Error cargando filtros:", error);
+            console.error("Error cargando filtros iniciales:", error);
         }
     }
 
-    // === LÓGICA DE FILTRADO DINÁMICO: DOCENTE -> MATERIAS ===
-    docenteSelect.addEventListener("change", () => {
-        const selectedTeacherId = docenteSelect.value;
-        
-        if (!selectedTeacherId) {
-            // Si deselecciona al docente, volvemos a mostrar todas las materias del sistema
+    // === LÓGICA DE FILTRADO DINÁMICO 1: CURSO -> DOCENTES ===
+    cursoSelect.addEventListener("change", () => {
+        const selectedCursoId = cursoSelect.value;
+        const selectedOption = cursoSelect.options[cursoSelect.selectedIndex];
+        const selectedSectionNum = selectedOption ? selectedOption.dataset.section : null;
+
+        // Resetear selectores dependientes
+        docenteSelect.value = "";
+        materiaSelect.value = "";
+
+        if (!selectedCursoId || !selectedSectionNum) {
+            // Si limpia el curso, mostramos todos los docentes de nuevo
+            populateTeachersDropdown(allTeachers);
             populateSubjectsDropdown(allSubjects);
             return;
         }
 
-        // Buscamos el objeto del docente seleccionado en nuestra lista guardada
+        // Buscamos en el horario qué docentes imparten clases en ese curso y sección
+        // Usamos == para evitar problemas de tipos (string vs int)
+        const teacherIdsInCourse = [...new Set(
+            allSchedules
+                .filter(s => s.CursoId == selectedCursoId && s.Seccion == selectedSectionNum)
+                .map(s => s.DocenteId)
+        )];
+
+        if (teacherIdsInCourse.length > 0) {
+            const filteredTeachers = allTeachers.filter(t => teacherIdsInCourse.includes(t.DocenteId));
+            populateTeachersDropdown(filteredTeachers);
+        } else {
+            docenteSelect.innerHTML = '<option value="">No hay docentes asignados a este curso</option>';
+        }
+        
+        // Al cambiar el curso, también reseteamos las materias a todas hasta que elija un docente
+        populateSubjectsDropdown(allSubjects);
+    });
+
+    // === LÓGICA DE FILTRADO DINÁMICO 2: DOCENTE -> MATERIAS ===
+    docenteSelect.addEventListener("change", () => {
+        const selectedTeacherId = docenteSelect.value;
+        const selectedCursoId = cursoSelect.value;
+        const selectedOption = cursoSelect.options[cursoSelect.selectedIndex];
+        const selectedSectionNum = selectedOption ? selectedOption.dataset.section : null;
+        
+        if (!selectedTeacherId) {
+            populateSubjectsDropdown(allSubjects);
+            return;
+        }
+
         const teacher = allTeachers.find(t => t.DocenteId === selectedTeacherId);
         
-        if (teacher && teacher.Materias && teacher.Materias.length > 0) {
-            // Cargamos solo las materias que este profesor tiene vinculadas
-            populateSubjectsDropdown(teacher.Materias);
+        if (teacher) {
+            let filteredSubjects = teacher.Materias || [];
+
+            // Refinamiento: Si hay un curso seleccionado, filtrar solo las materias que el docente da EN ESE curso
+            if (selectedCursoId && selectedSectionNum) {
+                const subjectIdsInSchedule = allSchedules
+                    .filter(s => s.CursoId == selectedCursoId && s.Seccion == selectedSectionNum && s.DocenteId == selectedTeacherId)
+                    .map(s => s.MateriaId);
+                
+                if (subjectIdsInSchedule.length > 0) {
+                    filteredSubjects = (teacher.Materias || []).filter(m => subjectIdsInSchedule.includes(m.MateriaId));
+                }
+            }
+
+            populateSubjectsDropdown(filteredSubjects);
         } else {
-            // Caso borde: El docente no tiene materias asignadas en la BD
             materiaSelect.innerHTML = '<option value="">El docente no tiene materias asignadas</option>';
         }
     });
@@ -129,6 +203,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 2. FUNCIÓN DE BÚSQUEDA DEL ADMINISTRADOR
     btnBuscar.addEventListener("click", async () => {
         const cursoId = cursoSelect.value;
+        const selectedOption = cursoSelect.options[cursoSelect.selectedIndex];
+        const seccionNum = selectedOption ? selectedOption.dataset.section : null;
         const docenteId = docenteSelect.value;
         const materiaId = materiaSelect.value;
         const fecha = fechaSelect.value;
@@ -144,6 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const queryParams = new URLSearchParams({
                 cursoId: cursoId,
+                seccion: seccionNum,
                 fecha: fecha,
                 ...(docenteId && { docenteId }),
                 ...(materiaId && { materiaId })
