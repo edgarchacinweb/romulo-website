@@ -10,150 +10,144 @@
     <link rel="stylesheet" href="/src/styles/dashboard.css" />
 
     <!-- Librería para generar PDF desde el frontend -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-      .filters-container {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        margin-bottom: 24px;
-      }
-      .filter-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-bottom: 20px;
-      }
-      .form-group label {
-        display: block;
-        font-weight: 600;
-        margin-bottom: 6px;
-        color: #475569;
-        font-size: 0.9rem;
-      }
-      .form-control {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
+      /* =========================================
+         SOBREESCRITURA PARA PANTALLA COMPLETA
+         ========================================= */
+      body {
+        display: block !important; /* Evita que el global.css imponga un grid con sidebar */
         background-color: #f8fafc;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       }
-      .btn-search {
-        background-color: #3b82f6;
-        color: white;
-        border: none;
-        padding: 10px 24px;
-        border-radius: 6px;
-        font-weight: bold;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: 0.2s;
+
+      .main {
+        margin-left: 0 !important; /* Elimina márgenes de sidebars anteriores */
+        padding: 30px 4% !important; /* Espaciado fluido a los lados */
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+        min-height: 100vh;
       }
-      .btn-search:hover { background-color: #2563eb; }
-      
-      /* Estilos de la Tabla */
-      .report-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        padding: 24px;
-        display: none; /* Oculto por defecto */
-      }
-      .report-header {
+
+      /* =========================================
+         CABECERA (HEADER) MEJORADA
+         ========================================= */
+      .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #f1f5f9;
+        flex-wrap: wrap;
+        gap: 15px;
+        background: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+        width: 100%;
+        box-sizing: border-box;
       }
-      .btn-pdf {
-        background-color: #ef4444;
+
+      .header-brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .header-brand h1 {
+        margin: 0;
+        color: #0f172a;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      /* =========================================
+         CONTENEDOR DE FILTROS A TODO ANCHO
+         ========================================= */
+      .filters-container {
+        background: white;
+        padding: 25px 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        margin-bottom: 24px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #475569;
+        font-size: 0.9rem;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background-color: #f8fafc;
+        color: #334155;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        box-sizing: border-box;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background-color: #ffffff;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      }
+
+      /* =========================================
+         BOTONES MODERNOS AZULES
+         ========================================= */
+      .btn-blue {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
         color: white;
         border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: bold;
+        padding: 12px 28px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2), 0 2px 4px -1px rgba(37, 99, 235, 0.1);
       }
-      .btn-pdf:hover { background-color: #dc2626; }
-      
-      .table-responsive { overflow-x: auto; }
-      .attendance-table {
-        width: 100%;
-        border-collapse: collapse;
-        min-width: 800px;
-      }
-      .attendance-table th, .attendance-table td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #e2e8f0;
-      }
-      .attendance-table th {
-        background-color: #f8fafc;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-      }
-      .badge {
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        font-weight: bold;
-      }
-      .badge.present { background: #dcfce7; color: #166534; }
-      .badge.absent { background: #fee2e2; color: #991b1b; }
-      .badge.edited { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
-      
-      .btn-edit-small {
-        background: transparent;
-        border: 1px solid #cbd5e1;
-        color: #475569;
-        padding: 6px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        transition: 0.2s;
-      }
-      .btn-edit-small:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
 
-      /* Modal Estilos */
-      .modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); display: none;
-        justify-content: center; align-items: center; z-index: 1000;
+      .btn-blue:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -2px rgba(37, 99, 235, 0.1);
       }
-      .modal-content {
-        background: white; width: 90%; max-width: 500px;
-        border-radius: 12px; padding: 24px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      }
-      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-      .modal-header h3 { margin: 0; color: #1e293b; }
-      .close-modal { cursor: pointer; color: #64748b; font-size: 1.5rem; background: none; border: none; }
-      .note-textarea {
-        width: 100%; min-height: 100px; padding: 10px; border: 1px solid #cbd5e1;
-        border-radius: 6px; margin-top: 10px; font-family: inherit; resize: vertical;
-      }
-      .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-      .btn-cancel { background: white; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-      .btn-save { background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-      .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
 
-      /* Botón de retroceso colocado en el Header */
+      .btn-blue:disabled {
+        background: #94a3b8;
+        box-shadow: none;
+        cursor: not-allowed;
+        transform: none;
+      }
+
       .btn-back-header {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 8px 16px;
+        padding: 10px 20px;
         background-color: #eff6ff;
         color: #2563eb !important;
         border-radius: 8px;
@@ -163,29 +157,156 @@
         text-decoration: none;
         border: 1px solid #bfdbfe;
       }
+
       .btn-back-header:hover {
         background-color: #dbeafe;
-        transform: translateX(-4px); /* Pequeño empuje a la izquierda para invitar a "volver" */
+        transform: translateX(-4px);
       }
+
+      /* =========================================
+         TABLA Y REPORTE
+         ========================================= */
+      .report-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        padding: 30px;
+        display: none; /* Oculto por defecto */
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f1f5f9;
+      }
+
+      .btn-pdf {
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2);
+      }
+
+      .btn-pdf:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 12px -3px rgba(14, 165, 233, 0.3);
+      }
+      
+      .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid #e2e8f0; }
+      .attendance-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+      }
+      .attendance-table th, .attendance-table td {
+        padding: 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .attendance-table th {
+        background-color: #eff6ff; /* Azul muy claro para encabezados */
+        color: #1e3a8a;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .attendance-table tr:hover td {
+        background-color: #f8fafc;
+      }
+
+      /* =========================================
+         BADGES Y ETIQUETAS
+         ========================================= */
+      .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        display: inline-block;
+      }
+      .badge.present { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+      .badge.absent { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+      .badge.edited { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+      
+      .btn-edit-small {
+        background: transparent;
+        border: 1px solid #cbd5e1;
+        color: #475569;
+        padding: 8px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .btn-edit-small:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+
+      /* =========================================
+         MODAL MEJORADO
+         ========================================= */
+      .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none;
+        justify-content: center; align-items: center; z-index: 1000;
+      }
+      .modal-content {
+        background: white; width: 90%; max-width: 500px;
+        border-radius: 16px; padding: 30px;
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        transform: translateY(0);
+        animation: modalFadeIn 0.3s ease-out forwards;
+      }
+
+      @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+      .modal-header h3 { margin: 0; color: #0f172a; font-size: 1.25rem; }
+      .close-modal { cursor: pointer; color: #94a3b8; font-size: 1.8rem; background: none; border: none; transition: 0.2s; }
+      .close-modal:hover { color: #ef4444; }
+      
+      .note-textarea {
+        width: 100%; min-height: 120px; padding: 12px; border: 1px solid #cbd5e1;
+        border-radius: 8px; margin-top: 10px; font-family: inherit; resize: vertical;
+        box-sizing: border-box; font-size: 0.95rem;
+      }
+      .note-textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+      
+      .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
+      .btn-cancel { background: white; color: #475569; font-weight: 600; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: 0.2s;}
+      .btn-cancel:hover { background: #f1f5f9; color: #0f172a; }
     </style>
   </head>
   <body>
     <section class="notifications" id="notifications"></section>
 
-    <!-- SIDEBAR SIMPLIFICADO: Solo Logo -->
-    <aside class="sidebar">
-      <div>
-        <div class="logo">
-          <img src="/src/assets/images/romulo.png" alt="Logo" />
-          <h2>Liceo Romulo Gallegos</h2>
-        </div>
-      </div>
-    </aside>
-
     <main class="main">
-      <!-- HEADER CON FLEXBOX PARA ALINEAR TÍTULO A LA IZQUIERDA Y BOTÓN A LA DERECHA -->
-      <header style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-        <h1 style="margin: 0;">Gestión de Asistencia - Administrador</h1>
+      <!-- HEADER CON FLEXBOX (Logo integrado) -->
+      <header class="page-header">
+        <div class="header-brand">
+          <img src="/src/assets/images/romulo.png" alt="Logo Liceo Romulo Gallegos" width="50" height="50" onerror="this.style.display='none'" style="border-radius: 8px;" />
+          <h1>Gestión de Asistencia - Administrador</h1>
+        </div>
         
         <a href="/app/admin/dashboard/index.html" class="btn-back-header">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -196,9 +317,9 @@
         </a>
       </header>
 
-      <!-- FILTROS -->
+      <!-- FILTROS (A TODO ANCHO) -->
       <section class="filters-container">
-        <h3 style="margin-bottom: 15px; color: #1e293b;">Filtrar Reporte</h3>
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: #1e293b; font-size: 1.15rem;">Filtros de Búsqueda</h3>
         <div class="filter-grid">
           <div class="form-group">
             <label>Año y Sección</label>
@@ -226,9 +347,9 @@
             <input type="date" id="fechaSelect" class="form-control" />
           </div>
         </div>
-        <button id="btnBuscar" class="btn-search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          Buscar Asistencia
+        <button id="btnBuscar" class="btn-blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Buscar Registro de Asistencia
         </button>
       </section>
 
@@ -237,11 +358,11 @@
         <div id="pdfContent">
             <div class="report-header">
             <div>
-                <h2 id="reportTitle" style="color: #0f172a; margin-bottom: 5px;">Reporte de Asistencia</h2>
-                <p id="reportSubtitle" style="color: #64748b; font-size: 0.95rem;">Docente: - | Fecha: -</p>
+                <h2 id="reportTitle" style="color: #0f172a; margin-top: 0; margin-bottom: 8px;">Reporte de Asistencia</h2>
+                <p id="reportSubtitle" style="color: #64748b; font-size: 1rem; margin: 0;">Docente: - | Fecha: -</p>
             </div>
-            <!-- El botón de PDF se ocultará automáticamente al generar el PDF gracias a html2pdf -->
-            <button id="btnDownloadPdf" class="btn-pdf html2pdf__ignore">
+            <!-- CORRECCIÓN: Utilizamos data-html2canvas-ignore="true" para omitirlo del PDF -->
+            <button id="btnDownloadPdf" class="btn-pdf" data-html2canvas-ignore="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Descargar PDF
             </button>
@@ -255,7 +376,8 @@
                     <th>Estado</th>
                     <th>Motivo (Docente)</th>
                     <th>Nota Admin</th>
-                    <th class="html2pdf__ignore">Acción</th>
+                    <!-- CORRECCIÓN: Ocultamos también la columna "Acción" del PDF -->
+                    <th data-html2canvas-ignore="true" style="width: 100px;">Acción</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -272,29 +394,32 @@
     <div class="modal-overlay" id="editModal">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Editar Asistencia</h3>
+          <h3>Modificar Asistencia</h3>
           <button class="close-modal" id="closeModal">&times;</button>
         </div>
         <div class="modal-body">
-          <p style="margin-bottom: 15px;"><strong>Estudiante: </strong><span id="modalStudentName"></span></p>
+          <div style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px;">
+             <p style="margin: 0; color: #475569; font-size: 0.9rem;">Estudiante</p>
+             <p style="margin: 4px 0 0 0; color: #0f172a; font-weight: 600; font-size: 1.05rem;" id="modalStudentName"></p>
+          </div>
           
-          <div class="form-group" style="margin-bottom: 15px;">
-            <label>Nuevo Estado de Asistencia</label>
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label>Cambiar Estado a:</label>
             <select id="modalStatus" class="form-control">
-              <option value="true">Presente</option>
-              <option value="false">Ausente</option>
+              <option value="true">✔️ Presente</option>
+              <option value="false">❌ Ausente</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Nota de Edición <span style="color: red;">*</span> (Obligatorio)</label>
-            <p style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">Debes justificar por qué estás alterando el registro original del docente.</p>
-            <textarea id="modalNote" class="note-textarea" placeholder="Ej: Se comprobó justificativo médico posterior a la clase..."></textarea>
+            <label>Justificación de Auditoría <span style="color: #ef4444;">*</span></label>
+            <p style="font-size: 0.85rem; color: #64748b; margin-top: 2px;">Por razones de transparencia, debe indicar el motivo de esta modificación.</p>
+            <textarea id="modalNote" class="note-textarea" placeholder="Ej: Se comprobó justificativo médico entregado en coordinación posterior a la clase..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
           <button class="btn-cancel" id="btnCancelEdit">Cancelar</button>
-          <button class="btn-save" id="btnSaveEdit" disabled>Guardar Cambios</button>
+          <button class="btn-blue" id="btnSaveEdit" disabled>Guardar Modificación</button>
         </div>
       </div>
     </div>

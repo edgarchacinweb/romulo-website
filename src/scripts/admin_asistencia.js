@@ -71,40 +71,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. CARGAR SELECTS DE FILTROS AL INICIAR
     async function loadFilters() {
         try {
-            // --- CARGAR CURSOS (AÑOS Y SECCIONES) ---
             const cursosRes = await fetch(`${apiUrl}/course/sections`, { headers: { "Authorization": `Bearer ${token}` } });
             if (cursosRes.ok) {
                 const cursos = await cursosRes.json();
                 cursoSelect.innerHTML = '<option value="">Seleccione un Curso</option>';
                 
-                // CORRECCIÓN: El backend devuelve la cantidad máxima de secciones.
-                // Debemos iterar para generar la sección A, B, C... según corresponda.
                 cursos.forEach(c => {
                     const numSections = parseInt(c.Seccion) || 1;
                     
                     for (let i = 1; i <= numSections; i++) {
                         const opt = document.createElement("option");
                         opt.value = c.CursoId;
-                        // Guardamos la sección REAL (1, 2, 3...) en el dataset
                         opt.dataset.section = i; 
                         
                         const gradoTexto = { 1: "1er", 2: "2do", 3: "3er", 4: "4to", 5: "5to" }[c.Grado] || `${c.Grado}°`;
-                        const seccionLetra = String.fromCharCode(64 + i); // 1->A, 2->B
+                        const seccionLetra = String.fromCharCode(64 + i);
                         opt.textContent = `${gradoTexto} Año - Sección ${seccionLetra}`;
                         cursoSelect.appendChild(opt);
                     }
                 });
             }
 
-            // --- CARGAR PERIODO ACTIVO Y HORARIOS PARA VINCULACIÓN ---
             const termRes = await fetch(`${apiUrl}/school_term/list`, { headers: { "Authorization": `Bearer ${token}` } });
             if (termRes.ok) {
                 const terms = await termRes.json();
-                
-                // CORRECCIÓN: Búsqueda robusta del periodo activo. Evita que falle si el backend envía 1 o "true"
                 let activeTerm = terms.find(t => t.Activo === true || t.activo === true || t.Activo === 1 || String(t.Activo).toLowerCase() === "true");
                 
-                // Fallback de seguridad: si no encuentra uno activo, toma el primero (igual que en schedulemanager.js)
                 if (!activeTerm && terms.length > 0) {
                     activeTerm = terms[0];
                 }
@@ -120,14 +112,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
-            // --- CARGAR DOCENTES ---
             const docentesRes = await fetch(`${apiUrl}/teacher/list`, { headers: { "Authorization": `Bearer ${token}` } });
             if (docentesRes.ok) {
                 allTeachers = await docentesRes.json();
                 populateTeachersDropdown(allTeachers);
             }
 
-            // --- CARGAR MATERIAS ---
             const materiasRes = await fetch(`${apiUrl}/subject/list`, { headers: { "Authorization": `Bearer ${token}` } });
             if (materiasRes.ok) {
                 allSubjects = await materiasRes.json();
@@ -144,19 +134,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedOption = cursoSelect.options[cursoSelect.selectedIndex];
         const selectedSectionNum = selectedOption ? selectedOption.dataset.section : null;
 
-        // Resetear selectores dependientes
         docenteSelect.value = "";
         materiaSelect.value = "";
 
         if (!selectedCursoId || !selectedSectionNum) {
-            // Si limpia el curso, mostramos todos los docentes de nuevo
             populateTeachersDropdown(allTeachers);
             populateSubjectsDropdown(allSubjects);
             return;
         }
 
-        // Buscamos en el horario qué docentes imparten clases en ese curso y sección
-        // Nota: usamos == para permitir igualdad entre string ("1") y número (1)
         const teacherIdsInCourse = [...new Set(
             allSchedules
                 .filter(s => s.CursoId == selectedCursoId && s.Seccion == selectedSectionNum)
@@ -170,7 +156,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             docenteSelect.innerHTML = '<option value="">No hay docentes asignados a este curso</option>';
         }
         
-        // Al cambiar el curso, también reseteamos las materias a todas hasta que elija un docente
         populateSubjectsDropdown(allSubjects);
     });
 
@@ -191,7 +176,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (teacher) {
             let filteredSubjects = teacher.Materias || [];
 
-            // Refinamiento: Si hay un curso seleccionado, filtrar solo las materias que el docente da EN ESE curso
             if (selectedCursoId && selectedSectionNum) {
                 const subjectIdsInSchedule = allSchedules
                     .filter(s => s.CursoId == selectedCursoId && s.Seccion == selectedSectionNum && s.DocenteId == selectedTeacherId)
@@ -290,7 +274,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <td>${statusBadge} ${adminBadge}</td>
                 <td style="color: #64748b; font-style: italic;">${record.JustificacionDocente || '-'}</td>
                 <td style="color: #0f172a; font-size: 0.9rem;">${record.NotaAdmin || '-'}</td>
-                <td class="html2pdf__ignore">
+                <td data-html2canvas-ignore="true">
                     <button class="btn-edit-small" onclick="window.openEditModal('${record.AsistenciaId}', '${record.NombreEstudiante}', ${record.Activo})">
                          Editar
                     </button>
@@ -351,16 +335,83 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // 5. EXPORTACIÓN A PDF
-    btnDownloadPdf.addEventListener("click", () => {
-        const element = document.getElementById('pdfContent');
-        const opt = {
-            margin:       [10, 10, 10, 10],
-            filename:     `Reporte_Asistencia_${fechaSelect.value}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
-        html2pdf().set(opt).from(element).save();
-    });
+    // 5. EXPORTACIÓN A PDF MEJORADA (Corrección definitiva de recortes y escala)
+// 5. EXPORTACIÓN A PDF CON JSPDF Y AUTOTABLE (Solución Nativa)
+btnDownloadPdf.addEventListener("click", () => {
+    if (!currentAttendanceData || currentAttendanceData.length === 0) {
+        alert("No hay datos para exportar.");
+        return;
+    }
+
+    const originalText = btnDownloadPdf.innerHTML;
+    btnDownloadPdf.innerHTML = "Generando PDF...";
+
+    try {
+        // Inicializamos jsPDF en formato A4 horizontal ('landscape')
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+
+        // 1. Extraemos los datos del encabezado
+        const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
+        const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
+        const docenteText = docenteSelect.value ? docenteSelect.options[docenteSelect.selectedIndex].text : "Varios";
+        const fechaText = fechaSelect.value;
+
+        // 2. Dibujamos los Títulos en el PDF
+        doc.setFontSize(16);
+        doc.setTextColor(15, 23, 42); // Color oscuro (#0f172a)
+        doc.text(`${materiaText} - ${cursoText}`, 14, 20);
+        
+        doc.setFontSize(11);
+        doc.setTextColor(100, 116, 139); // Color gris (#64748b)
+        doc.text(`Docente: ${docenteText} | Fecha: ${fechaText}`, 14, 28);
+
+        // 3. Preparamos las columnas y los datos exactos que queremos
+        const tableColumn = ["ESTUDIANTE", "ESTADO", "MOTIVO (DOCENTE)", "NOTA ADMIN"];
+        const tableRows = [];
+
+        currentAttendanceData.forEach(record => {
+            const estado = record.Activo ? 'Presente' : 'Ausente';
+            const justificacion = record.JustificacionDocente || '-';
+            const notaAdmin = record.NotaAdmin || '-';
+            
+            // Agregamos solo las 4 columnas (ignoramos la de acciones automáticamente)
+            tableRows.push([
+                record.NombreEstudiante,
+                estado,
+                justificacion,
+                notaAdmin
+            ]);
+        });
+
+        // 4. Generamos la tabla matemáticamente (adiós recortes y fallos de CSS)
+        doc.autoTable({
+            startY: 35, // Empieza debajo del título
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'striped', // Filas alternas de color
+            headStyles: { 
+                fillColor: [30, 58, 138], // Azul encabezado (#1e3a8a)
+                textColor: [255, 255, 255], 
+                fontStyle: 'bold' 
+            },
+            styles: { 
+                fontSize: 10, 
+                cellPadding: 4 
+            },
+            alternateRowStyles: { 
+                fillColor: [248, 250, 252] // Gris súper claro
+            }
+        });
+
+        // 5. Descargamos el archivo
+        doc.save(`Reporte_Asistencia_${fechaText}.pdf`);
+        
+    } catch (error) {
+        console.error("Error generando PDF nativo:", error);
+        alert("Ocurrió un error al generar el PDF.");
+    } finally {
+        btnDownloadPdf.innerHTML = originalText;
+    }
+});
 });
