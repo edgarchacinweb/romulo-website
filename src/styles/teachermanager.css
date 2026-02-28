@@ -1,28 +1,28 @@
 :root {
-  --color-blue-800: #1e40af; /* Azul principal */
-  --color-blue-700: #1d4ed8; /* Azul hover */
-  --color-blue-200: #bfdbfe; /* Azul claro (texto nav) */
-  --color-blue-100: #dbeafe; /* Azul muy claro (fondo icono) */
-  --color-blue-600: #2563eb; /* Azul (checkbox) */
-  --color-orange-600: #ea580c; /* Naranja (botón) */
-  --color-orange-700: #c2410c; /* Naranja hover */
+  --color-blue-800: #1e40af;
+  --color-blue-700: #1d4ed8;
+  --color-blue-200: #bfdbfe;
+  --color-blue-100: #dbeafe;
+  --color-blue-600: #2563eb;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
   --color-white: #ffffff;
-  --color-gray-50: #f9fafb; /* Fondo tarjeta docente */
-  --color-gray-200: #e5e7eb; /* Bordes */
-  --color-gray-300: #d1d5db; /* Borde input */
-  --color-gray-400: #9ca3af; /* Borde checkbox */
-  --color-gray-500: #6b7280; /* Texto secundario */
-  --color-gray-600: #4b5563; /* Texto */
-  --color-gray-700: #374151; /* Labels */
-  --color-gray-800: #1f2937; /* Títulos */
-  --color-gray-900: #111827; /* Títulos oscuros */
+  --color-gray-50: #f9fafb;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
   --color-body-bg: #f4f7f6;
   --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --shadow-lg:
     0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --border-radius: 0.5rem; /* 8px */
-  --border-radius-lg: 0.75rem; /* 12px */
-  --border-radius-xl: 1rem; /* 16px */
+  --border-radius: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
   --border-radius-full: 9999px;
 
   --text-main: #111827;
@@ -45,6 +45,14 @@
   --purple-badge-bg: #f3e8ff;
   --purple-badge-text: #9333ea;
   --purple-glow: rgba(147, 51, 234, 0.4);
+
+  --primary-teal: #005b63;
+  --secondary-teal: #016a73;
+  --text-gray: #6b7280;
+  --text-dark: #1f2937;
+  --border-color: #d1d5db;
+  --bg-light-gray: #e5e7eb;
+  --badge-purple: #8f9cd3;
 }
 
 /* Reseteo básico y fuente principal */
@@ -446,6 +454,11 @@ main {
   background-color: var(--color-orange-700);
 }
 
+.btn-export:disabled {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
 /* --- Barra Seleccionar Todos --- */
 .select-all-bar {
   border-top: 1px solid var(--color-gray-200);
@@ -659,4 +672,257 @@ main {
 .subject-purple:hover {
   box-shadow: 0 0 15px var(--purple-glow);
   border-color: var(--purple-badge-text);
+}
+
+@media screen {
+  #report {
+    display: none;
+  }
+}
+
+@media print {
+  @page {
+    size: portrait;
+    margin: 0;
+    padding-top: 0.3cm;
+  }
+
+  #page {
+    display: none;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    /* Forzamos Ubuntu. Si no está, caerá a sans-serif genérico */
+    font-family: "Ubuntu", sans-serif;
+    background-color: #fcfcfc;
+    color: #333333;
+    padding: 40px;
+    line-height: 1.5;
+  }
+
+  .institution-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+
+  .logo-circle {
+    width: 65px;
+    height: 65px;
+    background-color: var(--primary-teal);
+    color: #ffffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .institution-titles h1 {
+    color: var(--primary-teal);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .institution-titles .subtitle {
+    color: var(--text-gray);
+    font-size: 15px;
+    margin-top: 2px;
+  }
+
+  .institution-info {
+    color: var(--text-gray);
+    font-size: 10px;
+  }
+
+  .institution-info p {
+    margin-bottom: 1px;
+    font-weight: bold;
+  }
+
+  /* Línea divisoria principal, gruesa y de color teal */
+  .main-divider {
+    border: none;
+    border-top: 2px solid var(--primary-teal);
+    margin: 25px 0;
+  }
+
+  /* =========================================
+   TÍTULO DEL REPORTE
+========================================= */
+  .report-title {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+
+  .report-title h2 {
+    color: var(--primary-teal);
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 5px;
+  }
+
+  .report-title p {
+    color: var(--text-gray);
+    font-size: 14px;
+  }
+
+  /* =========================================
+   TARJETA DEL DOCENTE (CARD)
+========================================= */
+  .teacher-card {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    width: 95%;
+    margin: 5px auto;
+    padding: 25px 30px 15px 30px; /* Padding interno como en la imagen */
+  }
+
+  /* Cabecera de la tarjeta */
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .name-id-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 5px;
+  }
+
+  .teacher-name {
+    color: var(--primary-teal);
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* Etiquetas (Badges) genéricas */
+  .badge {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .id-badge {
+    background-color: var(--bg-light-gray);
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .teacher-status {
+    color: var(--text-gray);
+    font-size: 14px;
+  }
+
+  .header-right {
+    text-align: right;
+  }
+
+  .hours-val {
+    color: var(--primary-teal);
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .hours-label {
+    color: var(--text-gray);
+    font-size: 12px;
+  }
+
+  /* Divisores internos de la tarjeta */
+  .card-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 20px 0;
+  }
+
+  .card-divider.thin {
+    margin: 15px 0 10px 0;
+  }
+
+  /* Información de contacto usando CSS Grid */
+  .contact-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+    row-gap: 20px;
+    column-gap: 30px;
+  }
+
+  .full-width {
+    grid-column: 1 / -1; /* Hace que este elemento ocupe todas las columnas */
+  }
+
+  .info-label {
+    display: block;
+    color: var(--text-gray);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .info-value {
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* =========================================
+   SECCIÓN DE MATERIAS
+========================================= */
+  .subjects-section .info-label {
+    margin-bottom: 10px;
+  }
+
+  .subjects-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Espaciado entre las filas de materias */
+  }
+
+  .subject-item {
+    background-color: #ededed; /* Gris muy clarito para las filas */
+    padding: 10px 15px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .subject-name {
+    color: var(--text-dark);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* Colores específicos de las etiquetas de materias */
+  .badge-highschool {
+    background-color: var(--primary-teal);
+    color: #ffffff;
+  }
+
+  .badge-middleschool {
+    background-color: var(--badge-purple);
+    color: #ffffff;
+  }
 }

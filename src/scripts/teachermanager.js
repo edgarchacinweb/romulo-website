@@ -20,6 +20,7 @@ const emailField = document.getElementById("correo");
 const locationField = document.getElementById("direccion");
 const addSubjectBtn = document.getElementById("agregar-materia");
 const submitBtn = document.getElementById("submit-btn");
+const exportBtn = document.getElementById("export-btn");
 let selectedTeacherId = "";
 
 let subjectsSelectHtml = "";
@@ -295,6 +296,65 @@ const addTeacherCard = (teacher) => {
         s.remove();
     });
   });
+
+  // Agregando reporte
+  const report = document.createElement("article");
+  report.classList.add("teacher-card");
+  report.innerHTML = `
+  <header class="card-header">
+    <div class="header-left">
+        <div class="name-id-row">
+            <h3 class="teacher-name">${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h3>
+            <span class="badge id-badge">Cédula: V-${teacher["DatosPersona"]["Cedula"]}</span>
+        </div>
+        <p class="teacher-status">Docente Activo | ${teacher["DatosPersona"]["Cedula"]}</p>
+    </div>
+    <div class="header-right">
+        <div class="hours-val">${teacher["HorasAcademicas"]}h/sem</div>
+        <div class="hours-label">Horas semanales</div>
+    </div>
+  </header>
+
+  <hr class="card-divider">
+
+  <div class="contact-info">
+    <div class="info-group">
+        <span class="info-label">TELÉFONO</span>
+        <span class="info-value">${teacher["DatosPersona"]["Telefono"]}</span>
+    </div>
+    <div class="info-group">
+        <span class="info-label">CORREO ELECTRÓNICO</span>
+        <span class="info-value">${teacher["Usuario"]["Email"]}</span>
+    </div>
+    <div class="info-group full-width">
+        <span class="info-label">DIRECCIÓN DE VIVIENDA</span>
+        <span class="info-value">${teacher["DatosPersona"]["Direccion"]}</span>
+    </div>
+  </div>
+
+  <hr class="card-divider">
+
+  <div class="subjects-section">
+      <span class="info-label">MATERIAS QUE IMPARTE</span>
+      <ul class="subjects-list">
+          ${teacher.Materias.reduce((prev, current) => {
+            return (
+              prev +
+              `
+            <li class="subject-item">
+                <span class="subject-name">${current["Nombre"]}</span>
+                <span class="badge badge-highschool">${current["Nivel"]}</span>
+            </li>
+            `
+            );
+          }, "")}
+      </ul>
+  </div>
+  `;
+
+  document.getElementById("report").appendChild(report);
+  document.getElementById("teachers-count").textContent =
+    `(${teachers.length})`;
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -341,6 +401,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const teachersData = await teachersResponse.json();
     if (!teachersResponse.ok) throw new Error(teachersData.message);
     teachers = [...teachersData];
+
+    if (teachers.length > 0) exportBtn.removeAttribute("disabled");
+
     const activeTeachers = document.getElementById("active-teachers");
     activeTeachers.textContent = teachers.length;
     teachers.forEach((teacher) => {
@@ -475,6 +538,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       selectedSubjects = [];
+      exportBtn.removeAttribute("disabled");
 
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "success");
@@ -499,3 +563,7 @@ document.getElementById("BtnBack").addEventListener("click", (event) => {
 
   setTimeout(() => (window.location.href = event.target.href), 1000);
 });
+
+document
+  .getElementById("export-btn")
+  .addEventListener("click", () => window.print());
