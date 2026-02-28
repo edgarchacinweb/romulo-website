@@ -335,83 +335,112 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // 5. EXPORTACIÓN A PDF MEJORADA (Corrección definitiva de recortes y escala)
-// 5. EXPORTACIÓN A PDF CON JSPDF Y AUTOTABLE (Solución Nativa)
-btnDownloadPdf.addEventListener("click", () => {
-    if (!currentAttendanceData || currentAttendanceData.length === 0) {
-        alert("No hay datos para exportar.");
-        return;
-    }
+    // 5. EXPORTACIÓN A PDF CON JSPDF Y AUTOTABLE (Solución Nativa Mejorada)
+    btnDownloadPdf.addEventListener("click", () => {
+        if (!currentAttendanceData || currentAttendanceData.length === 0) {
+            alert("No hay datos para exportar.");
+            return;
+        }
 
-    const originalText = btnDownloadPdf.innerHTML;
-    btnDownloadPdf.innerHTML = "Generando PDF...";
+        const originalText = btnDownloadPdf.innerHTML;
+        btnDownloadPdf.innerHTML = "Generando PDF...";
 
-    try {
-        // Inicializamos jsPDF en formato A4 horizontal ('landscape')
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
+        try {
+            // Inicializamos jsPDF en formato A4 horizontal ('landscape')
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            const pageWidth = doc.internal.pageSize.getWidth();
 
-        // 1. Extraemos los datos del encabezado
-        const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
-        const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
-        const docenteText = docenteSelect.value ? docenteSelect.options[docenteSelect.selectedIndex].text : "Varios";
-        const fechaText = fechaSelect.value;
-
-        // 2. Dibujamos los Títulos en el PDF
-        doc.setFontSize(16);
-        doc.setTextColor(15, 23, 42); // Color oscuro (#0f172a)
-        doc.text(`${materiaText} - ${cursoText}`, 14, 20);
-        
-        doc.setFontSize(11);
-        doc.setTextColor(100, 116, 139); // Color gris (#64748b)
-        doc.text(`Docente: ${docenteText} | Fecha: ${fechaText}`, 14, 28);
-
-        // 3. Preparamos las columnas y los datos exactos que queremos
-        const tableColumn = ["ESTUDIANTE", "ESTADO", "MOTIVO (DOCENTE)", "NOTA ADMIN"];
-        const tableRows = [];
-
-        currentAttendanceData.forEach(record => {
-            const estado = record.Activo ? 'Presente' : 'Ausente';
-            const justificacion = record.JustificacionDocente || '-';
-            const notaAdmin = record.NotaAdmin || '-';
-            
-            // Agregamos solo las 4 columnas (ignoramos la de acciones automáticamente)
-            tableRows.push([
-                record.NombreEstudiante,
-                estado,
-                justificacion,
-                notaAdmin
-            ]);
-        });
-
-        // 4. Generamos la tabla matemáticamente (adiós recortes y fallos de CSS)
-        doc.autoTable({
-            startY: 35, // Empieza debajo del título
-            head: [tableColumn],
-            body: tableRows,
-            theme: 'striped', // Filas alternas de color
-            headStyles: { 
-                fillColor: [30, 58, 138], // Azul encabezado (#1e3a8a)
-                textColor: [255, 255, 255], 
-                fontStyle: 'bold' 
-            },
-            styles: { 
-                fontSize: 10, 
-                cellPadding: 4 
-            },
-            alternateRowStyles: { 
-                fillColor: [248, 250, 252] // Gris súper claro
+            // --- 1. AGREGAR LOGO ---
+            try {
+                // Buscamos la imagen del logo que ya está en el header del HTML
+                const logoImg = document.querySelector('.header-brand img');
+                if (logoImg && logoImg.complete && logoImg.naturalWidth !== 0) {
+                    // Posición (X: 20, Y: 12), Tamaño (Ancho: 25, Alto: 25)
+                    doc.addImage(logoImg, 'PNG', 20, 12, 25, 25);
+                }
+            } catch (imgError) {
+                console.warn("No se pudo agregar el logo al PDF", imgError);
             }
-        });
 
-        // 5. Descargamos el archivo
-        doc.save(`Reporte_Asistencia_${fechaText}.pdf`);
-        
-    } catch (error) {
-        console.error("Error generando PDF nativo:", error);
-        alert("Ocurrió un error al generar el PDF.");
-    } finally {
-        btnDownloadPdf.innerHTML = originalText;
-    }
-});
+            // --- 2. AGREGAR MEMBRETE OFICIAL ---
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(0, 0, 0); // Texto negro oficial
+
+            // Centramos el texto matemáticamente usando el ancho de la página (pageWidth / 2)
+            doc.text("REPÚBLICA BOLIVARIANA DE VENEZUELA", pageWidth / 2, 16, { align: "center" });
+            doc.text("MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN", pageWidth / 2, 21, { align: "center" });
+            doc.text("LICEO N DON ROMULO GALLEGOS * S2990D0503", pageWidth / 2, 26, { align: "center" });
+            
+            // Subtítulo de dirección (un poco más pequeño y sin negrita)
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.text("C/SAN MATEO, BARRIO ALAYON, P. ANDRES ELOY BLANCO MARACAY", pageWidth / 2, 31, { align: "center" });
+
+
+            // --- 3. TÍTULO DEL REPORTE Y DATOS ---
+            const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
+            const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
+            const docenteText = docenteSelect.value ? docenteSelect.options[docenteSelect.selectedIndex].text : "Varios";
+            const fechaText = fechaSelect.value;
+
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(15, 23, 42); // Azul muy oscuro (#0f172a)
+            doc.text(`Reporte de Asistencia: ${materiaText} - ${cursoText}`, pageWidth / 2, 45, { align: "center" });
+            
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 116, 139); // Color gris (#64748b)
+            doc.text(`Docente: ${docenteText} | Fecha: ${fechaText}`, pageWidth / 2, 52, { align: "center" });
+
+
+            // --- 4. PREPARAR TABLA ---
+            const tableColumn = ["ESTUDIANTE", "ESTADO", "MOTIVO (DOCENTE)", "NOTA ADMIN"];
+            const tableRows = [];
+
+            currentAttendanceData.forEach(record => {
+                const estado = record.Activo ? 'Presente' : 'Ausente';
+                const justificacion = record.JustificacionDocente || '-';
+                const notaAdmin = record.NotaAdmin || '-';
+                
+                tableRows.push([
+                    record.NombreEstudiante,
+                    estado,
+                    justificacion,
+                    notaAdmin
+                ]);
+            });
+
+            // --- 5. GENERAR TABLA (Ajustando la posición Y) ---
+            doc.autoTable({
+                startY: 60, // Movimos el inicio a Y=60 para darle espacio al membrete
+                head: [tableColumn],
+                body: tableRows,
+                theme: 'striped',
+                headStyles: { 
+                    fillColor: [30, 58, 138], 
+                    textColor: [255, 255, 255], 
+                    fontStyle: 'bold' 
+                },
+                styles: { 
+                    fontSize: 10, 
+                    cellPadding: 4 
+                },
+                alternateRowStyles: { 
+                    fillColor: [248, 250, 252] 
+                }
+            });
+
+            // 6. Descargamos el archivo
+            doc.save(`Reporte_Asistencia_${fechaText}.pdf`);
+            
+        } catch (error) {
+            console.error("Error generando PDF nativo:", error);
+            alert("Ocurrió un error al generar el PDF.");
+        } finally {
+            btnDownloadPdf.innerHTML = originalText;
+        }
+    });
 });
