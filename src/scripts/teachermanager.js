@@ -21,6 +21,7 @@ const locationField = document.getElementById("direccion");
 const addSubjectBtn = document.getElementById("agregar-materia");
 const submitBtn = document.getElementById("submit-btn");
 const exportBtn = document.getElementById("export-btn");
+const stateField = document.getElementById("estado");
 let selectedTeacherId = "";
 
 let subjectsSelectHtml = "";
@@ -136,6 +137,7 @@ const addTeacherCard = (teacher) => {
   const teachersCardContainer = document.getElementById("teacher-list");
   const card = document.createElement("div");
   card.classList.add("teacher-card");
+  if (!teacher["Activo"]) card.classList.add("inactive");
   card.innerHTML = `
     <div class="card-header">
     <div class="avatar-box">
@@ -266,6 +268,7 @@ const addTeacherCard = (teacher) => {
     const phone = teacher["DatosPersona"]["Telefono"].split("-");
     submitBtn.textContent = "Actualizar docente";
     submitBtn.setAttribute("data-update", "");
+    document.querySelector(".hidden").classList.remove("hidden");
 
     firstNameField.value = teacher["DatosPersona"]["Nombre"];
     lastNameField.value = teacher["DatosPersona"]["Apellido"];
@@ -277,6 +280,7 @@ const addTeacherCard = (teacher) => {
     locationField.value = teacher["DatosPersona"]["Direccion"];
     phonePrefixField.value = phone[0];
     phoneField.value = phone[1];
+    stateField.value = `${teacher["Activo"]}`;
 
     selectedSubjects = teacher["Materias"].map((m) => ({
       MateriaId: m["MateriaId"],
@@ -298,6 +302,9 @@ const addTeacherCard = (teacher) => {
   });
 
   // Agregando reporte
+  document.getElementById("teachers-count").textContent =
+    `(${teachers.filter((t) => t["Activo"]).length})`;
+  if (!teacher["Activo"]) return;
   const report = document.createElement("article");
   report.classList.add("teacher-card");
   report.innerHTML = `
@@ -353,8 +360,6 @@ const addTeacherCard = (teacher) => {
   `;
 
   document.getElementById("report").appendChild(report);
-  document.getElementById("teachers-count").textContent =
-    `(${teachers.length})`;
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -471,6 +476,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const hours = hoursField.value;
     const email = emailField.value?.trim();
     const location = locationField.value?.trim();
+    const state = stateField.value;
 
     loader.setAttribute("title", "Registrando docente...");
     document.body.appendChild(loader);
@@ -503,6 +509,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             Materias: selectedSubjects.map((s) => s["MateriaId"]),
             Email: email,
             Horas: hours,
+            Activo: state.toLowerCase() === "true",
           }),
         },
       );

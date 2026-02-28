@@ -206,6 +206,14 @@
                       class="form-textarea"
                     ></textarea>
                   </div>
+
+                  <div class="form-group hidden">
+                    <label for="Estado">Estado</label>
+                    <select id="estado" name="estado" class="form-select">
+                      <option value="true">Habilitado</option>
+                      <option value="false">Deshabilitado</option>
+                    </select>
+                  </div>
   
                   <button type="button" class="btn btn-primary" id="submit-btn">
                     Registrar Docente
@@ -297,60 +305,6 @@
     <section class="report-title">
         <h2>REPORTE DE DOCENTES ACTIVOS <span id="teachers-count">(0)</span></h2>
     </section>
-
-    <article class="teacher-card">
-        
-        <header class="card-header">
-            <div class="header-left">
-                <div class="name-id-row">
-                    <h3 class="teacher-name">Carlos García López</h3>
-                    <span class="badge id-badge">Cédula: V-12345678</span>
-                </div>
-                <p class="teacher-status">Docente Activo | Masculino</p>
-            </div>
-            <div class="header-right">
-                <div class="hours-val">24h/sem</div>
-                <div class="hours-label">Horas semanales</div>
-            </div>
-        </header>
-
-        <hr class="card-divider">
-
-        <div class="contact-info">
-            <div class="info-group">
-                <span class="info-label">TELÉFONO</span>
-                <span class="info-value">0412-5551234</span>
-            </div>
-            <div class="info-group">
-                <span class="info-label">CORREO ELECTRÓNICO</span>
-                <span class="info-value">carlos.garcia@institucion.edu</span>
-            </div>
-            <div class="info-group full-width">
-                <span class="info-label">DIRECCIÓN DE VIVIENDA</span>
-                <span class="info-value">Calle Principal 123, Apto. 4B, Caracas</span>
-            </div>
-        </div>
-
-        <hr class="card-divider">
-
-        <div class="subjects-section">
-            <span class="info-label">MATERIAS QUE IMPARTE</span>
-            <ul class="subjects-list">
-                <li class="subject-item">
-                    <span class="subject-name">Matemática</span>
-                    <span class="badge badge-highschool">Bachillerato</span>
-                </li>
-                <li class="subject-item">
-                    <span class="subject-name">Física</span>
-                    <span class="badge badge-highschool">Bachillerato</span>
-                </li>
-                <li class="subject-item">
-                    <span class="subject-name">Álgebra</span>
-                    <span class="badge badge-middleschool">Secundaria</span>
-                </li>
-            </ul>
-        </div>
-    </article>
     </section>
 
     <script src="/src/scripts/config.js" type="module"></script>

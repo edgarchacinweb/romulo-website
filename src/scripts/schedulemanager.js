@@ -449,7 +449,7 @@ const filter = async (grade, section) => {
     const teachersAnswer = await teachersResponse.json();
     if (!teachersResponse.ok) throw new Error(teachersAnswer.message);
 
-    teachers = [...teachersAnswer];
+    teachers = [...teachersAnswer].filter((t) => t["Activo"]);
 
     let assignedSubjects = Array.from(
       new Set(

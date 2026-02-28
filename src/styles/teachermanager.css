@@ -674,6 +674,14 @@ main {
   border-color: var(--purple-badge-text);
 }
 
+.hidden {
+  display: none;
+}
+
+.inactive {
+  opacity: 0.5;
+}
+
 @media screen {
   #report {
     display: none;
