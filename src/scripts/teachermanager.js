@@ -18,7 +18,118 @@ const subjectsContainer = document.querySelector(".materias-seleccionadas");
 const hoursField = document.getElementById("horas");
 const emailField = document.getElementById("correo");
 const locationField = document.getElementById("direccion");
+const addSubjectBtn = document.getElementById("agregar-materia");
+const submitBtn = document.getElementById("submit-btn");
+let selectedTeacherId = "";
+
 let subjectsSelectHtml = "";
+let selectedSubjects = [];
+let subjects = [];
+
+const validations = () => {
+  const firstName = firstNameField.value?.trim();
+  const lastName = lastNameField.value?.trim();
+  const gender = genderField.value;
+  const identity = identityField.value?.trim();
+  const phone = phoneField.value;
+  const phonePrefix = phonePrefixField.value;
+  const occupation = ocupationField.value?.trim();
+  const hours = hoursField.value;
+  const email = emailField.value?.trim();
+  const location = locationField.value?.trim();
+
+  if (!firstName || firstName.length === 0) {
+    firstNameField.focus();
+    throw new Error("Debes indicar el nombre del docente");
+  } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(firstName)) {
+    firstNameField.focus();
+    throw new Error("El nombre del docente presenta un formato inválido.");
+  } else if (!lastName || lastName.length === 0) {
+    lastNameField.focus();
+    throw new Error("Debes indicar el apellido del docente");
+  } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(lastName)) {
+    lastName.focus();
+    throw new Error("El apellido del docente presenta un formato inválido.");
+  } else if (!gender) {
+    genderField.focus();
+    throw new Error("Debes especificar el género del docente");
+  } else if (!identity) {
+    identityField.focus();
+    throw new Error("Debes especificar la cédula de identidad del docente");
+  } else if (!new RegExp(/\d{7}|\d{8}/).test(identity) || identity < 100000) {
+    identityField.focus();
+    throw new Error("Formato de cédula de identidad inválido.");
+  } else if (!phonePrefix) {
+    phonePrefixField.focus();
+    throw new Error("Debes indicar el prefijo telefónico del docente.");
+  } else if (!phone) {
+    phoneField.focus();
+    throw new Error("Debes indicar el teléfono del docente.");
+  } else if (
+    !new RegExp(/^(0412|0414|0416|0422|0424|0426)-\d{7}$/).test(
+      `${phonePrefix}-${phone}`,
+    )
+  ) {
+    phoneField.focus();
+    throw new Error("El número de teléfono presenta un formato inválido");
+  } else if (!occupation) {
+    ocupationField.focus();
+    throw new Error("Debes indicar la especialidad del docente");
+  } else if (
+    !new RegExp(
+      /^[a-zA-ZÀ-ÿ\u00f1\u00d1]+(\s?[a-zA-ZÀ-ÿ\u00f1\u00d1\.\-]+)*$/,
+    ).test(occupation)
+  ) {
+    ocupationField.focus();
+    throw new Error(
+      "La especialidad del docente presenta un formato inválido.",
+    );
+  } else if (!hours) {
+    hoursField.focus();
+    throw new Error(
+      "Debes indicar las horas académicas semanales que impartirá el docente",
+    );
+  } else if (!new RegExp(/\d[20-40]/).test(hours)) {
+    hoursField.focus();
+    throw new Error("Formato de horas académicas semanales inválido.");
+  } else if (!email) {
+    emailField.focus();
+    throw new Error("Debes indicar el correo electrónico del docente.");
+  } else if (!new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)) {
+    emailField.focus();
+    throw new Error("Formato de correo electrónico inválido");
+  } else if (!location) {
+    locationField.focus();
+    throw new Error("Debes indicar la dirección de habitación del docente");
+  } else if (
+    !new RegExp(
+      /^[a-zA-Z0-9À-ÿ\u00f1\u00d1][a-zA-Z0-9À-ÿ\u00f1\u00d1\s\.,#\-\/°\(\)]{4,254}$/,
+    ).test(location)
+  ) {
+    locationField.focus();
+    throw new Error("Formato de dirección de habitación inválido.");
+  } else if (selectedSubjects.length === 0) {
+    subjectField.focus();
+    throw new Error(
+      "Debes seleccionar al menos una materia que impartirá el docente.",
+    );
+  }
+};
+
+const addRemoveListener = (newSubject, subject) => {
+  newSubject.addEventListener("click", () => {
+    const newOption = document.createElement("option");
+    newOption.setAttribute("value", subject["MateriaId"]);
+    newOption.textContent = `${subject["Nombre"]} - ${subject["Nivel"]}`;
+    subjectField.appendChild(newOption);
+    newSubject.remove();
+    selectedSubjects = selectedSubjects.filter(
+      (s) => s["MateriaId"] !== subject["MateriaId"],
+    );
+    if (addSubjectBtn.classList.contains("disabled"))
+      addSubjectBtn.classList.remove("disabled");
+  });
+};
 
 const addTeacherCard = (teacher) => {
   const teachersCardContainer = document.getElementById("teacher-list");
@@ -62,7 +173,19 @@ const addTeacherCard = (teacher) => {
         </div>
         <div class="text-box">
           <span class="label">Teléfono</span>
-          <span class="value">+${teacher["DatosPersona"]["Telefono"]}</span>
+          <span class="value">${teacher["DatosPersona"]["Telefono"]}</span>
+        </div>
+      </li>
+
+      <li class="info-item divider">
+        <div class="icon-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 0v2h2.586l-2.113 2.113c-.981-.698-2.177-1.113-3.473-1.113-2.22 0-4.144 1.216-5.18 3.009-3.229.096-5.82 2.738-5.82 5.991 0 2.973 2.164 5.433 5 5.91v2.09h-3v2h3v2h2v-2h3v-2h-3v-2.09c1.791-.301 3.294-1.403 4.167-2.918 3.235-.09 5.833-2.735 5.833-5.992 0-1.296-.415-2.492-1.113-3.473l2.113-2.113v2.586h2v-6h-6zm-3 13c-1.944 0-3.564-1.396-3.923-3.236-.66-.333-1.365-.346-2.033-.066.266 2.293 1.827 4.181 3.931 4.938-.729.831-1.784 1.364-2.975 1.364-2.206 0-4-1.794-4-4s1.794-4 4-4c1.937 0 3.555 1.384 3.921 3.214.679.35 1.309.383 2.033.077-.27-2.293-1.837-4.179-3.943-4.931.732-.83 1.797-1.36 2.989-1.36 2.206 0 4 1.794 4 4s-1.794 4-4 4z"/>
+          </svg>
+        </div>
+        <div class="text-box">
+          <span class="label">Género</span>
+          <span class="value">${teacher["DatosPersona"]["Sexo"]}</span>
         </div>
       </li>
 
@@ -135,26 +258,47 @@ const addTeacherCard = (teacher) => {
   teachersCardContainer.appendChild(card);
 
   card.addEventListener("click", async () => {
+    firstNameField.focus();
+    selectedTeacherId = teacher["DocenteId"];
+    document.querySelectorAll(".materia").forEach((m) => m.remove());
     subjectField.innerHTML = subjectsSelectHtml;
     const phone = teacher["DatosPersona"]["Telefono"].split("-");
-    document.getElementById("submit-btn").textContent = "Actualizar docente";
+    submitBtn.textContent = "Actualizar docente";
+    submitBtn.setAttribute("data-update", "");
 
     firstNameField.value = teacher["DatosPersona"]["Nombre"];
     lastNameField.value = teacher["DatosPersona"]["Apellido"];
     identityField.value = teacher["DatosPersona"]["Cedula"];
+    genderField.value = teacher["DatosPersona"]["Sexo"];
     ocupationField.value = teacher["DatosPersona"]["Ocupacion"];
     emailField.value = teacher["Usuario"]["Email"];
     hoursField.value = parseInt(teacher["HorasAcademicas"]);
     locationField.value = teacher["DatosPersona"]["Direccion"];
     phonePrefixField.value = phone[0];
     phoneField.value = phone[1];
+
+    selectedSubjects = teacher["Materias"].map((m) => ({
+      MateriaId: m["MateriaId"],
+      Nombre: m["Nombre"],
+    }));
+
+    teacher["Materias"].forEach((s) => {
+      const newSubject = document.createElement("p");
+      newSubject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+      newSubject.classList.add("materia");
+      subjectsContainer.appendChild(newSubject);
+      addRemoveListener(newSubject, s);
+    });
+
+    Array.from(subjectField.options).forEach((s) => {
+      if (teacher["Materias"].find((m) => m["MateriaId"] === s.value))
+        s.remove();
+    });
   });
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
   const notificationContainer = document.getElementById("notifications");
-  const addSubjectBtn = document.getElementById("agregar-materia");
-  let selectedSubjects = [];
 
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando docentes...");
@@ -172,20 +316,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     newSubject.textContent = subject;
     newSubject.classList.add("materia");
     subjectsContainer.appendChild(newSubject);
-    console.log(selectedSubjects);
 
-    newSubject.addEventListener("click", () => {
-      const newOption = document.createElement("option");
-      newOption.setAttribute("value", id);
-      newOption.textContent = subject;
-      subjectField.appendChild(newOption);
-      newSubject.remove();
-      selectedSubjects = selectedSubjects.filter(
-        (subject) => subject["MateriaId"] !== id,
-      );
-      if (addSubjectBtn.classList.contains("disabled"))
-        addSubjectBtn.classList.remove("disabled");
-    });
+    addRemoveListener(
+      newSubject,
+      subjects.find((s) => s["MateriaId"] === id),
+    );
   });
 
   // Cargando cantidad de docentes activos
@@ -244,11 +379,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     notificationContainer.appendChild(subjectErrorNotification);
   } else {
-    const subjects = await subjectsResponse.json();
+    const subjectsData = await subjectsResponse.json();
+    subjects = [...subjectsData];
     const subjectList = document.getElementById("materia");
     subjectList.firstElementChild.remove();
 
-    subjects.forEach((s) => {
+    subjectsData.forEach((s) => {
       const subject = document.createElement("option");
       subject.setAttribute("value", s["MateriaId"]);
       subject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
@@ -261,7 +397,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   loader.remove();
 
   // Guardando docente
-  document.getElementById("submit-btn").addEventListener("click", async () => {
+  submitBtn.addEventListener("click", async (e) => {
     const firstName = firstNameField.value?.trim();
     const lastName = lastNameField.value?.trim();
     const gender = genderField.value;
@@ -277,87 +413,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.appendChild(loader);
 
     try {
-      if (!firstName || firstName.length === 0) {
-        firstNameField.focus();
-        throw new Error("Debes indicar el nombre del docente");
-      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(firstName)) {
-        firstNameField.focus();
-        throw new Error("El nombre del docente presenta un formato inválido.");
-      } else if (!lastName || lastName.length === 0) {
-        lastNameField.focus();
-        throw new Error("Debes indicar el apellido del docente");
-      } else if (!new RegExp(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]+$/).test(lastName)) {
-        lastName.focus();
-        throw new Error(
-          "El apellido del docente presenta un formato inválido.",
-        );
-      } else if (!gender) {
-        genderField.focus();
-        throw new Error("Debes especificar el género del docente");
-      } else if (!identity) {
-        identityField.focus();
-        throw new Error("Debes especificar la cédula de identidad del docente");
-      } else if (
-        !new RegExp(/\d{7}|\d{8}/).test(identity) ||
-        identity < 100000
-      ) {
-        identityField.focus();
-        throw new Error("Formato de cédula de identidad inválido.");
-      } else if (!phonePrefix) {
-        phonePrefixField.focus();
-        throw new Error("Debes indicar el prefijo telefónico del docente.");
-      } else if (!phone) {
-        phoneField.focus();
-        throw new Error("Debes indicar el teléfono del docente.");
-      } else if (
-        !new RegExp(/^(0412|0414|0416|0422|0424|0426)-\d{7}$/).test(
-          `${phonePrefix}-${phone}`,
-        )
-      ) {
-        phoneField.focus();
-        throw new Error("El número de teléfono presenta un formato inválido");
-      } else if (!occupation) {
-        ocupationField.focus();
-        throw new Error("Debes indicar la especialidad del docente");
-      } else if (
-        !new RegExp(
-          /^[a-zA-ZÀ-ÿ\u00f1\u00d1]+(\s?[a-zA-ZÀ-ÿ\u00f1\u00d1\.\-]+)*$/,
-        ).test(occupation)
-      ) {
-        ocupationField.focus();
-        throw new Error(
-          "La especialidad del docente presenta un formato inválido.",
-        );
-      } else if (!hours) {
-        hoursField.focus();
-        throw new Error(
-          "Debes indicar las horas académicas semanales que impartirá el docente",
-        );
-      } else if (!new RegExp(/\d[20-40]/).test(hours)) {
-        hoursField.focus();
-        throw new Error("Formato de horas académicas semanales inválido.");
-      } else if (!email) {
-        emailField.focus();
-        throw new Error("Debes indicar el correo electrónico del docente.");
-      } else if (!new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)) {
-        emailField.focus();
-        throw new Error("Formato de correo electrónico inválido");
-      } else if (!location) {
-        locationField.focus();
-        throw new Error("Debes indicar la dirección de habitación del docente");
-      } else if (
-        !new RegExp(
-          /^[a-zA-Z0-9À-ÿ\u00f1\u00d1][a-zA-Z0-9À-ÿ\u00f1\u00d1\s\.,#\-\/°\(\)]{4,254}$/,
-        ).test(location)
-      ) {
-        locationField.focus();
-        throw new Error("Formato de dirección de habitación inválido.");
-      } else if (selectedSubjects.length === 0) {
-        subjectField.focus();
-        throw new Error(
-          "Debes seleccionar al menos una materia que impartirá el docente.",
-        );
-      }
+      validations();
 
       const peopleData = {
         Nombre: firstName,
@@ -369,10 +425,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         Direccion: location,
       };
 
+      const updateAttribute = e.target.getAttribute("data-update") !== null;
+
       const registerTeacherResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/teacher/create`,
+        `${window.APP_CONFIG.api_url}/teacher/${updateAttribute ? "update/" + selectedTeacherId : "create"}`,
         {
-          method: "POST",
+          method: updateAttribute ? "PUT" : "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -391,6 +449,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!registerTeacherResponse.ok) {
         throw new Error(registerTeacherAnswer.message);
       }
+
+      if (updateAttribute) window.location.reload();
 
       addTeacherCard({
         DatosPersona: { ...peopleData },
