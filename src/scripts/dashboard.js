@@ -8,6 +8,48 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   const token = localStorage.getItem("auth");
 
+  // --- 0. INICIALIZAR GRÁFICA (CHART.JS) ---
+  const ctx = document.getElementById('resumenChart');
+  let resumenChart = null;
+  
+  if (ctx) {
+      resumenChart = new Chart(ctx.getContext('2d'), {
+          type: 'bar', // Puedes cambiar 'bar' por 'pie' o 'doughnut' si prefieres algo circular
+          data: {
+              labels: ['Estudiantes Registrados', 'Docentes Activos', 'Inscripciones Activas'],
+              datasets: [{
+                  label: 'Cantidad',
+                  data: [0, 0, 0], // Inician en cero hasta que la API responda
+                  backgroundColor: [
+                      'rgba(59, 130, 246, 0.7)', // Azul
+                      'rgba(245, 158, 11, 0.7)', // Naranja
+                      'rgba(16, 185, 129, 0.7)'  // Verde
+                  ],
+                  borderColor: [
+                      'rgba(59, 130, 246, 1)',
+                      'rgba(245, 158, 11, 1)',
+                      'rgba(16, 185, 129, 1)'
+                  ],
+                  borderWidth: 1,
+                  borderRadius: 6 
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                  legend: { display: false }
+              },
+              scales: {
+                  y: {
+                      beginAtZero: true,
+                      ticks: { precision: 0 } // Solo mostrar números enteros
+                  }
+              }
+          }
+      });
+  }
+
   // --- 1. Cargar Total de Estudiantes ---
   (async () => {
     try {
@@ -27,6 +69,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await studentsResponse.json();
       const el = document.getElementById("totalStudents");
       if (el) el.innerHTML = `${data.count}`;
+
+      // Actualizar gráfica dinámicamente
+      if (resumenChart) {
+          resumenChart.data.datasets[0].data[0] = data.count;
+          resumenChart.update();
+      }
     } catch (err) {
       console.error(err);
       const notification = document.createElement("notification-component");
@@ -60,6 +108,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await teacherResponse.json();
       const el = document.getElementById("totalTeachers");
       if (el) el.innerHTML = `${data.count}`;
+
+      // Actualizar gráfica dinámicamente
+      if (resumenChart) {
+          resumenChart.data.datasets[0].data[1] = data.count;
+          resumenChart.update();
+      }
     } catch (err) {
       console.error(err);
       const notification = document.createElement("notification-component");
@@ -73,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   })();
 
-  // --- 3. Cargar Período Escolar Actual (MODIFICADO) ---
+  // --- 3. Cargar Período Escolar Actual ---
   (async () => {
     try {
       // Pedimos la lista completa en lugar del último
@@ -148,6 +202,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await registrationResponse.json();
       const el = document.getElementById("activeEnrollments");
       if (el) el.innerHTML = `${data.count}`;
+
+      // Actualizar gráfica dinámicamente
+      if (resumenChart) {
+          resumenChart.data.datasets[0].data[2] = data.count;
+          resumenChart.update();
+      }
     } catch (err) {
       console.error(err);
       const notification = document.createElement("notification-component");
