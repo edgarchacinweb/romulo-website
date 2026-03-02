@@ -15,9 +15,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   const schoolTermBtn = document.getElementById("add-school-term-btn");
   const startDateEntry = document.getElementById("start-date");
   const endDateEntry = document.getElementById("end-date");
+  
   let schoolTerms = [];
   let registrationId = null;
   let schoolTermYear = null;
+  
+  // --- VARIABLES PARA LÍMITES DE FECHAS ---
+  let schoolTermEndDateObj = null; 
+  let schoolTermMaxDateStr = "";
 
   // Cargar período escolar
   loader.setAttribute("title", "Cargando Período escolar...");
@@ -45,9 +50,47 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     registrationId = data.id;
     schoolTermYear = new Date(data["FechaInicio"]).getFullYear();
-    registrationEntry.value = `Período ${schoolTermYear} - ${
-      schoolTermYear + 1
-    }`;
+    registrationEntry.value = `Período ${schoolTermYear} - ${schoolTermYear + 1}`;
+
+    // =======================================================
+    // NUEVA LÓGICA: LIMITAR CALENDARIO (FECHA MIN Y MAX)
+    // =======================================================
+    
+    // 1. Obtener la Fecha de Fin del Período Escolar de la BD
+    const fechaFinStr = data["FechaFin"]; // Ej: "2026-07-31" o "2026-07-31T00:00:00"
+    schoolTermMaxDateStr = fechaFinStr.split("T")[0]; // Asegurar formato YYYY-MM-DD
+    
+    // Convertir de forma segura a hora local separando los componentes
+    const [finY, finM, finD] = schoolTermMaxDateStr.split('-');
+    schoolTermEndDateObj = new Date(finY, finM - 1, finD);
+    schoolTermEndDateObj.setHours(0, 0, 0, 0);
+
+    // 2. Obtener fecha de HOY en formato local YYYY-MM-DD
+    const hoy = new Date();
+    const yyyy = hoy.getFullYear();
+    const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dd = String(hoy.getDate()).padStart(2, '0');
+    const hoyStr = `${yyyy}-${mm}-${dd}`;
+
+    // 3. Aplicar restricciones a los inputs HTML
+    // No permitir fechas antes de hoy
+    startDateEntry.min = hoyStr;
+    endDateEntry.min = hoyStr;
+    
+    // No permitir fechas después del fin del período escolar
+    startDateEntry.max = schoolTermMaxDateStr;
+    endDateEntry.max = schoolTermMaxDateStr;
+
+    // 4. Mejorar UX: Al elegir fecha de inicio, la fecha fin no puede ser anterior
+    startDateEntry.addEventListener("change", (e) => {
+      if (e.target.value) {
+        endDateEntry.min = e.target.value;
+      } else {
+        endDateEntry.min = hoyStr;
+      }
+    });
+    // =======================================================
+
   } catch (error) {
     loadNotification.setAttribute("type", "error");
     loadNotification.setAttribute("text", error);
@@ -103,42 +146,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const startDate = startDateEntry.value;
       const endDate = endDateEntry.value;
-      const startEntryDate = new Date(startDate);
-      const endEntryDate = new Date(endDate);
 
-      startEntryDate.setHours(0, 0, 0, 0);
-      endEntryDate.setHours(0, 0, 0, 0);
-
-      if (!startDate || !endDate)
+      if (!startDate || !endDate) {
         throw new Error("Debes rellenar ambos campos primero");
-      else if (startEntryDate > endEntryDate) {
-        throw new Error(
-          "La fecha de inicio no puede ser posterior a la fecha de fin.",
-        );
       }
 
+      // CORRECCIÓN ZONA HORARIA: Parseamos manualemente para evitar que caiga al día anterior por el UTC
+      const [startYear, startMonth, startDay] = startDate.split('-');
+      const startEntryDate = new Date(startYear, startMonth - 1, startDay);
+      startEntryDate.setHours(0, 0, 0, 0);
+
+      const [endYear, endMonth, endDay] = endDate.split('-');
+      const endEntryDate = new Date(endYear, endMonth - 1, endDay);
+      endEntryDate.setHours(0, 0, 0, 0);
+
+      // =======================================================
+      // NUEVA LÓGICA: VALIDACIÓN ESTRICTA AL ENVIAR
+      // =======================================================
+      const hoyParaValidar = new Date();
+      hoyParaValidar.setHours(0, 0, 0, 0);
+
+      if (startEntryDate < hoyParaValidar) {
+        throw new Error("La fecha de inicio no puede ser anterior al día de hoy.");
+      }
+
+      if (endEntryDate > schoolTermEndDateObj) {
+        const [y, m, d] = schoolTermMaxDateStr.split("-");
+        throw new Error(`La fecha de fin no puede exceder el límite del período escolar (${d}/${m}/${y}).`);
+      }
+
+      if (startEntryDate > endEntryDate) {
+        throw new Error("La fecha de inicio no puede ser posterior a la fecha de fin.");
+      }
+      // =======================================================
+
+      // OPTIMIZACIÓN: Comparar cadenas ISO (YYYY-MM-DD) directamente evita por completo fallos de zona horaria
       const hasOverlap = schoolTerms.some((term) => {
-        const termStart = new Date(term["Inicio"]);
-        const termEnd = new Date(term["Fin"]);
-        const start = new Date(startEntryDate);
-        const end = new Date(endEntryDate);
-
-        // Comparar solo fechas (ignorando horas)
-        const normalize = (date) => date.toISOString().split("T")[0];
-
-        const tStart = normalize(termStart);
-        const tEnd = normalize(termEnd);
-        const sDate = normalize(start);
-        const eDate = normalize(end);
-
-        // Los rangos se solapan si no se cumple:
-        // (nuevo_fin < existente_inicio) o (nuevo_inicio > existente_fin)
-        return tStart >= sDate && tEnd <= eDate;
+        const tStart = term["Inicio"].split("T")[0];
+        const tEnd = term["Fin"].split("T")[0];
+        
+        // Hay solapamiento si el inicio del existente es MENOR O IGUAL al fin nuevo, 
+        // Y el fin del existente es MAYOR O IGUAL al inicio nuevo.
+        return tStart <= endDate && tEnd >= startDate;
       });
 
       if (hasOverlap) {
         throw new Error(
-          "Las fechas seleccionadas chocan con un periodo existente.",
+          "Las fechas seleccionadas chocan con un periodo de inscripción existente.",
         );
       }
 
@@ -197,7 +251,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     } catch (error) {
       notification.setAttribute("type", "error");
-      notification.setAttribute("text", error);
+      notification.setAttribute("text", error.message || error);
     } finally {
       loadNotificationContainer.appendChild(notification);
     }
