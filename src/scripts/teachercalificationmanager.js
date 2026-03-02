@@ -84,7 +84,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     lapso = await lapsoPromise.json();
     if (!lapsoPromise.ok) throw new Error(lapso.message);
-    console.log(lapso);
 
     // Cargando grados académicos y secciones con estudiantes inscritos
     const gradesPromise = await fetch(
@@ -156,7 +155,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentsResponse = await studentsPromise.json();
     if (!studentsPromise.ok) throw new Error(studentsResponse.message);
     students = [...studentsResponse];
-    console.log(students);
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -166,14 +164,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } finally {
     loader.remove();
   }
-
-  // --- 3. Mock Data (Simulando la base de datos de estudiantes) ---
-  const estudiantesData = [
-    { id: "EST-013", nombre: "Javier Antonio Romero" },
-    { id: "EST-014", nombre: "Katarina Luisa Vargas" },
-    { id: "EST-015", nombre: "Luis Miguel Herrera" },
-    { id: "EST-016", nombre: "Mariana Francisca Medina" },
-  ];
 
   // --- 4. Funciones de Renderizado de Estados ---
 
@@ -191,19 +181,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
         `;
 
-    // Simular latencia de red de 1.5 segundos
     renderizarTablaEstudiantes();
   }
 
   function renderizarTablaEstudiantes() {
     // Generamos las filas dinámicamente
-    const filas = estudiantesData
+    const grade = grades.find((g) => g["CursoId"] === selectGrado.value);
+    const studentsData = students.filter(
+      (s) =>
+        s["Curso"]["Grado"] === grade["Grado"] &&
+        s["Curso"]["Seccion"] === number_to_letter(selectSeccion.value),
+    );
+    console.log(studentsData);
+    const filas = studentsData
       .map(
         (est, index) => `
             <tr>
                 <td>${index + 1}</td>
-                <td>${est.nombre}</td>
-                <td>${est.id}</td>
+                <td>${est["DatosPersona"]["Nombre"]} ${est["DatosPersona"]["Apellido"]}</td>
+                <td>${est["DatosPersona"]["Cedula"]}</td>
                 <td>
                     <input type="number" class="grade-input" min="1" max="20" placeholder="--" data-index="${index}">
                 </td>
@@ -223,7 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <div class="table-header">
                         <div>
                             <h2>Lista de Estudiantes</h2>
-                            <p>Calificaciones completadas: <strong id="counter-text" style="color: var(--primary-blue);">0</strong> de ${estudiantesData.length}</p>
+                            <p>Calificaciones completadas: <strong id="counter-text" style="color: var(--primary-blue);">0</strong> de ${studentsData.length}</p>
                         </div>
                         <button id="btn-guardar" class="btn-primary" disabled>
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -250,23 +246,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     <div id="warning-alert" class="alert alert-warning">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                        <span>Recuerde: Debe completar las calificaciones de TODOS los estudiantes (<span id="alert-counter">0</span>/${estudiantesData.length}) para guardar los datos.</span>
+                        <span>Recuerde: Debe completar las calificaciones de TODOS los estudiantes (<span id="alert-counter">0</span>/${studentsData.length}) para guardar los datos.</span>
                     </div>
                 </div>
             </div>
         `;
 
-    configurarEventosTabla();
+    configurarEventosTabla(studentsData);
   }
 
   // --- 5. Lógica de Negocio y Validaciones (La parte jugosa) ---
-  function configurarEventosTabla() {
+  function configurarEventosTabla(studentsData) {
     const inputs = document.querySelectorAll(".grade-input");
     const btnGuardar = document.getElementById("btn-guardar");
     const counterText = document.getElementById("counter-text");
     const alertCounter = document.getElementById("alert-counter");
     const warningAlert = document.getElementById("warning-alert");
-    const total = estudiantesData.length;
+    const total = studentsData.length;
 
     inputs.forEach((input) => {
       input.addEventListener("input", (e) => {
