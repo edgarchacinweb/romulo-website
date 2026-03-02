@@ -14,11 +14,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const fechaSelect = document.getElementById("fechaSelect");
     const btnBuscar = document.getElementById("btnBuscar");
     
+    // Contenedores a ocultar según TAB
+    const filterDocente = document.getElementById("filterDocente");
+    const filterFecha = document.getElementById("filterFecha");
+
+    // TABS DE NAVEGACIÓN
+    let currentTab = 'diario';
+    const tabDiario = document.getElementById("tabDiario");
+    const tabLapsos = document.getElementById("tabLapsos");
+
     // Elementos del Reporte
     const reportCard = document.getElementById("reportCard");
     const reportTitle = document.getElementById("reportTitle");
     const reportSubtitle = document.getElementById("reportSubtitle");
+    
+    // Tablas
+    const diarioTable = document.getElementById("diarioTable");
+    const lapsoTable = document.getElementById("lapsoTable");
     const tableBody = document.getElementById("tableBody");
+    const lapsoTableBody = document.getElementById("lapsoTableBody");
+    
     const btnDownloadPdf = document.getElementById("btnDownloadPdf");
     
     // Elementos del Modal
@@ -32,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // VARIABLES DE ESTADO PARA FILTRADO DINÁMICO
     let currentAttendanceData = []; 
+    let currentLapsoData = []; // Nueva variable para los lapsos
     let currentEditRecordId = null; 
     let allTeachers = []; // Todos los docentes registrados
     let allSubjects = []; // Todas las materias registradas
@@ -40,11 +56,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Por defecto colocamos la fecha de hoy
     fechaSelect.valueAsDate = new Date();
 
+    // ==========================================
+    // LÓGICA DE TABS (PESTAÑAS)
+    // ==========================================
+    tabDiario.addEventListener("click", () => {
+        currentTab = 'diario';
+        tabDiario.classList.add('active');
+        tabLapsos.classList.remove('active');
+        
+        // Mostrar filtros específicos del diario
+        filterDocente.style.display = 'block';
+        filterFecha.style.display = 'block';
+        reportCard.style.display = "none";
+        btnBuscar.textContent = "Buscar Registro Diario";
+    });
+
+    tabLapsos.addEventListener("click", () => {
+        currentTab = 'lapsos';
+        tabLapsos.classList.add('active');
+        tabDiario.classList.remove('active');
+        
+        // Ocultar filtros que no aplican para el consolidado de boletas
+        filterDocente.style.display = 'none'; 
+        filterFecha.style.display = 'none';
+        reportCard.style.display = "none";
+        btnBuscar.textContent = "Generar Consolidado por Lapsos";
+    });
+
     /**
      * Función auxiliar para poblar el selector de materias
      */
     function populateSubjectsDropdown(list) {
-        materiaSelect.innerHTML = '<option value="">Seleccione una Materia</option>';
+        materiaSelect.innerHTML = '<option value="">Todas las materias</option>';
         list.forEach(m => {
             const opt = document.createElement("option");
             opt.value = m.MateriaId;
@@ -203,60 +246,103 @@ document.addEventListener("DOMContentLoaded", async () => {
         const materiaId = materiaSelect.value;
         const fecha = fechaSelect.value;
 
-        if (!cursoId || !fecha) {
-            alert("El Año/Sección y la Fecha son obligatorios para buscar el reporte.");
+        if (!cursoId) {
+            alert("El Año y Sección son obligatorios para buscar el reporte.");
             return;
         }
 
+        const originalText = btnBuscar.textContent;
         btnBuscar.textContent = "Buscando...";
         btnBuscar.disabled = true;
 
         try {
-            const queryParams = new URLSearchParams({
-                cursoId: cursoId,
-                seccion: seccionNum,
-                fecha: fecha,
-                ...(docenteId && { docenteId }),
-                ...(materiaId && { materiaId })
-            });
-
-            const response = await fetch(`${apiUrl}/assistance/admin/report?${queryParams.toString()}`, {
-                method: "GET",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                currentAttendanceData = data.asistencias || [];
-                
-                if (currentAttendanceData.length === 0) {
-                    alert("No hay asistencias cargadas para esta fecha y sección.");
-                    reportCard.style.display = "none";
-                } else {
-                    renderTable(data);
+            // SI ESTAMOS EN LA PESTAÑA DEL REPORTE DIARIO
+            if (currentTab === 'diario') {
+                if (!fecha) {
+                    alert("La Fecha es obligatoria para el reporte diario.");
+                    btnBuscar.disabled = false;
+                    btnBuscar.textContent = originalText;
+                    return;
                 }
-            } else {
-                const errorData = await response.json();
-                alert(`Error al buscar asistencias: ${errorData.message}`);
-                reportCard.style.display = "none";
+
+                const queryParams = new URLSearchParams({
+                    cursoId: cursoId,
+                    seccion: seccionNum,
+                    fecha: fecha,
+                    ...(docenteId && { docenteId }),
+                    ...(materiaId && { materiaId })
+                });
+
+                const response = await fetch(`${apiUrl}/assistance/admin/report?${queryParams.toString()}`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentAttendanceData = data.asistencias || [];
+                    
+                    if (currentAttendanceData.length === 0) {
+                        alert("No hay asistencias cargadas para esta fecha y sección.");
+                        reportCard.style.display = "none";
+                    } else {
+                        renderTableDiario(data);
+                    }
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error al buscar asistencias: ${errorData.message}`);
+                    reportCard.style.display = "none";
+                }
+            } 
+            // SI ESTAMOS EN LA PESTAÑA DEL CONSOLIDADO POR LAPSOS
+            else {
+                const queryParams = new URLSearchParams({
+                    cursoId: cursoId,
+                    seccion: seccionNum,
+                    ...(materiaId && { materiaId })
+                });
+
+                const response = await fetch(`${apiUrl}/assistance/admin/report_lapso?${queryParams.toString()}`, {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    currentLapsoData = data.reporte_lapsos || [];
+                    
+                    if (currentLapsoData.length === 0) {
+                        alert("No hay asistencias registradas en este curso durante el año escolar.");
+                        reportCard.style.display = "none";
+                    } else {
+                        renderTableLapsos(currentLapsoData);
+                    }
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error al buscar asistencias por lapsos: ${errorData.message}`);
+                    reportCard.style.display = "none";
+                }
             }
         } catch (error) {
             console.error("Error:", error);
             alert("Error de conexión al consultar los reportes.");
         } finally {
-            btnBuscar.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg> Buscar Asistencia`;
+            btnBuscar.textContent = originalText;
             btnBuscar.disabled = false;
         }
     });
 
-    // 3. RENDERIZAR LA TABLA DE RESULTADOS
-    function renderTable(data) {
+    // 3. RENDERIZAR LA TABLA DEL REPORTE DIARIO
+    function renderTableDiario(data) {
         reportCard.style.display = "block";
+        diarioTable.style.display = "table"; 
+        lapsoTable.style.display = "none";
+
         const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
         const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
         const docenteText = docenteSelect.value ? docenteSelect.options[docenteSelect.selectedIndex].text : "Varios";
         
-        reportTitle.textContent = `${materiaText} - ${cursoText}`;
+        reportTitle.textContent = `Reporte Diario: ${materiaText} - ${cursoText}`;
         reportSubtitle.textContent = `Docente: ${docenteText} | Fecha: ${fechaSelect.value}`;
 
         tableBody.innerHTML = "";
@@ -281,6 +367,60 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </td>
             `;
             tableBody.appendChild(tr);
+        });
+    }
+
+    // 3.1 RENDERIZAR LA TABLA DEL CONSOLIDADO POR LAPSOS
+    function renderTableLapsos(data) {
+        reportCard.style.display = "block";
+        diarioTable.style.display = "none"; 
+        lapsoTable.style.display = "table";
+
+        const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
+        const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
+        
+        reportTitle.textContent = `Consolidado por Lapsos: ${materiaText}`;
+        reportSubtitle.textContent = `Curso: ${cursoText} | Año Escolar: 2025-2026`;
+
+        lapsoTableBody.innerHTML = "";
+
+        data.forEach(estudiante => {
+            const materiasKeys = Object.keys(estudiante.Materias);
+            if (materiasKeys.length === 0) return;
+
+            // Recorremos cada materia del estudiante
+            materiasKeys.forEach((nombreMateria, index) => {
+                const tr = document.createElement("tr");
+                const mData = estudiante.Materias[nombreMateria];
+                const totalFaltas = mData["1"].I + mData["2"].I + mData["3"].I;
+
+                // Solo ponemos el nombre del estudiante en la primera fila (rowspan)
+                let tdEstudiante = '';
+                if (index === 0) {
+                    tdEstudiante = `<td rowspan="${materiasKeys.length}" style="font-weight: 600; color: #1e293b; border-right: 1px solid #e2e8f0; vertical-align: middle;">${estudiante.NombreEstudiante}</td>`;
+                }
+
+                tr.innerHTML = `
+                    ${tdEstudiante}
+                    <td style="color: #334155; font-weight: 500;">${nombreMateria}</td>
+                    <td style="text-align: center;">
+                        <span class="badge present" style="padding: 4px 8px;">${mData["1"].A}</span> / 
+                        <span class="badge absent" style="padding: 4px 8px;">${mData["1"].I}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge present" style="padding: 4px 8px;">${mData["2"].A}</span> / 
+                        <span class="badge absent" style="padding: 4px 8px;">${mData["2"].I}</span>
+                    </td>
+                    <td style="text-align: center;">
+                        <span class="badge present" style="padding: 4px 8px;">${mData["3"].A}</span> / 
+                        <span class="badge absent" style="padding: 4px 8px;">${mData["3"].I}</span>
+                    </td>
+                    <td style="text-align: center; font-weight: bold; color: #991b1b; background-color: #fef2f2;">
+                        ${totalFaltas}
+                    </td>
+                `;
+                lapsoTableBody.appendChild(tr);
+            });
         });
     }
 
@@ -321,7 +461,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (response.ok) {
                 alert("Registro actualizado correctamente.");
                 hideModal();
-                btnBuscar.click(); // Recargar la tabla
+                btnBuscar.click(); // Recargar la tabla automáticamente
             } else {
                 const errorData = await response.json();
                 alert(`Error al actualizar: ${errorData.message}`);
@@ -331,17 +471,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error(error);
             alert("Error conectando con el servidor.");
         } finally {
-            btnSaveEdit.textContent = "Guardar Cambios";
+            btnSaveEdit.textContent = "Guardar Modificación";
         }
     });
 
-    // 5. EXPORTACIÓN A PDF CON JSPDF Y AUTOTABLE (Solución Nativa Mejorada)
+    // 5. EXPORTACIÓN A PDF CON JSPDF Y AUTOTABLE
     btnDownloadPdf.addEventListener("click", () => {
-        if (!currentAttendanceData || currentAttendanceData.length === 0) {
-            alert("No hay datos para exportar.");
-            return;
-        }
-
         const originalText = btnDownloadPdf.innerHTML;
         btnDownloadPdf.innerHTML = "Generando PDF...";
 
@@ -351,12 +486,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             const doc = new jsPDF('landscape');
             const pageWidth = doc.internal.pageSize.getWidth();
 
-            // --- 1. AGREGAR LOGO ---
+            // --- 1. AGREGAR LOGO AL PDF ---
             try {
-                // Buscamos la imagen del logo que ya está en el header del HTML
                 const logoImg = document.querySelector('.header-brand img');
                 if (logoImg && logoImg.complete && logoImg.naturalWidth !== 0) {
-                    // Posición (X: 20, Y: 12), Tamaño (Ancho: 25, Alto: 25)
                     doc.addImage(logoImg, 'PNG', 20, 12, 25, 25);
                 }
             } catch (imgError) {
@@ -366,75 +499,111 @@ document.addEventListener("DOMContentLoaded", async () => {
             // --- 2. AGREGAR MEMBRETE OFICIAL ---
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
-            doc.setTextColor(0, 0, 0); // Texto negro oficial
-
-            // Centramos el texto matemáticamente usando el ancho de la página (pageWidth / 2)
+            doc.setTextColor(0, 0, 0); 
             doc.text("REPÚBLICA BOLIVARIANA DE VENEZUELA", pageWidth / 2, 16, { align: "center" });
             doc.text("MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN", pageWidth / 2, 21, { align: "center" });
             doc.text("LICEO N DON ROMULO GALLEGOS * S2990D0503", pageWidth / 2, 26, { align: "center" });
             
-            // Subtítulo de dirección (un poco más pequeño y sin negrita)
             doc.setFontSize(8);
             doc.setFont("helvetica", "normal");
             doc.text("C/SAN MATEO, BARRIO ALAYON, P. ANDRES ELOY BLANCO MARACAY", pageWidth / 2, 31, { align: "center" });
 
-
-            // --- 3. TÍTULO DEL REPORTE Y DATOS ---
+            // Capturar textos de los selectores para los subtitulos
             const cursoText = cursoSelect.options[cursoSelect.selectedIndex].text;
             const materiaText = materiaSelect.value ? materiaSelect.options[materiaSelect.selectedIndex].text : "Todas las materias";
             const docenteText = docenteSelect.value ? docenteSelect.options[docenteSelect.selectedIndex].text : "Varios";
             const fechaText = fechaSelect.value;
 
-            doc.setFontSize(14);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(15, 23, 42); // Azul muy oscuro (#0f172a)
-            doc.text(`Reporte de Asistencia: ${materiaText} - ${cursoText}`, pageWidth / 2, 45, { align: "center" });
-            
-            doc.setFontSize(11);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(100, 116, 139); // Color gris (#64748b)
-            doc.text(`Docente: ${docenteText} | Fecha: ${fechaText}`, pageWidth / 2, 52, { align: "center" });
-
-
-            // --- 4. PREPARAR TABLA ---
-            const tableColumn = ["ESTUDIANTE", "ESTADO", "MOTIVO (DOCENTE)", "NOTA ADMIN"];
-            const tableRows = [];
-
-            currentAttendanceData.forEach(record => {
-                const estado = record.Activo ? 'Presente' : 'Ausente';
-                const justificacion = record.JustificacionDocente || '-';
-                const notaAdmin = record.NotaAdmin || '-';
-                
-                tableRows.push([
-                    record.NombreEstudiante,
-                    estado,
-                    justificacion,
-                    notaAdmin
-                ]);
-            });
-
-            // --- 5. GENERAR TABLA (Ajustando la posición Y) ---
-            doc.autoTable({
-                startY: 60, // Movimos el inicio a Y=60 para darle espacio al membrete
-                head: [tableColumn],
-                body: tableRows,
-                theme: 'striped',
-                headStyles: { 
-                    fillColor: [30, 58, 138], 
-                    textColor: [255, 255, 255], 
-                    fontStyle: 'bold' 
-                },
-                styles: { 
-                    fontSize: 10, 
-                    cellPadding: 4 
-                },
-                alternateRowStyles: { 
-                    fillColor: [248, 250, 252] 
+            // LÓGICA PARA EXPORTAR EL PDF DEL REPORTE DIARIO
+            if (currentTab === 'diario') {
+                if (!currentAttendanceData || currentAttendanceData.length === 0) {
+                    alert("No hay datos de reporte diario para exportar.");
+                    btnDownloadPdf.innerHTML = originalText;
+                    return;
                 }
-            });
 
-            // 6. Descargamos el archivo
-            doc.save(`Reporte_Asistencia_${fechaText}.pdf`);
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(15, 23, 42); 
+                doc.text(`Reporte de Asistencia Diario: ${materiaText} - ${cursoText}`, pageWidth / 2, 45, { align: "center" });
+                
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(100, 116, 139); 
+                doc.text(`Docente: ${docenteText} | Fecha: ${fechaText}`, pageWidth / 2, 52, { align: "center" });
+
+                const tableColumn = ["ESTUDIANTE", "ESTADO", "MOTIVO (DOCENTE)", "NOTA ADMIN"];
+                const tableRows = [];
+
+                currentAttendanceData.forEach(record => {
+                    const estado = record.Activo ? 'Presente' : 'Ausente';
+                    const justificacion = record.JustificacionDocente || '-';
+                    const notaAdmin = record.NotaAdmin || '-';
+                    tableRows.push([record.NombreEstudiante, estado, justificacion, notaAdmin]);
+                });
+
+                doc.autoTable({
+                    startY: 60,
+                    head: [tableColumn],
+                    body: tableRows,
+                    theme: 'striped',
+                    headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255], fontStyle: 'bold' },
+                    styles: { fontSize: 10, cellPadding: 4 },
+                    alternateRowStyles: { fillColor: [248, 250, 252] }
+                });
+
+                doc.save(`Reporte_Diario_${fechaText}.pdf`);
+            } 
+            // LÓGICA PARA EXPORTAR EL PDF DEL CONSOLIDADO POR LAPSOS
+            else {
+                if (!currentLapsoData || currentLapsoData.length === 0) {
+                    alert("No hay datos consolidados para exportar.");
+                    btnDownloadPdf.innerHTML = originalText;
+                    return;
+                }
+
+                doc.setFontSize(14);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(15, 23, 42); 
+                doc.text(`Consolidado por Lapsos: ${materiaText} - ${cursoText}`, pageWidth / 2, 45, { align: "center" });
+                
+                doc.setFontSize(11);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(100, 116, 139); 
+                doc.text(`Año Escolar: 2025-2026`, pageWidth / 2, 52, { align: "center" });
+
+                const tableColumn = ["ESTUDIANTE", "MATERIA", "1ER MOMENTO", "2DO MOMENTO", "3ER MOMENTO", "TOTAL FALTAS"];
+                const tableRows = [];
+
+                currentLapsoData.forEach(estudiante => {
+                    const materiasKeys = Object.keys(estudiante.Materias);
+                    materiasKeys.forEach((nombreMateria, index) => {
+                        const mData = estudiante.Materias[nombreMateria];
+                        const totalFaltas = mData["1"].I + mData["2"].I + mData["3"].I;
+                        
+                        // Solo imprimimos el nombre del estudiante en su primera materia para no repetir
+                        const nombreCelda = index === 0 ? estudiante.NombreEstudiante : '';
+                        
+                        const momento1 = `${mData["1"].A} Asist. - ${mData["1"].I} Faltas`;
+                        const momento2 = `${mData["2"].A} Asist. - ${mData["2"].I} Faltas`;
+                        const momento3 = `${mData["3"].A} Asist. - ${mData["3"].I} Faltas`;
+
+                        tableRows.push([nombreCelda, nombreMateria, momento1, momento2, momento3, totalFaltas.toString()]);
+                    });
+                });
+
+                doc.autoTable({
+                    startY: 60,
+                    head: [tableColumn],
+                    body: tableRows,
+                    theme: 'striped',
+                    headStyles: { fillColor: [30, 58, 138], textColor: [255, 255, 255], fontStyle: 'bold' },
+                    styles: { fontSize: 10, cellPadding: 4 },
+                    alternateRowStyles: { fillColor: [248, 250, 252] }
+                });
+
+                doc.save(`Consolidado_Lapsos_${cursoText}.pdf`);
+            }
             
         } catch (error) {
             console.error("Error generando PDF nativo:", error);
