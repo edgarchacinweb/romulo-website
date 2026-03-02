@@ -1,9 +1,17 @@
 import authorize from "./auth.js";
+import number_to_letter from "./utils.js";
 
 authorize("docente");
 const token = localStorage.getItem("auth");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // Datos globales
+  const notifications = document.getElementById("notifications");
+  let grades = [];
+  let subjects = [];
+  let students = [];
+  let lapso = undefined;
+
   // --- 1. Animación de Salida y Redirección ---
   const btnVolver = document.getElementById("btn-volver");
   btnVolver.addEventListener("click", () => {
@@ -17,20 +25,32 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- 2. Referencias al DOM para la Lógica de Búsqueda ---
-  const selectGrado = document.getElementById("select-grado");
-  const selectSeccion = document.getElementById("select-seccion");
-  const selectMateria = document.getElementById("select-materia");
+  const selectGrado = document.getElementById("gradeField");
+  const selectSeccion = document.getElementById("sectionField");
+  const selectMateria = document.getElementById("subjectField");
   const dynamicArea = document.getElementById("dynamic-area");
 
   // Habilitar selects en cascada
-  selectGrado.addEventListener(
-    "change",
-    () => (selectSeccion.disabled = false),
-  );
-  selectSeccion.addEventListener(
-    "change",
-    () => (selectMateria.disabled = false),
-  );
+  selectGrado.addEventListener("change", () => {
+    selectSeccion.disabled = false;
+
+    selectSeccion.innerHTML = `
+      <option value="" disabled selected>
+        Seleccionar sección...
+      </option>
+    `;
+
+    const sections = grades.find((g) => g["CursoId"] === selectGrado.value);
+    for (let i = 0; i < sections["Seccion"]; i++) {
+      const option = document.createElement("option");
+      option.setAttribute("value", i + 1);
+      option.textContent = number_to_letter(i + 1);
+      selectSeccion.appendChild(option);
+    }
+  });
+  selectSeccion.addEventListener("change", () => {
+    selectMateria.disabled = false;
+  });
 
   // Cuando la materia se selecciona, simulamos la carga de datos
   selectMateria.addEventListener("change", () => {
@@ -38,6 +58,114 @@ document.addEventListener("DOMContentLoaded", () => {
       iniciarCargaEstudiantes();
     }
   });
+
+  // Cargando datos
+  const loader = document.createElement("loader-spinner");
+  document.body.appendChild(loader);
+  try {
+    // Cargando lapso activo actual
+    const lapsoPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/lapsos/get`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    if (lapsoPromise.status === 404) {
+      setTimeout(() => {
+        alert("No hay ningún lapso activo en este momento");
+        btnVolver.click();
+      }, 1000);
+    }
+
+    lapso = await lapsoPromise.json();
+    if (!lapsoPromise.ok) throw new Error(lapso.message);
+    console.log(lapso);
+
+    // Cargando grados académicos y secciones con estudiantes inscritos
+    const gradesPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/course/sections`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const gradesReponse = await gradesPromise.json();
+    if (!gradesPromise.ok) throw new Error(gradesReponse.message);
+    grades = [...gradesReponse];
+
+    selectGrado.innerHTML = `
+      <option value="" disabled selected>
+        Seleccionar grado...
+      </option>
+    `;
+
+    grades.forEach((g) => {
+      const option = document.createElement("option");
+      option.setAttribute("value", g["CursoId"]);
+      option.textContent = `${g["Grado"]}° Año`;
+      selectGrado.appendChild(option);
+    });
+
+    // Cargando materias impartidas por el docente
+    const subjectsPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/teacher/subjects`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const subjectsResponse = await subjectsPromise.json();
+    if (!subjectsPromise.ok) throw new Error(subjectsResponse.message);
+    subjects = [...subjectsResponse];
+
+    subjects.forEach((s) => {
+      const option = document.createElement("option");
+      option.setAttribute("value", s["MateriaId"]);
+      option.textContent = s["Nombre"];
+      selectMateria.appendChild(option);
+    });
+
+    // Cargando estudiantes inscritos
+    const studentsPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/students/filter`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          Estado: "inscrito",
+        }),
+      },
+    );
+
+    const studentsResponse = await studentsPromise.json();
+    if (!studentsPromise.ok) throw new Error(studentsResponse.message);
+    students = [...studentsResponse];
+    console.log(students);
+  } catch (Error) {
+    console.error(Error.stack);
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", Error.message);
+    notifications.appendChild(notification);
+  } finally {
+    loader.remove();
+  }
 
   // --- 3. Mock Data (Simulando la base de datos de estudiantes) ---
   const estudiantesData = [
@@ -64,9 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
     // Simular latencia de red de 1.5 segundos
-    setTimeout(() => {
-      renderizarTablaEstudiantes();
-    }, 1500);
+    renderizarTablaEstudiantes();
   }
 
   function renderizarTablaEstudiantes() {
