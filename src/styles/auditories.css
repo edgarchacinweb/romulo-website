@@ -116,9 +116,7 @@ body {
 }
 
 .logo-icon {
-  background-color: #e0f2fe;
   color: var(--primary-blue);
-  padding: 0.6rem;
   border-radius: 8px;
   display: flex;
 }
@@ -450,7 +448,7 @@ td:first-child {
   background: var(--role-docente-bg);
   color: var(--role-docente-txt);
 }
-.role-estudiante {
+.role-representante {
   background: var(--role-estud-bg);
   color: var(--role-estud-txt);
 }
@@ -530,4 +528,170 @@ td:first-child {
   font-size: 0.75rem;
   color: var(--text-muted);
   padding-bottom: 1rem;
+}
+
+@media screen {
+  #print {
+    display: none;
+  }
+}
+
+@media print {
+  #page {
+    display: none;
+  }
+
+  @page {
+    size: portrait;
+    margin: 0;
+    padding: 2cm;
+  }
+
+  :root {
+    --text-main: #000000;
+    --text-secondary: #4a4a4a;
+    --text-light: #6b6b6b;
+    --border-thick: 2px solid #000000;
+    --border-thin: 1px solid #e0e0e0;
+    --bg-page: #ffffff;
+    --bg-hover: #f9f9f9;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family:
+      "Ubuntu",
+      system-ui,
+      -apple-system,
+      sans-serif;
+    background-color: #f0f2f5; /* Fondo grisáceo fuera del documento para contraste */
+    color: var(--text-main);
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* =========================================
+   CONTENEDOR PRINCIPAL (Simulación de Hoja)
+========================================= */
+  .report-container {
+    background-color: var(--bg-page);
+    width: 100%;
+    max-width: 1400px; /* Ancho amplio para que la tabla respire */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+
+  /* =========================================
+   ENCABEZADO INSTITUCIONAL
+========================================= */
+  .institution-header {
+    margin-bottom: 2rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .institution-letterhead {
+    text-align: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .main-divider {
+    border: none;
+    border-top: var(--border-thick);
+    margin-bottom: 2.5rem;
+  }
+
+  /* =========================================
+   METADATOS DEL REPORTE
+========================================= */
+  .report-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+  }
+
+  .meta-title-date h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .report-date {
+    font-size: 0.85rem;
+    color: var(--text-light);
+  }
+
+  .meta-total p {
+    font-size: 1rem;
+  }
+
+  /* =========================================
+   TABLA DE AUDITORÍA
+========================================= */
+  .table-section {
+    width: 100%;
+    margin-bottom: 4rem;
+  }
+
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  /* Bordes gruesos para el encabezado de la tabla */
+  .audit-table th {
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 1rem 0.5rem;
+    border-top: var(--border-thick);
+    border-bottom: var(--border-thick);
+  }
+
+  /* Bordes finos para las filas de datos */
+  .audit-table td {
+    font-size: 0.85rem;
+    padding: 1rem 0.5rem;
+    border-bottom: var(--border-thin);
+    color: var(--text-secondary);
+    transition: background-color 0.2s ease;
+  }
+
+  /* Celdas específicas */
+  .audit-table td:first-child {
+    font-weight: 500;
+    color: var(--text-main);
+  }
+
+  /* =========================================
+   PIE DE PÁGINA
+========================================= */
+  .report-footer {
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 2rem;
+  }
+
+  .report-footer p {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+  }
 }

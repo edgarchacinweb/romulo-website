@@ -1,8 +1,125 @@
-import authorize from "./auth";
+import authorize from "./auth.js";
 
 authorize("administrador");
+const token = localStorage.getItem("auth");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  const selectGroup = document.querySelectorAll(".select-options");
+  const rolSelect = selectGroup.item(0);
+  const actionSelect = selectGroup.item(1);
+  const dateFromInput = document.getElementById("dateFromInput");
+  const dateToInput = document.getElementById("dateToInput");
+  const auditoriesTable = document.getElementById("auditoriesTable");
+  const reportTable = document.getElementById("report-table");
+  const reportDate = document.getElementById("report-date");
+  const reportsCount = document.getElementById("report-records-count");
+  const btnPdf = document.getElementById("btn-pdf");
+
+  const totalRows = document.getElementById("total-rows");
+  const todayActions = document.getElementById("today-actions");
+  const totalUsers = document.getElementById("total-users");
+  const adminActions = document.getElementById("admin-actions");
+
+  const dateFormat = new Intl.DateTimeFormat("es-VE", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    hour: "numeric",
+    hour12: true,
+    minute: "numeric",
+  });
+
+  let records = [];
+  let usersCount = 0;
+  const loader = document.createElement("loader-spinner");
+  const notifications = document.getElementById("notifications");
+
+  const roleTags = {
+    administrador: "role-admin",
+    docente: "role-docente",
+    representante: "role-representante",
+  };
+
+  const actionTags = {
+    Sesión: "act-login",
+    Registro: "act-register",
+    Respaldo: "act-backup",
+    Configuración: "act-config",
+  };
+
+  // Filtrar registros
+  const filter = () => {
+    const roleValue = rolSelect
+      .querySelector(".selected")
+      .getAttribute("data-value");
+    const actionValue = actionSelect
+      .querySelector(".selected")
+      .getAttribute("data-value");
+    const dateFromValue = dateFromInput.value;
+    const dateToValue = dateToInput.value;
+
+    let filteredRecords = [...records];
+    if (roleValue !== "todos")
+      filteredRecords = filteredRecords.filter(
+        (r) => r["Usuario"]["Rol"] === roleValue,
+      );
+    if (actionValue !== "todas")
+      filteredRecords = filteredRecords.filter(
+        (r) => r["Accion"] === actionValue,
+      );
+    if (dateFromValue.trim() !== "") {
+      const dateFrom = new Date(dateFromValue);
+      filteredRecords = filteredRecords.filter(
+        (r) => new Date(r["Fecha"]) >= dateFrom,
+      );
+    }
+    if (dateToValue.trim() !== "") {
+      const dateTo = new Date(dateToValue);
+      filteredRecords = filteredRecords.filter(
+        (r) => new Date(r["Fecha"]) <= dateTo,
+      );
+    }
+
+    totalRows.textContent = filteredRecords.length;
+    todayActions.textContent = records.filter(
+      (r) => new Date(r["Fecha"]) == new Date(),
+    ).length;
+    adminActions.textContent = records.filter(
+      (r) => r["Usuario"]["Rol"] === "administrador",
+    ).length;
+
+    auditoriesTable.innerHTML = "";
+    reportTable.innerHTML = "";
+    filteredRecords.forEach((record) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+			<td>${record["Usuario"]["Email"]}</td>
+			<td><span class="pill ${roleTags[record["Usuario"]["Rol"]]}">${record["Usuario"]["Rol"]}</span></td>
+			<td>${record["Descripcion"]}</td>
+			<td>
+				<span class="pill ${actionTags[record["Accion"]]}">${record["Accion"]}</span>
+			</td>
+			<td>${record["Fecha"]}</td>         
+			`;
+
+      auditoriesTable.appendChild(row);
+
+      const report = document.createElement("tr");
+      report.innerHTML = `
+			<td>${record["Usuario"]["Email"]}</td>
+			<td>${record["Usuario"]["Rol"]}</td>
+			<td>${record["Descripcion"]}</td>
+			<td>${record["Accion"]}</td>
+			<td>${record["Fecha"]}</td>
+			`;
+
+      reportTable.appendChild(report);
+
+      reportDate.textContent = dateFormat.format(new Date());
+      reportsCount.textContent = filteredRecords.length;
+    });
+  };
+
   // 1. Lógica para los Dropdowns Personalizados
   const customSelects = document.querySelectorAll(".custom-select");
 
@@ -62,7 +179,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Esperar a que termine la animación (500ms definidos en CSS) para redirigir
     setTimeout(() => {
-      window.location.href = "/app/docentes/inicio";
+      window.location.href = "/app/admin/dashboard/";
     }, 500);
   });
+
+  // Obteniendo registros
+  loader.setAttribute("title", "Cargando Auditorías...");
+  document.body.appendChild(loader);
+  try {
+    const auditoriesPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/auditory/filter`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const auditoriesResponse = await auditoriesPromise.json();
+    if (!auditoriesPromise.ok) throw new Error(auditoriesResponse.message);
+    records = [...auditoriesResponse];
+
+    // Obteniendo cantidad de usuarios activos
+    const usersCountPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/users/count`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const usersCountResponse = await usersCountPromise.json();
+    if (!usersCountPromise.ok) throw new Error(usersCountResponse.message);
+    usersCount = usersCountResponse["count"];
+    totalUsers.textContent = usersCount;
+  } catch (Error) {
+    console.error(Error.stack);
+    const notification = document.createElement("notification-component");
+    notification.setAttribute("type", "error");
+    notification.setAttribute("text", Error.message);
+    notifications.appendChild(notification);
+  } finally {
+    loader.remove();
+  }
+
+  filter();
+
+  document
+    .querySelectorAll(".select-options li")
+    .forEach((s) => s.addEventListener("click", filter));
+  dateFromInput.addEventListener("change", filter);
+  dateToInput.addEventListener("change", filter);
+
+  document.getElementById("reset").addEventListener("click", () => {
+    rolSelect.querySelector(".selected").classList.remove("selected");
+    rolSelect.querySelector("li").classList.add("selected");
+    rolSelect.parentElement.querySelector("span").textContent =
+      "Todos los roles";
+
+    actionSelect.querySelector(".selected").classList.remove("selected");
+    actionSelect.querySelector("li").classList.add("selected");
+    actionSelect.parentElement.querySelector("span").textContent =
+      "Todas las acciones";
+
+    dateFromInput.value = "";
+    dateToInput.value = "";
+
+    filter();
+  });
+
+  btnPdf.addEventListener("click", () => window.print());
 });

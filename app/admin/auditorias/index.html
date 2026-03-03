@@ -4,17 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Auditorías del Sistema</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/auditories.css" />
+
+    <!-- Componentes -->
+    <script type="module" src="/src/components/loader.component.js"></script>
+    <script
+      type="module"
+      src="/src/components/notification.component.js"
+    ></script>
+    <script
+      type="module"
+      src="/src/components/notifications-container.component.js"
+    ></script>
   </head>
   <body>
-    <div id="app-wrapper" class="app-wrapper fade-in-up">
-      <header class="top-header">
-        <div class="header-left">
-          <div class="logo-icon">
+    <notifications-container id="notifications"></notifications-container>
+    <div id="page">
+      <div id="app-wrapper" class="app-wrapper fade-in-up">
+        <header class="top-header">
+          <div class="header-left">
+            <div class="logo-icon">
+              <img
+                src="/src/assets/images/romulo.webp"
+                alt="Logo institucional"
+                width="70px"
+              />
+            </div>
+            <div class="header-titles">
+              <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
+              <p>Auditorías del Sistema</p>
+            </div>
+          </div>
+          <button id="btn-salir" class="btn-outline btn-salir">
             <svg
               viewBox="0 0 24 24"
-              width="20"
-              height="20"
+              width="16"
+              height="16"
               fill="none"
               stroke="currentColor"
               stroke-width="2"
@@ -22,426 +48,469 @@
               stroke-linejoin="round"
             >
               <path
-                d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"
+                d="M16 17l5-5-5-5M21 12H9M9 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"
               ></path>
             </svg>
+            Salir
+          </button>
+        </header>
+
+        <main class="main-content">
+          <section class="page-header">
+            <h2>Auditorías del Sistema</h2>
+            <p>
+              Monitorea todas las actividades y cambios realizados en el sistema
+              de gestión administrativa
+            </p>
+          </section>
+
+          <section class="filters-card">
+            <h3>Filtros</h3>
+            <p class="subtitle">
+              Filtra los registros de auditoría por rol, acción y fecha
+            </p>
+
+            <div class="filters-grid">
+              <div class="input-group">
+                <label>Rol de Usuario</label>
+                <div class="custom-select" id="select-rol">
+                  <div class="select-trigger">
+                    <span class="selected-value">Todos los roles</span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  </div>
+                  <ul class="select-options">
+                    <li data-value="todos" class="selected">Todos los roles</li>
+                    <li data-value="administrador">Administrador</li>
+                    <li data-value="docente">Docente</li>
+                    <li data-value="representante">Representante</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Acción</label>
+                <div class="custom-select" id="select-accion">
+                  <div class="select-trigger">
+                    <span class="selected-value">Todas las acciones</span>
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <path d="M6 9l6 6 6-6"></path>
+                    </svg>
+                  </div>
+                  <ul class="select-options">
+                    <li data-value="todas" class="selected">
+                      Todas las acciones
+                    </li>
+                    <li data-value="Sesión">Sesión</li>
+                    <li data-value="Registro">Registro</li>
+                    <li data-value="Respaldo">Respaldos de BD</li>
+                    <li data-value="Configuración">Configuración</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Desde</label>
+                <div class="date-input-wrapper">
+                  <input
+                    type="date"
+                    placeholder="dd/mm/aaaa"
+                    id="dateFromInput"
+                  />
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label>Hasta</label>
+                <div class="date-input-wrapper">
+                  <input
+                    type="date"
+                    placeholder="dd/mm/aaaa"
+                    id="dateToInput"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="filters-actions">
+              <button class="btn-ghost" id="reset">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  ></path>
+                </svg>
+                Restablecer
+              </button>
+            </div>
+          </section>
+
+          <section class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-info">
+                <p>Total de Registros</p>
+                <h4 id="total-rows">...</h4>
+              </div>
+              <div class="stat-icon icon-blue">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <p>Acciones Hoy</p>
+                <h4 id="today-actions">...</h4>
+              </div>
+              <div class="stat-icon icon-red">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <p>Usuarios Activos</p>
+                <h4 id="total-users">...</h4>
+              </div>
+              <div class="stat-icon icon-blue-light">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-info">
+                <p>Acciones Admin</p>
+                <h4 id="admin-actions">...</h4>
+              </div>
+              <div class="stat-icon icon-purple">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  ></path>
+                </svg>
+              </div>
+            </div>
+          </section>
+
+          <section class="table-container">
+            <div class="table-header-actions">
+              <button class="btn-outline btn-export" id="btn-pdf">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                  ></path>
+                </svg>
+                Exportar PDF
+              </button>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Correo Electrónico</th>
+                    <th>Rol</th>
+                    <th>Descripción</th>
+                    <th>Acción</th>
+                    <th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody id="auditoriesTable">
+                  <!-- <tr>
+                    <td>admin@institucion.edu</td>
+                    <td><span class="pill role-admin">Administrador</span></td>
+                    <td>Acceso al panel de administración</td>
+                    <td>
+                      <span class="pill act-login">Inicio de sesión</span>
+                    </td>
+                    <td>02 mar 2024 09:15</td>
+                  </tr>
+                  <tr>
+                    <td>docente@institucion.edu</td>
+                    <td><span class="pill role-docente">Docente</span></td>
+                    <td>Creó nuevo grupo de estudiantes 10°A</td>
+                    <td><span class="pill act-register">Registro</span></td>
+                    <td>02 mar 2024 10:30</td>
+                  </tr>
+                  <tr>
+                    <td>admin@institucion.edu</td>
+                    <td><span class="pill role-admin">Administrador</span></td>
+                    <td>Respaldo automático de base de datos completado</td>
+                    <td><span class="pill act-backup">Respaldo DB</span></td>
+                    <td>02 mar 2024 11:00</td>
+                  </tr>
+                  <tr>
+                    <td>secretaria@institucion.edu</td>
+                    <td>
+                      <span class="pill role-secretario">Secretario</span>
+                    </td>
+                    <td>Actualizó información de estudiante Juan Pérez</td>
+                    <td><span class="pill act-update">Actualización</span></td>
+                    <td>02 mar 2024 12:45</td>
+                  </tr>
+                  <tr>
+                    <td>estudiante@institucion.edu</td>
+                    <td>
+                      <span class="pill role-estudiante">Estudiante</span>
+                    </td>
+                    <td>Inició sesión en el portal estudiantil</td>
+                    <td>
+                      <span class="pill act-login">Inicio de sesión</span>
+                    </td>
+                    <td>02 mar 2024 13:20</td>
+                  </tr>
+                  <tr>
+                    <td>admin@institucion.edu</td>
+                    <td><span class="pill role-admin">Administrador</span></td>
+                    <td>Cambió permisos del usuario docente Maria Garcia</td>
+                    <td>
+                      <span class="pill act-permissions">Cambio permisos</span>
+                    </td>
+                    <td>02 mar 2024 14:10</td>
+                  </tr>
+                  <tr>
+                    <td>docente2@institucion.edu</td>
+                    <td><span class="pill role-docente">Docente</span></td>
+                    <td>Exportó calificaciones del trimestre</td>
+                    <td><span class="pill act-export">Exportación</span></td>
+                    <td>02 mar 2024 15:30</td>
+                  </tr>
+                  <tr>
+                    <td>secretaria@institucion.edu</td>
+                    <td>
+                      <span class="pill role-secretario">Secretario</span>
+                    </td>
+                    <td>Eliminó registro de estudiante inactivo</td>
+                    <td><span class="pill act-delete">Eliminación</span></td>
+                    <td>02 mar 2024 16:15</td>
+                  </tr>
+                  <tr>
+                    <td>admin@institucion.edu</td>
+                    <td><span class="pill role-admin">Administrador</span></td>
+                    <td>Configuró nuevo logo institucional</td>
+                    <td><span class="pill act-config">Configuración</span></td>
+                    <td>02 mar 2024 17:00</td>
+                  </tr>
+                  <tr>
+                    <td>docente@institucion.edu</td>
+                    <td><span class="pill role-docente">Docente</span></td>
+                    <td>Cambió contraseña</td>
+                    <td>
+                      <span class="pill act-password">Cambio contraseña</span>
+                    </td>
+                    <td>02 mar 2024 17:45</td>
+                  </tr>
+                  <tr>
+                    <td>estudiante2@institucion.edu</td>
+                    <td>
+                      <span class="pill role-estudiante">Estudiante</span>
+                    </td>
+                    <td>Consultó horario académico</td>
+                    <td>
+                      <span class="pill act-login">Inicio de sesión</span>
+                    </td>
+                    <td>01 mar 2024 08:30</td>
+                  </tr>
+                  <tr>
+                    <td>secretaria@institucion.edu</td>
+                    <td>
+                      <span class="pill role-secretario">Secretario</span>
+                    </td>
+                    <td>Importó nuevos datos de estudiantes</td>
+                    <td><span class="pill act-export">Importación</span></td>
+                    <td>01 mar 2024 09:00</td>
+                  </tr> -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </main>
+
+        <footer class="bottom-footer">
+          <div class="footer-grid">
+            <div class="footer-col">
+              <h4>
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                  ></path>
+                </svg>
+                Seguridad
+              </h4>
+              <p>
+                Todos los datos de auditoría se almacenan de forma segura y
+                encriptada
+              </p>
+            </div>
+            <div class="footer-col">
+              <h4>
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                </svg>
+                Sistema
+              </h4>
+              <p>
+                Sistema de Gestión Administrativa v1.0 - Última actualización:
+                02/03/2026
+              </p>
+            </div>
+            <div class="footer-col">
+              <h4>
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                  ></path>
+                </svg>
+                Soporte
+              </h4>
+              <p>
+                Contacta al equipo técnico para reportar problemas o sugerencias
+              </p>
+            </div>
           </div>
-          <div class="header-titles">
-            <h1>Instituto Educativo</h1>
-            <p>Auditorías del Sistema</p>
+          <div class="footer-copy">
+            <p>
+              &copy; 2026 Liceo Nacional Don Rómulo Gallegos. Todos los derechos
+              reservados.
+            </p>
           </div>
-        </div>
-        <button id="btn-salir" class="btn-outline btn-salir">
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path
-              d="M16 17l5-5-5-5M21 12H9M9 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"
-            ></path>
-          </svg>
-          Salir
-        </button>
+        </footer>
+      </div>
+    </div>
+    <div class="report-container" id="print">
+      <header class="institution-header">
+        <img
+          src="/src/assets/images/romulo.webp"
+          alt="Logo institucional"
+          width="100px"
+        />
+        <section class="institution-letterhead">
+          <p>República Bolivariana de Venezuela</p>
+          <p>Ministerio del Poder Popular para la Educación</p>
+          <p>Liceo N Rómulo Gallegos * S2990D0503</p>
+          <p>C/SAN MATEO, Barrio Alayón, P. Andrés Eloy Blanco, Maracay</p>
+        </section>
       </header>
 
-      <main class="main-content">
-        <section class="page-header">
-          <h2>Auditorías del Sistema</h2>
-          <p>
-            Monitorea todas las actividades y cambios realizados en el sistema
-            de gestión administrativa
-          </p>
-        </section>
+      <hr class="main-divider" />
 
-        <section class="filters-card">
-          <h3>Filtros</h3>
-          <p class="subtitle">
-            Filtra los registros de auditoría por rol, acción y fecha
-          </p>
-
-          <div class="filters-grid">
-            <div class="input-group">
-              <label>Rol de Usuario</label>
-              <div class="custom-select" id="select-rol">
-                <div class="select-trigger">
-                  <span class="selected-value">Todos los roles</span>
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M6 9l6 6 6-6"></path>
-                  </svg>
-                </div>
-                <ul class="select-options">
-                  <li data-value="todos" class="selected">Todos los roles</li>
-                  <li data-value="admin">Administrador</li>
-                  <li data-value="docente">Docente</li>
-                  <li data-value="estudiante">Estudiante</li>
-                  <li data-value="secretario">Secretario</li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label>Acción</label>
-              <div class="custom-select" id="select-accion">
-                <div class="select-trigger">
-                  <span class="selected-value">Todas las acciones</span>
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="16"
-                    height="16"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path d="M6 9l6 6 6-6"></path>
-                  </svg>
-                </div>
-                <ul class="select-options">
-                  <li data-value="todas" class="selected">
-                    Todas las acciones
-                  </li>
-                  <li data-value="inicio">Inicio de sesión</li>
-                  <li data-value="cierre">Cierre de sesión</li>
-                  <li data-value="registro">Registro</li>
-                  <li data-value="actualizacion">Actualización</li>
-                  <li data-value="eliminacion">Eliminación</li>
-                  <li data-value="respaldo">Respaldo de base de datos</li>
-                  <li data-value="exportacion">Exportación</li>
-                </ul>
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label>Desde</label>
-              <div class="date-input-wrapper">
-                <input type="date" placeholder="dd/mm/aaaa" />
-              </div>
-            </div>
-
-            <div class="input-group">
-              <label>Hasta</label>
-              <div class="date-input-wrapper">
-                <input type="date" placeholder="dd/mm/aaaa" />
-              </div>
-            </div>
-          </div>
-
-          <div class="filters-actions">
-            <button class="btn-primary">
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-              </svg>
-              Buscar
-            </button>
-            <button class="btn-ghost">
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                ></path>
-              </svg>
-              Restablecer
-            </button>
-          </div>
-        </section>
-
-        <section class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Total de Registros</p>
-              <h4>12</h4>
-            </div>
-            <div class="stat-icon icon-blue">
-              <svg
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Acciones Hoy</p>
-              <h4>10</h4>
-            </div>
-            <div class="stat-icon icon-red">
-              <svg
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Usuarios Activos</p>
-              <h4>6</h4>
-            </div>
-            <div class="stat-icon icon-blue-light">
-              <svg
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-                ></path>
-              </svg>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-info">
-              <p>Acciones Admin</p>
-              <h4>4</h4>
-            </div>
-            <div class="stat-icon icon-purple">
-              <svg
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                ></path>
-              </svg>
-            </div>
-          </div>
-        </section>
-
-        <section class="table-container">
-          <div class="table-header-actions">
-            <button class="btn-outline btn-export">
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                ></path>
-              </svg>
-              Exportar PDF
-            </button>
-          </div>
-
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Correo Electrónico</th>
-                  <th>Rol</th>
-                  <th>Descripción</th>
-                  <th>Acción</th>
-                  <th>Fecha</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>admin@institucion.edu</td>
-                  <td><span class="pill role-admin">Administrador</span></td>
-                  <td>Acceso al panel de administración</td>
-                  <td><span class="pill act-login">Inicio de sesión</span></td>
-                  <td>02 mar 2024 09:15</td>
-                </tr>
-                <tr>
-                  <td>docente@institucion.edu</td>
-                  <td><span class="pill role-docente">Docente</span></td>
-                  <td>Creó nuevo grupo de estudiantes 10°A</td>
-                  <td><span class="pill act-register">Registro</span></td>
-                  <td>02 mar 2024 10:30</td>
-                </tr>
-                <tr>
-                  <td>admin@institucion.edu</td>
-                  <td><span class="pill role-admin">Administrador</span></td>
-                  <td>Respaldo automático de base de datos completado</td>
-                  <td><span class="pill act-backup">Respaldo DB</span></td>
-                  <td>02 mar 2024 11:00</td>
-                </tr>
-                <tr>
-                  <td>secretaria@institucion.edu</td>
-                  <td><span class="pill role-secretario">Secretario</span></td>
-                  <td>Actualizó información de estudiante Juan Pérez</td>
-                  <td><span class="pill act-update">Actualización</span></td>
-                  <td>02 mar 2024 12:45</td>
-                </tr>
-                <tr>
-                  <td>estudiante@institucion.edu</td>
-                  <td><span class="pill role-estudiante">Estudiante</span></td>
-                  <td>Inició sesión en el portal estudiantil</td>
-                  <td><span class="pill act-login">Inicio de sesión</span></td>
-                  <td>02 mar 2024 13:20</td>
-                </tr>
-                <tr>
-                  <td>admin@institucion.edu</td>
-                  <td><span class="pill role-admin">Administrador</span></td>
-                  <td>Cambió permisos del usuario docente Maria Garcia</td>
-                  <td>
-                    <span class="pill act-permissions">Cambio permisos</span>
-                  </td>
-                  <td>02 mar 2024 14:10</td>
-                </tr>
-                <tr>
-                  <td>docente2@institucion.edu</td>
-                  <td><span class="pill role-docente">Docente</span></td>
-                  <td>Exportó calificaciones del trimestre</td>
-                  <td><span class="pill act-export">Exportación</span></td>
-                  <td>02 mar 2024 15:30</td>
-                </tr>
-                <tr>
-                  <td>secretaria@institucion.edu</td>
-                  <td><span class="pill role-secretario">Secretario</span></td>
-                  <td>Eliminó registro de estudiante inactivo</td>
-                  <td><span class="pill act-delete">Eliminación</span></td>
-                  <td>02 mar 2024 16:15</td>
-                </tr>
-                <tr>
-                  <td>admin@institucion.edu</td>
-                  <td><span class="pill role-admin">Administrador</span></td>
-                  <td>Configuró nuevo logo institucional</td>
-                  <td><span class="pill act-config">Configuración</span></td>
-                  <td>02 mar 2024 17:00</td>
-                </tr>
-                <tr>
-                  <td>docente@institucion.edu</td>
-                  <td><span class="pill role-docente">Docente</span></td>
-                  <td>Cambió contraseña</td>
-                  <td>
-                    <span class="pill act-password">Cambio contraseña</span>
-                  </td>
-                  <td>02 mar 2024 17:45</td>
-                </tr>
-                <tr>
-                  <td>estudiante2@institucion.edu</td>
-                  <td><span class="pill role-estudiante">Estudiante</span></td>
-                  <td>Consultó horario académico</td>
-                  <td><span class="pill act-login">Inicio de sesión</span></td>
-                  <td>01 mar 2024 08:30</td>
-                </tr>
-                <tr>
-                  <td>secretaria@institucion.edu</td>
-                  <td><span class="pill role-secretario">Secretario</span></td>
-                  <td>Importó nuevos datos de estudiantes</td>
-                  <td><span class="pill act-export">Importación</span></td>
-                  <td>01 mar 2024 09:00</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-
-      <footer class="bottom-footer">
-        <div class="footer-grid">
-          <div class="footer-col">
-            <h4>
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                ></path>
-              </svg>
-              Seguridad
-            </h4>
-            <p>
-              Todos los datos de auditoría se almacenan de forma segura y
-              encriptada
-            </p>
-          </div>
-          <div class="footer-col">
-            <h4>
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-              </svg>
-              Sistema
-            </h4>
-            <p>
-              Sistema de Gestión Administrativa v1.0 - Última actualización: Hoy
-            </p>
-          </div>
-          <div class="footer-col">
-            <h4>
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                ></path>
-              </svg>
-              Soporte
-            </h4>
-            <p>
-              Contacta al equipo técnico para reportar problemas o sugerencias
-            </p>
-          </div>
-        </div>
-        <div class="footer-copy">
-          <p>
-            &copy; 2026 Liceo Nacional Don Rómulo Gallegos. Todos los derechos
-            reservados.
+      <section class="report-meta">
+        <div class="meta-title-date">
+          <h2>Reporte de Auditoría del Sistema</h2>
+          <p class="report-date">
+            Fecha de reporte: <span id="report-date"></span>
           </p>
         </div>
+        <div class="meta-total">
+          <p>
+            <strong>Total de registros:</strong>
+            <span id="report-records-count"></span>
+          </p>
+        </div>
+      </section>
+
+      <section class="table-section">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Correo Electrónico</th>
+              <th>Rol</th>
+              <th>Descripción</th>
+              <th>Acción</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody id="report-table"></tbody>
+        </table>
+      </section>
+
+      <footer class="report-footer">
+        <p>
+          Este documento es generado automáticamente por el sistema de gestión
+          administrativa.
+        </p>
+        <p>Documento confidencial - Solo para uso interno de la institución</p>
       </footer>
     </div>
     <script src="/src/scripts/config.js" type="module"></script>
