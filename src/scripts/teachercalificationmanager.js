@@ -101,19 +101,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!gradesPromise.ok) throw new Error(gradesReponse.message);
     grades = [...gradesReponse];
 
-    selectGrado.innerHTML = `
-      <option value="" disabled selected>
-        Seleccionar grado...
-      </option>
-    `;
-
-    grades.forEach((g) => {
-      const option = document.createElement("option");
-      option.setAttribute("value", g["CursoId"]);
-      option.textContent = `${g["Grado"]}° Año`;
-      selectGrado.appendChild(option);
-    });
-
     // Cargando materias impartidas por el docente
     const subjectsPromise = await fetch(
       `${window.APP_CONFIG.api_url}/teacher/subjects`,
@@ -129,6 +116,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const subjectsResponse = await subjectsPromise.json();
     if (!subjectsPromise.ok) throw new Error(subjectsResponse.message);
     subjects = [...subjectsResponse];
+    const levels = Array.from(new Set(subjects.map((s) => s["Nivel"])));
+    grades = grades.filter((g) => {
+      if (g["Grado"] > 3 && levels.includes("Bachillerato")) return g;
+      else if (levels.includes("Secundaria")) return g;
+    });
+
+    selectGrado.innerHTML = `
+      <option value="" disabled selected>
+        Seleccionar grado...
+      </option>
+    `;
+
+    grades.forEach((g) => {
+      const option = document.createElement("option");
+      option.setAttribute("value", g["CursoId"]);
+      option.textContent = `${g["Grado"]}° Año`;
+      selectGrado.appendChild(option);
+    });
 
     subjects.forEach((s) => {
       const option = document.createElement("option");
