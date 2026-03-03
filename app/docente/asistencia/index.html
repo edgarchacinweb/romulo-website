@@ -160,15 +160,29 @@
       .btn-mark.absent:hover { border-color: #ef4444; color: #ef4444; }
       .btn-mark.present.active { background: #10b981; border-color: #10b981; color: white; }
       .btn-mark.absent.active { background: #ef4444; border-color: #ef4444; color: white; }
+
+      /* Ajustes para el nuevo logo de imagen */
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      .logo-icon img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+      }
     </style>
   </head>
   <body>
     <header class="main-header">
       <div class="logo-container">
         <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
+          <!-- Logo modificado aquí -->
+          <img src="/src/assets/images/romulo.png" alt="Logo Liceo">
         </div>
         <div class="brand-text">
           <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>

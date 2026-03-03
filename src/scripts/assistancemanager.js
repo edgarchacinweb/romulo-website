@@ -24,8 +24,14 @@ const termSelect = document.getElementById("termSelect");
 const termDisplay = document.getElementById("termDisplay"); 
 const dateInput = document.getElementById("dateInput");
 
-// Asignar fecha de hoy por defecto al input de fecha
-dateInput.valueAsDate = new Date();
+// Asignar fecha de hoy por defecto al input de fecha (evitando fines de semana)
+const today = new Date();
+if (today.getDay() === 6) today.setDate(today.getDate() - 1); // Si es sábado, retrocede al viernes
+if (today.getDay() === 0) today.setDate(today.getDate() - 2); // Si es domingo, retrocede al viernes
+
+// Convertimos a string en formato YYYY-MM-DD ajustando por la zona horaria local
+const localDateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+dateInput.value = localDateStr;
 
 // Estado local
 let currentStudents = [];
@@ -114,7 +120,27 @@ function calcularLapsoPorFecha(fechaStr) {
   }
 }
 
+// VALIDACIÓN AL CAMBIAR LA FECHA MANUALMENTE
 dateInput.addEventListener("change", (e) => {
+  if (!e.target.value) {
+    termDisplay.value = "";
+    termSelect.value = "";
+    return;
+  }
+
+  // Se añade T12:00:00 para asegurar que el día evaluado corresponde correctamente a la zona local
+  const selectedDate = new Date(e.target.value + "T12:00:00");
+  const day = selectedDate.getDay();
+
+  // 0 = Domingo, 6 = Sábado
+  if (day === 0 || day === 6) {
+    alert("🗓️ No se pueden registrar asistencias los fines de semana (Sábado y Domingo). Por favor, selecciona un día de Lunes a Viernes.");
+    e.target.value = ""; // Limpia la fecha seleccionada
+    termDisplay.value = "";
+    termSelect.value = "";
+    return;
+  }
+
   calcularLapsoPorFecha(e.target.value);
 });
 
@@ -130,8 +156,8 @@ btnLoad.addEventListener("click", async () => {
   const termName = termDisplay.value; 
   const selectedDate = dateInput.value;
 
-  if (!subjectId || !year || !section || term === "") {
-    alert("Por favor, selecciona la materia, año, sección y verifica que la fecha pertenezca a un lapso válido.");
+  if (!subjectId || !year || !section || term === "" || !selectedDate) {
+    alert("Por favor, selecciona la materia, año, sección y verifica que la fecha elegida sea un día laborable y pertenezca a un lapso válido.");
     return;
   }
 

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emisión de boletas</title>
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/parentcalifications.css" />
+
+    <!-- Componentes -->
+    <script type="module" src="/src/components/loader.component.js"></script>
+    <script
+      type="module"
+      src="/src/components/notification.component.js"
+    ></script>
+    <script
+      type="module"
+      src="/src/components/notifications-container.component.js"
+    ></script>
+  </head>
+  <body>
+    <div id="app-wrapper" class="app-wrapper fade-in-up">
+      <header class="top-header">
+        <div class="header-left">
+          <div class="logo-box">
+            <img
+              src="/src/assets/images/romulo.webp"
+              alt="Logo institucional"
+              width="50px"
+            />
+          </div>
+          <div class="header-titles">
+            <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
+            <p>Emisión de boletas</p>
+          </div>
+        </div>
+        <button id="btn-salir" class="btn-outline">
+          <svg
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M16 17l5-5-5-5M21 12H9M9 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"
+            ></path>
+          </svg>
+          Salir
+        </button>
+      </header>
+
+      <main class="main-content">
+        <section class="search-section">
+          <label>Seleccionar estudiante</label>
+          <div class="custom-select" id="student-select">
+            <div class="select-trigger">
+              <span class="selected-value"
+                >Buscar y seleccionar estudiante...</span
+              >
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 9l6 6 6-6"></path>
+              </svg>
+            </div>
+            <ul class="select-options">
+              <li data-value="juan_carlos">Juan Carlos Mendoza Pérez</li>
+              <li data-value="maria_g">María Gabriela Rojas</li>
+              <li data-value="luis_p">Luis Pérez Suárez</li>
+            </ul>
+          </div>
+        </section>
+
+        <div id="empty-state" class="empty-state-card active">
+          <div class="icon-circle">
+            <svg
+              viewBox="0 0 24 24"
+              width="24"
+              height="24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 16v-4"></path>
+              <path d="M12 8h.01"></path>
+            </svg>
+          </div>
+          <p>Selecciona un estudiante para ver sus calificaciones</p>
+        </div>
+
+        <div id="student-data" class="student-data-container">
+          <h2 class="section-title">Datos del estudiante</h2>
+          <div class="grid-2x2">
+            <div class="info-card">
+              <span>NOMBRE COMPLETO</span>
+              <p>Juan Carlos Mendoza Pérez</p>
+            </div>
+            <div class="info-card">
+              <span>CÉDULA DE IDENTIDAD</span>
+              <p>28.456.789</p>
+            </div>
+            <div class="info-card">
+              <span>GRADO ACADÉMICO</span>
+              <p>3er Año</p>
+            </div>
+            <div class="info-card">
+              <span>SECCIÓN</span>
+              <p>Sección A</p>
+            </div>
+          </div>
+
+          <h2 class="section-title">Desempeño académico</h2>
+          <div class="performance-card">
+            <div class="performance-info">
+              <span>POSICIÓN ACADÉMICA</span>
+              <div class="rank"><strong>10</strong> / 30 estudiantes</div>
+              <p class="average">Promedio general: <strong>17.89</strong></p>
+            </div>
+            <div class="performance-chart">
+              <div class="circular-progress">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                  <path
+                    class="circle-bg"
+                    d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    class="circle-progress"
+                    stroke-dasharray="33, 100"
+                    d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div class="percentage">
+                  <strong>33%</strong>
+                  <span>Superior</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="section-title">Calificaciones</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Materia</th>
+                  <th class="center-text">1° Momento</th>
+                  <th class="center-text">2° Momento</th>
+                  <th class="center-text">3° Momento</th>
+                  <th class="center-text">Promedio Final</th>
+                  <th class="center-text">Inasistencias</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Matemática</td>
+                  <td class="center-text">18</td>
+                  <td class="center-text">19</td>
+                  <td class="center-text">17</td>
+                  <td class="center-text">
+                    <span class="pill pill-green">18</span>
+                  </td>
+                  <td class="center-text">
+                    <span class="pill pill-yellow">1</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Español</td>
+                  <td class="center-text">19</td>
+                  <td class="center-text">18</td>
+                  <td class="center-text">19</td>
+                  <td class="center-text">
+                    <span class="pill pill-green">18.67</span>
+                  </td>
+                  <td class="center-text">
+                    <span class="pill pill-green-light">0</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Inglés</td>
+                  <td class="center-text">16</td>
+                  <td class="center-text">17</td>
+                  <td class="center-text">18</td>
+                  <td class="center-text">
+                    <span class="pill pill-yellow-text">17</span>
+                  </td>
+                  <td class="center-text">
+                    <span class="pill pill-yellow">2</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="action-footer">
+            <button class="btn-primary">
+              <svg
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                ></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <polyline points="9 15 12 18 15 15"></polyline>
+              </svg>
+              Exportar a PDF
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <footer class="bottom-footer">
+      <p>
+        &copy; 2026 Liceo Nacional "Don Rómulo Gallegos". Todos los derechos
+        reservados.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/scripts/config.js"></script>
+    <script src="/src/scripts/parentcalifications.js" type="module"></script>
+  </body>
+</html>

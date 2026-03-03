@@ -24,13 +24,13 @@ const listBackups = async () => {
     notification.setAttribute("type", "warning");
     notification.setAttribute(
       "text",
-      "No hay respaldos de la base de datos que cargar"
+      "No hay respaldos de la base de datos que cargar",
     );
   } else if (response.status !== 200) {
     notification.setAttribute("type", "error");
     notification.setAttribute(
       "text",
-      "Hubo un error al intentar descargar la lista de respaldos"
+      "Hubo un error al intentar descargar la lista de respaldos",
     );
   } else {
     const data = await response.json();
@@ -44,9 +44,8 @@ const listBackups = async () => {
         <td>
           <a
             href="${window.APP_CONFIG.api_url}/backup/download/${
-        backupFile["Archivo"]
-      }"
-            target="_blank"
+              backupFile["Archivo"]
+            }"
             class="action-link"
             download="${backupFile["Archivo"]}"
             >Descargar</a
@@ -70,7 +69,7 @@ const listBackups = async () => {
         loader.setAttribute("title", "Eliminando respaldo");
         document.body.appendChild(loader);
         const removeBbddBackup = document.createElement(
-          "notification-component"
+          "notification-component",
         );
         fetch(
           `${window.APP_CONFIG.api_url}/backup/delete/${backupFile["Archivo"]}`,
@@ -79,7 +78,7 @@ const listBackups = async () => {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         )
           .then((response) => {
             if (response.status !== 200) {
@@ -89,7 +88,7 @@ const listBackups = async () => {
             removeBbddBackup.setAttribute("type", "success");
             removeBbddBackup.setAttribute(
               "text",
-              "Respaldo de la BBDD eliminado correctamente"
+              "Respaldo de la BBDD eliminado correctamente",
             );
             backupTable.innerHTML = "";
             listBackups().then();
@@ -121,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loader.setAttribute("title", "Realizando respaldo de la BBDD");
     document.body.appendChild(loader);
     const generateBackupNotification = document.createElement(
-      "notification-component"
+      "notification-component",
     );
 
     fetch(`${window.APP_CONFIG.api_url}/backup/database`, {
@@ -139,7 +138,7 @@ document.addEventListener("DOMContentLoaded", () => {
         generateBackupNotification.setAttribute("type", "success");
         generateBackupNotification.setAttribute(
           "text",
-          "Respaldo de BBDD creado correctamente"
+          "Respaldo de BBDD creado correctamente",
         );
         document.getElementById("historialBody").innerHTML = "";
         listBackups().then();
