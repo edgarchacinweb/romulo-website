@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Boletas - Liceo Rómulo Gallegos</title>
+    
+    <!-- Librería para exportar a PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Enlaces a tus hojas de estilo -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/boletas.css" />
+  </head>
+  <body>
+    
+    <!-- Navbar (Admin) -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="logo-container">
+          <!-- Logo del liceo -->
+          <img src="/src/assets/images/romulo.webp" alt="Logo Institucional" width="100%" style="object-fit: contain;">
+        </div>
+        <div class="brand-text">
+          <h1>Gestión Administrativa</h1>
+          <p>Módulo de Boletas Estudiantiles</p>
+        </div>
+      </div>
+      <button class="btn btn-outline" onclick="window.location.href='/app/admin/dashboard/'">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Panel Principal
+      </button>
+    </header>
+
+    <main class="main-content">
+      <!-- Filtros -->
+      <section class="card">
+        <div class="card-header" style="margin-bottom: 1.5rem;">
+          <h2>Buscar Estudiantes</h2>
+          <p style="color: var(--text-muted); font-size: 0.9rem;">Seleccione el grado y la sección para generar las boletas.</p>
+        </div>
+        
+        <div class="params-grid">
+          <div class="form-group">
+            <label>Grado Académico</label>
+            <select id="gradeSelect" class="custom-select" onchange="enableSections()">
+              <option value="" disabled selected>Seleccione grado...</option>
+              <option value="1">1er Año</option>
+              <option value="2">2do Año</option>
+              <option value="3">3er Año</option>
+              <option value="4">4to Año</option>
+              <option value="5">5to Año</option>
+            </select>
+          </div>
+          <div class="form-group" style="display: flex; gap: 10px; align-items: flex-end;">
+            <div style="flex-grow: 1;">
+              <label>Sección</label>
+              <select id="sectionSelect" class="custom-select" disabled>
+                <option value="" disabled selected>Seleccione sección...</option>
+                <option value="A">Sección A</option>
+                <option value="B">Sección B</option>
+                <option value="C">Sección C</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="loadStudents()" style="height: 45px;">Buscar</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lista de Estudiantes -->
+      <section class="card" id="studentsArea" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>Estudiantes Inscritos</h2>
+          <span id="classInfoBadge" style="background: #eff6ff; color: #1d4ed8; padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 0.85rem;"></span>
+        </div>
+        
+        <div class="table-wrapper">
+          <table class="main-table">
+            <thead>
+              <tr>
+                <th>Cédula Escolar</th>
+                <th>Apellidos y Nombres</th>
+                <th>Estado</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="studentsList">
+              <!-- Se llena por JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <!-- OVERLAY MODAL PARA LA BOLETA -->
+    <div class="modal-overlay" id="boletaModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Vista Previa del Documento Oficial</h3>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-outline" onclick="closeModal()">Cerrar</button>
+            <button class="btn btn-success" onclick="downloadPDF()">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Descargar PDF
+            </button>
+          </div>
+        </div>
+        
+        <div class="modal-body">
+          <!-- INICIO DEL DOCUMENTO A IMPRIMIR/PDF -->
+          <div class="boleta-document" id="printArea">
+            
+            <!-- Membrete Oficial -->
+            <div class="doc-header">
+              <div class="doc-logo" style="border: none;">
+                <!-- Escudo de Venezuela -->
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Escudo_de_Venezuela.svg/800px-Escudo_de_Venezuela.svg.png" width="50" style="opacity: 0.8;" alt="Escudo de Venezuela">
+              </div>
+              <div class="doc-header-text">
+                República Bolivariana de Venezuela<br>
+                Ministerio del Poder Popular para la Educación<br>
+                Liceo Nacional "Don Rómulo Gallegos"<br>
+                Maracay - Estado Aragua
+              </div>
+              <div class="doc-logo" style="border: none;">
+                <!-- Logo del Liceo -->
+                <img src="/src/assets/images/romulo.png" width="50" style="object-fit: contain;" alt="Logo Liceo">
+              </div>
+            </div>
+
+            <div class="doc-title">
+              BOLETA DE CALIFICACIONES Y ASISTENCIAS
+            </div>
+
+            <!-- Datos del Estudiante -->
+            <div class="student-info-grid">
+              <div>
+                <p><strong>Estudiante:</strong> <span id="bolName"></span></p>
+                <p><strong>Cédula:</strong> <span id="bolCed"></span></p>
+              </div>
+              <div>
+                <p><strong>Año y Sección:</strong> <span id="bolYearSec"></span></p>
+                <p><strong>Año Escolar:</strong> 2025 - 2026</p>
+              </div>
+            </div>
+
+            <!-- Tabla de Calificaciones por Lapso -->
+            <table class="boleta-table">
+              <thead>
+                <tr>
+                  <th rowspan="2">Asignaturas</th>
+                  <th colspan="2">1er Lapso</th>
+                  <th colspan="2">2do Lapso</th>
+                  <th colspan="2">3er Lapso</th>
+                  <th rowspan="2" style="background:#e2e8f0;">Calif.<br>Defin.</th>
+                  <th rowspan="2">Total<br>Inasist.</th>
+                </tr>
+                <tr>
+                  <th>Nota</th><th>Inast.</th>
+                  <th>Nota</th><th>Inast.</th>
+                  <th>Nota</th><th>Inast.</th>
+                </tr>
+              </thead>
+              <tbody id="bolGradesBody">
+                <!-- Se llena dinámicamente con JS -->
+              </tbody>
+            </table>
+
+            <!-- Pie de la boleta -->
+            <div class="doc-footer">
+              <div class="observations">
+                <strong>Observaciones del Docente Guía:</strong><br>
+                <span style="color: #666; font-style: italic;">(El estudiante ha demostrado excelente participación, debe mejorar en el área de matemáticas...)</span>
+              </div>
+              
+              <div class="signatures">
+                <div>
+                  <div class="signature-line"></div>
+                  Firma del Docente Guía<br>
+                  Prof. Guía
+                </div>
+                <div>
+                  <div class="signature-line"></div>
+                  Firma del Director(a)<br>
+                  Sello de la Institución
+                </div>
+              </div>
+            </div>
+            
+          </div>
+          <!-- FIN DEL DOCUMENTO -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Script Principal -->
+    <script src="/src/scripts/boletas.js"></script>
+  </body>
+</html>
