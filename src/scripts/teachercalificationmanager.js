@@ -189,7 +189,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderizarTablaEstudiantes();
   }
 
-  function renderizarTablaEstudiantes() {
+  async function renderizarTablaEstudiantes() {
+    // Cargando las calificaciones
+    const calificationsPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/calification/list`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const calificationsResponse = await calificationsPromise.json();
+    if (!calificationsPromise.ok) {
+      const notification = document.createElement("notification-component");
+      notification.setAttribute("type", "error");
+      notification.setAttribute("text", calificationsResponse.message);
+      document.getElementById("notifications").appendChild(notification);
+      return;
+    }
+
     // Generamos las filas dinámicamente
     const grade = grades.find((g) => g["CursoId"] === selectGrado.value);
     const studentsData = students.filter(
@@ -197,23 +218,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         s["Curso"]["Grado"] === grade["Grado"] &&
         s["Curso"]["Seccion"] === number_to_letter(selectSeccion.value),
     );
-    console.log(studentsData);
+
+    console.log(calificationsResponse);
     const filas = studentsData
-      .map(
-        (est, index) => `
+      .map((est, index) => {
+        const calification = calificationsResponse.find(
+          (c) =>
+            c["LapsoId"] === lapso["LapsoId"] &&
+            c["EstudianteId"] === est["EstudianteId"] &&
+            c["MateriaId"] === selectMateria.value,
+        )?.Ponderacion;
+        let status = "Pendiente";
+        let statusClass = "status-pendiente";
+        if (calification) {
+          status = calification > 9 ? "Aprobado" : "Reprobado";
+          statusClass =
+            calification > 9 ? "status-aprobado" : "status-reprobado";
+        }
+        return `
             <tr>
                 <td>${index + 1}</td>
                 <td>${est["DatosPersona"]["Nombre"]} ${est["DatosPersona"]["Apellido"]}</td>
                 <td>${est["DatosPersona"]["Cedula"]}</td>
                 <td>
-                    <input type="number" class="grade-input" min="1" max="20" placeholder="--" data-index="${index}">
+                    <input type="number" class="grade-input" min="1" max="20" value="${calification ?? ""}" placeholder="--" data-index="${index}" data-id="${est["EstudianteId"]}">
                 </td>
                 <td id="status-${index}">
-                    <span class="status-badge status-pendiente">Pendiente</span>
+                    <span class="status-badge ${statusClass}">${status}</span>
                 </td>
             </tr>
-        `,
-      )
+        `;
+      })
       .join("");
 
     // Inyectamos el componente Tabla
@@ -328,7 +363,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Evento del botón final de guardar
-    btnGuardar.addEventListener("click", () => {
+    btnGuardar.addEventListener("click", async () => {
       // Cambiar a estado "Guardando..."
       btnGuardar.disabled = true;
       btnGuardar.innerHTML = `
@@ -336,14 +371,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                 Guardando...
             `;
 
-      // Simulamos la latencia de enviar los datos al servidor
-      setTimeout(() => {
-        // Volver botón a estado normal y deshabilitarlo
-        btnGuardar.innerHTML = `
+      let califications = [];
+
+      document.querySelectorAll(".grade-input").forEach((input) => {
+        califications.push({
+          Ponderacion: input.value,
+          MateriaId: selectMateria.value,
+          EstudianteId: input.getAttribute("data-id"),
+          LapsoId: lapso["LapsoId"],
+        });
+      });
+
+      const uploadCalificationPromise = await fetch(
+        `${window.APP_CONFIG.api_url}/calification/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(califications),
+        },
+      );
+
+      btnGuardar.innerHTML = `
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                     Guardar Calificaciones
                 `;
 
+      if (!uploadCalificationPromise.ok) {
+        const uploadCalificationResponse =
+          await uploadCalificationPromise.json();
+        console.log(uploadCalificationResponse);
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "error");
+        notification.setAttribute("text", uploadCalificationResponse.message);
+        document.getElementById("notifications").appendChild(notification);
+      } else {
         // Bloquear los inputs de calificación
         inputs.forEach((inp) => (inp.disabled = true));
 
@@ -352,12 +416,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           "success-alert-container",
         );
         successContainer.innerHTML = `
-                    <div class="alert alert-success" style="margin-top: 0; margin-bottom: 1rem; animation: fadeInUp 0.3s ease-out;">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        <span>¡Calificaciones guardadas exitosamente!</span>
-                    </div>
-                `;
-      }, 1200);
+                      <div class="alert alert-success" style="margin-top: 0; margin-bottom: 1rem; animation: fadeInUp 0.3s ease-out;">
+                          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                          <span>¡Calificaciones guardadas exitosamente!</span>
+                      </div>
+                  `;
+      }
     });
   }
 });

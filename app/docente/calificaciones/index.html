@@ -8,8 +8,19 @@
     <!-- Estilos CSS -->
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/teachercalificationmanager.css" />
+
+    <!-- Componentes -->
+    <script
+      type="module"
+      src="/src/components/notification.component.js"
+    ></script>
+    <script
+      type="module"
+      src="/src/components/notifications-container.component.js"
+    ></script>
   </head>
   <body>
+    <notifications-container id="notifications"></notifications-container>
     <div id="app-container" class="page-enter">
       <header class="navbar">
         <div class="brand">
