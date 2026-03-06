@@ -35,14 +35,26 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-document.getElementById("logout").addEventListener("click", () => {
-  const confirmation = confirm(
-    "¿Estás seguro de que quieres cerrar la sesión?",
-  );
+// Función centralizada para cerrar sesión
+const handleLogout = (e) => {
+  if (e) e.preventDefault(); // Evita que el enlace de la sidebar "#" suba la página
+  const confirmation = confirm("¿Estás seguro de que quieres cerrar la sesión?");
   if (!confirmation) return;
   localStorage.clear();
   window.location.href = "/app/iniciar-sesion.html";
-});
+};
+
+// Evento para el botón "Cerrar Sesión" de la tarjeta
+const logoutCardBtn = document.getElementById("logout");
+if (logoutCardBtn) {
+  logoutCardBtn.addEventListener("click", handleLogout);
+}
+
+// Evento para el nuevo enlace "Cerrar Sesión" de la barra lateral
+const logoutSidebarBtn = document.getElementById("sidebar-logout");
+if (logoutSidebarBtn) {
+  logoutSidebarBtn.addEventListener("click", handleLogout);
+}
 
 document.getElementById("califications").addEventListener("click", () => {
   document.body.style.overflow = "hidden";
