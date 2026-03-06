@@ -2,26 +2,61 @@ import authorize from "../scripts/auth.js";
 
 authorize("docente");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  // === NUEVO: Cargar los datos del docente ===
+  const welcomeNameEl = document.getElementById("welcome-name");
+  const sidebarNameEl = document.getElementById("sidebar-user-name");
+  const token = localStorage.getItem("auth");
+
+  try {
+    // Solicitamos los datos personales al servidor (ruta /people/get detecta quién soy por el token)
+    const response = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.ok) {
+      const userData = await response.json();
+      
+      // Actualizar el título principal (solo primer nombre por estetica)
+      if (welcomeNameEl && userData.Nombre) {
+        welcomeNameEl.textContent = `Bienvenido, ${userData.Nombre}`;
+      }
+      
+      // Actualizar la barra lateral (Nombre y Apellido)
+      if (sidebarNameEl && userData.Nombre && userData.Apellido) {
+        sidebarNameEl.textContent = `${userData.Nombre} ${userData.Apellido}`;
+      }
+    } else {
+      // Fallback si algo falla
+      if(welcomeNameEl) welcomeNameEl.textContent = "Bienvenido, Docente";
+      if(sidebarNameEl) sidebarNameEl.textContent = "Docente";
+    }
+  } catch (error) {
+    console.error("Error obteniendo datos del usuario:", error);
+    // Fallback de conexión
+    if(welcomeNameEl) welcomeNameEl.textContent = "Bienvenido, Docente";
+    if(sidebarNameEl) sidebarNameEl.textContent = "Docente";
+  }
+  // ============================================
+
   // Seleccionamos todas las tarjetas y botones
   const cards = document.querySelectorAll(".card");
 
   // Efecto Tilt (Inclinación) 3D ligero al mover el mouse
-  // Esto es un extra "friki" para que se sienta más dinámico
   cards.forEach((card) => {
     card.addEventListener("mousemove", (e) => {
       const cardRect = card.getBoundingClientRect();
-      // Calculamos la posición del mouse relativa a la tarjeta
       const x = e.clientX - cardRect.left;
       const y = e.clientY - cardRect.top;
 
-      // Calculamos el centro
       const centerX = cardRect.width / 2;
       const centerY = cardRect.height / 2;
 
-      // Rotación sutil basada en la posición del mouse
-      // Dividimos por 20 para que el ángulo sea pequeño (máx +/- 10 grados aprox)
-      const rotateX = ((y - centerY) / 20) * -1; // Invertimos eje Y
+      const rotateX = ((y - centerY) / 20) * -1;
       const rotateY = (x - centerX) / 20;
 
       card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
