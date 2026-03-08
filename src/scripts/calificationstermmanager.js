@@ -1,9 +1,39 @@
 import authorize from "./auth.js";
 
 authorize("administrador");
+const token = localStorage.getItem("auth");
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    let userdata = {};
+    const loader = document.createElement("loader-spinner");
+    const notifications = document.getElementById("notifications");
+    loader.setAttribute("title", "Cargando datos...");
+
+    try {
+        document.appendChild(loader);
+        // Cargando datos del usuario
+        const userPromise = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
+            "method": "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
     
+        const userResponse = await userPromise.json();
+        if (!userResponse.ok) throw new Error(userResponse.message);
+        userdata = {...userResponse};
+    } catch (Error) {
+        console.error(Error.message);
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "error");
+        notification.setAttribute("message", Error.message);
+        notifications.appendChild(notification);
+    } finally {
+        loader.remove();
+    }
+    
+
     // 1. Manejo del Formulario (Mostrar estado de éxito)
     const periodForm = document.getElementById('periodForm');
     const successMessage = document.getElementById('successMessage');
