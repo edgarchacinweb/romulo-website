@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Períodos de Calificaciones</title>
+    <link rel="stylesheet" href="/src/styles/global.css">
+    <link rel="stylesheet" href="/src/styles/calificationstermmanager.css">
+
+    <!-- Componentes -->
+    <script type="module" src="/src/components/loader.component.js"></script>
+    <script type="module" src="/src/components/notification.component.js"></script>
+    <script type="module" src="/src/components/notifications-container.component.js"></script>
+</head>
+<body class="page-enter">
+    <notifications-container id="notifications"></notifications-container>
+    <header class="glass-panel main-header">
+        <div class="header-separator">
+            <div class="header-left">
+                <img src="/src/assets/images/romulo.webp" alt="Logo institucional" width="50px">
+                <div class="title-container">
+                    <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
+                    <span>Gestión de Períodos de Carga de Calificaciones</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span class="role">Administrador</span>
+                    <span class="email">admin@donromulo.edu.ve</span>
+                </div>
+                <button id="logoutBtn" class="icon-btn tooltip-container" aria-label="Cerrar sesión">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span class="tooltip">Cerrar sesión</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        
+        <div class="top-grid">
+            
+            <section class="glass-panel card">
+                <h2>Crear/Actualizar Período</h2>
+                <p class="subtitle">Configura el período de carga de calificaciones</p>
+                
+                <form id="periodForm">
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Periodo Escolar</label>
+                            <input type="text" value="2025-2026" disabled>
+                            <span class="help-text">Cargado automáticamente</span>
+                        </div>
+                        <div class="input-group">
+                            <label>Lapso</label>
+                            <input type="text" value="2do lapso" disabled>
+                            <span class="help-text">Lapso activo</span>
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label>Fecha Inicio de Carga</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="fechaInicio" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Fecha Fin de Carga</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="fechaFin" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="successMessage" class="alert-success hidden">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Período guardado exitosamente
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="margin-right: 8px;">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Guardar Cambios
+                    </button>
+                </form>
+            </section>
+
+            <aside class="glass-panel card tips-card">
+                <h2>Consejos</h2>
+                <ul>
+                    <li>Completa las fechas de inicio y fin correctamente.</li>
+                    <li>Revisa el histórico antes de crear un nuevo período.</li>
+                    <li>Solo puede haber un período activo por lapso.</li>
+                    <li>Usa los filtros para buscar períodos específicos.</li>
+                </ul>
+            </aside>
+        </div>
+
+        <section class="glass-panel card filters-section">
+            <h2>Filtrar Períodos</h2>
+            <p class="subtitle">Refina la búsqueda de períodos registrados</p>
+            
+            <div class="filters-row">
+                <div class="input-group">
+                    <label>Periodo Escolar</label>
+                    <select>
+                        <option>Todos</option>
+                        <option>2025-2026</option>
+                        <option>2024-2025</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Lapso</label>
+                    <select>
+                        <option>Todos</option>
+                        <option>1er Lapso</option>
+                        <option>2do Lapso</option>
+                        <option>3er Lapso</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Inicio Desde</label>
+                    <input type="date">
+                </div>
+                <div class="input-group">
+                    <label>Inicio Hasta</label>
+                    <input type="date">
+                </div>
+            </div>
+            <p class="results-text">Mostrando 4 de 4 periodo(s)</p>
+        </section>
+
+        <section class="glass-panel card history-section">
+            <div class="history-header">
+                <div>
+                    <h2>Histórico de Períodos</h2>
+                    <p class="subtitle">Todos los períodos de carga de calificaciones registrados</p>
+                </div>
+                <div class="badge-active-count">
+                    <div class="dot"></div> 1 Activo(s)
+                </div>
+            </div>
+
+            <div class="history-list">
+                <article class="history-item">
+                    <div class="item-main-info">
+                        <h3>2025-2026 - 2do lapso</h3>
+                        <span class="badge active">Activo</span>
+                    </div>
+                    <div class="item-details">
+                        <div>
+                            <span class="label">Inicio</span>
+                            <span class="value">14/02/2026</span>
+                        </div>
+                        <div>
+                            <span class="label">Fin</span>
+                            <span class="value">29/04/2026</span>
+                        </div>
+                        <div>
+                            <span class="label">Creado</span>
+                            <span class="value">09/02/2026</span>
+                        </div>
+                        <button class="icon-btn edit-btn" aria-label="Editar">
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </article>
+
+                <article class="history-item">
+                    <div class="item-main-info">
+                        <h3>2025-2026 - 1er lapso</h3>
+                    </div>
+                    <div class="item-details">
+                        <div>
+                            <span class="label">Inicio</span>
+                            <span class="value">14/09/2025</span>
+                        </div>
+                        <div>
+                            <span class="label">Fin</span>
+                            <span class="value">29/11/2025</span>
+                        </div>
+                        <div>
+                            <span class="label">Creado</span>
+                            <span class="value">07/09/2025</span>
+                        </div>
+                        <button class="icon-btn edit-btn" aria-label="Editar">
+                             <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="main-footer">
+        <p>© 2026 Liceo Nacional "Don Rómulo Gallegos"</p>
+        <p>Sistema de Gestión Administrativa</p>
+    </footer>
+
+    <script type="module" src="/src/scripts/config.js"></script>
+    <script type="module" src="/src/scripts/calificationstermmanager.js"></script>
+</body>
+</html>
