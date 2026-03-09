@@ -24,7 +24,7 @@
     padding: 0;
     box-sizing: border-box;
     /* Aplicamos la fuente que importaste en global.css */
-    font-family: 'Ubuntu', sans-serif; 
+    font-family: 'Ubuntu', sans-serif;
 }
 
 body {
@@ -48,13 +48,27 @@ body {
 }
 
 @keyframes fadeSlideIn {
-    0% { opacity: 0; transform: translateY(30px) scale(0.98); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 @keyframes fadeSlideOut {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-30px) scale(0.98); }
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.98);
+    }
 }
 
 /* =========================================
@@ -84,24 +98,30 @@ body {
     /* 1. Comportamiento de seguimiento (Scroll) */
     position: sticky;
     top: 0;
-    z-index: 1000; /* Un z-index alto asegura que siempre pase por encima del resto del contenido */
-    
+    z-index: 1000;
+    /* Un z-index alto asegura que siempre pase por encima del resto del contenido */
+
     /* 2. Efecto Liquid Glass (Glassmorphism) */
-    background: rgba(255, 255, 255, 0.45); /* Blanco semi-transparente */
-    backdrop-filter: blur(16px); /* El desenfoque clave para el cristal */
-    -webkit-backdrop-filter: blur(16px); /* Soporte para navegadores basados en WebKit (Safari) */
-    
+    background: rgba(255, 255, 255, 0.45);
+    /* Blanco semi-transparente */
+    backdrop-filter: blur(16px);
+    /* El desenfoque clave para el cristal */
+    -webkit-backdrop-filter: blur(16px);
+    /* Soporte para navegadores basados en WebKit (Safari) */
+
     /* Un borde inferior hiper fino para delimitar el cristal del resto de la página */
     border-bottom: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03); /* Sombra bajísima solo para dar volumen */
-    
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+    /* Sombra bajísima solo para dar volumen */
+
     /* 3. Ajustes de espaciado para igualar las imágenes */
-    padding: 1rem 3rem; 
+    padding: 1rem 3rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    margin: 0 0 1.5rem 0; /* Eliminamos el margin anterior para que ocupe todo el ancho de la ventana */
+    margin: 0 0 1.5rem 0;
+    /* Eliminamos el margin anterior para que ocupe todo el ancho de la ventana */
     transition: all var(--transition-speed) ease;
     border-radius: 0;
 }
@@ -135,7 +155,8 @@ body {
 
 /* El logo cuadrado azul exactamente como en tu diseño */
 .logo {
-    background: #1a56db; /* El tono de azul exacto de la imagen */
+    background: #1a56db;
+    /* El tono de azul exacto de la imagen */
     color: white;
     width: 44px;
     height: 44px;
@@ -156,14 +177,16 @@ body {
 
 .title-container h1 {
     font-size: 1.15rem;
-    color: #1e293b; /* Texto oscuro fuerte */
+    color: #1e293b;
+    /* Texto oscuro fuerte */
     margin-bottom: 0.15rem;
     font-weight: 700;
 }
 
 .title-container span {
     font-size: 0.85rem;
-    color: #64748b; /* Texto secundario grisáceo */
+    color: #64748b;
+    /* Texto secundario grisáceo */
     font-weight: 500;
 }
 
@@ -180,15 +203,15 @@ body {
     text-align: right;
 }
 
-.user-info .role { 
-    font-weight: 700; 
-    font-size: 0.85rem; 
+.user-info .role {
+    font-weight: 700;
+    font-size: 0.85rem;
     color: #1e293b;
 }
 
-.user-info .email { 
-    font-size: 0.75rem; 
-    color: #64748b; 
+.user-info .email {
+    font-size: 0.75rem;
+    color: #64748b;
 }
 
 /* Ajuste específico para que el botón de cerrar sesión quede igual */
@@ -257,25 +280,27 @@ h2 {
     margin-bottom: 0.5rem;
 }
 
-input, select {
+input,
+select {
     width: 100%;
     padding: 0.75rem 1rem;
     border-radius: 8px;
-    border: 1px solid rgba(0,0,0,0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     background: rgba(255, 255, 255, 0.7);
     color: var(--text-main);
     outline: none;
     transition: all var(--transition-speed);
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
     border-color: var(--primary-blue);
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(26, 97, 198, 0.1);
 }
 
 input:disabled {
-    background: rgba(0,0,0,0.03);
+    background: rgba(0, 0, 0, 0.03);
     color: var(--text-muted);
     cursor: not-allowed;
 }
@@ -323,7 +348,7 @@ input:disabled {
 }
 
 .icon-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     color: var(--text-main);
 }
 
@@ -368,11 +393,20 @@ input:disabled {
     animation: fadeIn 0.4s ease;
 }
 
-.hidden { display: none !important; }
+.hidden {
+    display: none !important;
+}
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* =========================================
@@ -448,7 +482,7 @@ input:disabled {
 
 .history-item {
     padding: 1rem 0;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .history-item:last-child {
@@ -482,7 +516,7 @@ input:disabled {
     justify-content: space-between;
 }
 
-.item-details > div {
+.item-details>div {
     display: flex;
     flex-direction: column;
 }
@@ -500,9 +534,15 @@ input:disabled {
 .edit-btn {
     background: #f1f5f9;
 }
+
 .edit-btn:hover {
     background: #e2e8f0;
     color: var(--primary-blue);
+}
+
+.edit-btn:disabled {
+    opacity: .6;
+    pointer-events: none;
 }
 
 /* =========================================
