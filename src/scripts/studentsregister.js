@@ -3,11 +3,42 @@ import authorize from "./auth.js";
 authorize("representante");
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // --- FUNCIÓN PARA TRADUCIR ERRORES TÉCNICOS A MENSAJES AMIGABLES ---
+  function translateError(techMsg) {
+    if (!techMsg) return "Ocurrió un error inesperado. Intente nuevamente.";
+    const msg = techMsg.toLowerCase();
+
+    // Errores comunes de Base de Datos que queremos ocultar al usuario
+    if (msg.includes("llave duplicada") || msg.includes("unique constraint") || msg.includes("ya existe la llave")) {
+      return "El estudiante con esta cédula ya se encuentra registrado en el sistema.";
+    }
+    if (msg.includes("tipo uuid") || msg.includes("invalid input syntax for type uuid")) {
+      return "Falta información. Asegúrese de haber seleccionado una opción válida en el Grado a cursar.";
+    }
+    if (msg.includes("tipo integer") || msg.includes("invalid input syntax for type integer")) {
+      return "Hay un error numérico. Es posible que esté introduciendo letras en un campo que solo admite números, verifique la cédula.";
+    }
+    if (msg.includes("value too long") || msg.includes("demasiado largo")) {
+      return "Uno de los textos ingresados (como nombres o dirección) es demasiado largo. Por favor, resúmalo.";
+    }
+    if (msg.includes("null value") || msg.includes("violates not-null constraint")) {
+      return "Faltan campos obligatorios por llenar. Revise el formulario detalladamente.";
+    }
+    if (msg.includes("foreign key") || msg.includes("llave foránea")) {
+      return "Hay un problema con la información seleccionada. Por favor, recargue la página e intente de nuevo.";
+    }
+    if (msg.includes("syntax error") || msg.includes("line ") || msg.includes("error:")) {
+      return "Ocurrió un error interno al guardar. Verifique que todos los datos sean correctos.";
+    }
+
+    // Si el mensaje no contiene palabras técnicas, asumimos que es un mensaje amigable (ej: "Falta el nombre") y lo mostramos tal cual.
+    return techMsg;
+  }
+
   // --- 1. Variables y Elementos ---
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get("edit_id");
   const reinscribeId = urlParams.get("reinscribe_id");
-  // Eliminamos dependecia de "nextGrade" en URL para que sea automático
 
   const firstNameField = document.getElementById("nombre");
   const lastNameField = document.getElementById("apellido");
@@ -174,7 +205,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         return; 
     }
 
-    // CORRECCIÓN: Agregar el ID del representante al final de la URL
     const parentIdForCount = parentData["DatosPersonaId"] || parentData["id"];
     const countResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${parentIdForCount}`, { headers: { Authorization: `Bearer ${token}` } });
     const countData = await countResponse.json();
@@ -194,7 +224,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const studentResponse = await fetch(`${window.APP_CONFIG.api_url}/students/get/${targetId}`, { headers: { Authorization: `Bearer ${token}` } });
       
-      // Control de error para evitar llenar variables "undefined" en caso de error
       if (!studentResponse.ok) {
           const errData = await studentResponse.json();
           throw new Error(errData.message || "Error al obtener los datos del estudiante.");
@@ -213,10 +242,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             relationshipField.dispatchEvent(new Event('change'));
         }
 
-        // CARGAR FECHA DE NACIMIENTO Y FOTO
         if (student.FechaNacimiento) {
             let parsedDate = student.FechaNacimiento;
-            if (parsedDate.includes(" ")) parsedDate = parsedDate.split(" ")[0]; // Extrae solo YYYY-MM-DD
+            if (parsedDate.includes(" ")) parsedDate = parsedDate.split(" ")[0];
             dateField.value = parsedDate;
         }
 
@@ -227,7 +255,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             photoZone.classList.add("has-image");
         }
 
-        // --- MARCAR DOCUMENTOS COMO CARGADOS VISUALMENTE ---
         const markZoneAsLoaded = (inputId) => {
             const input = document.getElementById(inputId);
             if (input) {
@@ -245,54 +272,42 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         };
 
-        // Por defecto, DNI y Partida de Nacimiento ya están en el sistema para estudiantes registrados
         markZoneAsLoaded("docDni");
         markZoneAsLoaded("docPartidaNacimiento");
 
-        // Si requiere autorización según los datos guardados
         if (student.Parentesco && student.Parentesco !== "Padre" && student.Parentesco !== "Madre") {
             markZoneAsLoaded("docAutorizacion");
         }
 
-        // Notas Certificadas: Si es Edición general ya están en el sistema. 
-        // Si es Reinscripción, NO se marcan, para que el usuario suba obligatoriamente las del nuevo año.
         if (editId) {
             markZoneAsLoaded("docNotasCertificadas");
         }
 
-        // --- ASIGNACIÓN DE GRADO Y BLOQUEO PARA REINSCRIPCIÓN ---
         if (reinscribeId) {
-            // Automáticamente calcular el siguiente grado usando el grado actual de la BD
             const currentGrade = student.Grado ? parseInt(student.Grado, 10) : 1;
-            const nextGradeNum = currentGrade < 5 ? currentGrade + 1 : 5; // El límite es el último año (ej. 5to)
+            const nextGradeNum = currentGrade < 5 ? currentGrade + 1 : 5; 
 
-            // Buscar en el select de grados la opción que coincida con el año subido
             Array.from(gradeField.options).forEach(opt => {
                 if (opt.text.includes(`${nextGradeNum}`)) {
                     gradeField.value = opt.value;
                 }
             });
 
-            // 1. Bloqueo de Grado
             gradeField.style.pointerEvents = "none";
             gradeField.style.backgroundColor = "#e9ecef";
 
-            // 2. Bloqueo de Nombres y Apellidos
             firstNameField.readOnly = true;
             firstNameField.style.backgroundColor = "#e9ecef";
             lastNameField.readOnly = true;
             lastNameField.style.backgroundColor = "#e9ecef";
 
-            // 3. Bloqueo de Fecha de Nacimiento
             dateField.readOnly = true;
             dateField.style.pointerEvents = "none"; 
             dateField.style.backgroundColor = "#e9ecef";
 
-            // 4. Bloqueo de Parentesco
             relationshipField.style.pointerEvents = "none";
             relationshipField.style.backgroundColor = "#e9ecef";
 
-            // 5. Bloqueo de Foto de Estudiante
             const photoInput = document.getElementById("studentPhoto");
             if (photoInput) photoInput.disabled = true; 
             if (photoZone) {
@@ -304,7 +319,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             gradeField.value = student.IdCurso;
         }
 
-        // Parseo de Cédula existente
         let rawCedula = student.Cedula || "";
         let limpiaCedula = rawCedula.replace(/-/g, "").trim();
         
@@ -335,10 +349,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (err) {
     console.error("Error capturado:", err);
-    // Agregada notificación para evitar el silencio si hay error de red o backend
+    const friendlyError = translateError(err.message); // Usamos el traductor aquí también
     const notification = document.createElement("notification-component");
     notification.setAttribute("type", "error");
-    notification.setAttribute("text", err.message || "Ha ocurrido un error cargando los datos del estudiante.");
+    notification.setAttribute("text", friendlyError);
     notificationsContainer?.appendChild(notification);
   } finally {
     loader.remove();
@@ -346,7 +360,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- 5. Lógica de UI Interactiva ---
 
-  // Mostrar archivo de Autorización si parentesco no es Padre/Madre
   relationshipField.addEventListener("change", (e) => {
       const val = e.target.value;
       if (val && val !== "Padre" && val !== "Madre") {
@@ -404,7 +417,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   useSchoolIdCheckbox.addEventListener("change", (e) => {
       if (e.target.checked) {
-          if (!gradeField.value) {
+          if (!gradeField.value || gradeField.value === "Requerida") {
               alert("Por favor seleccione primero el Grado a Cursar.");
               e.target.checked = false;
               return;
@@ -420,12 +433,12 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
           schoolIdOptions.style.display = "block";
-          nacionalidadWrapper.style.display = "none"; // Ocultamos selector V/E
+          nacionalidadWrapper.style.display = "none"; 
           hasIdCheckbox.checked = true; 
           generarCedulaEscolar();
       } else {
           schoolIdOptions.style.display = "none";
-          nacionalidadWrapper.style.display = "block"; // Mostramos selector V/E
+          nacionalidadWrapper.style.display = "block"; 
           ciField.readOnly = false;
           ciField.value = "";
           ciField.placeholder = "Ej: 34000000";
@@ -440,7 +453,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     ciField.addEventListener("input", function() {
       if (useSchoolIdCheckbox.checked) return; 
       
-      this.value = this.value.replace(/[^0-9]/g, ""); // Solo números
+      this.value = this.value.replace(/[^0-9]/g, ""); 
       if (this.value.length > 8) this.value = this.value.slice(0, 8);
     });
   }
@@ -458,17 +471,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       const nombreVal = firstNameField.value.trim();
       const apellidoVal = lastNameField.value.trim();
 
-      if (!nombreVal) throw new Error("Falta el nombre");
-      if (!nameRegex.test(nombreVal)) throw new Error("El nombre solo debe contener letras");
+      // Validaciones proactivas para evitar errores técnicos del servidor (ej. el de UUID y Not Null)
+      if (!nombreVal) throw new Error("Falta indicar el nombre del estudiante.");
+      if (!nameRegex.test(nombreVal)) throw new Error("El nombre solo debe contener letras.");
 
-      if (!apellidoVal) throw new Error("Falta el apellido");
-      if (!nameRegex.test(apellidoVal)) throw new Error("El apellido solo debe contener letras");
+      if (!apellidoVal) throw new Error("Falta indicar el apellido del estudiante.");
+      if (!nameRegex.test(apellidoVal)) throw new Error("El apellido solo debe contener letras.");
+
+      if (!gradeField.value || gradeField.value === "Requerida" || gradeField.value.trim() === "") {
+          throw new Error("Debe seleccionar el Grado a cursar.");
+      }
+
+      if (!relationshipField.value || relationshipField.value === "Requerida" || relationshipField.value.trim() === "") {
+          throw new Error("Debe seleccionar su Parentesco con el estudiante.");
+      }
       
-      if (!dateField.value) throw new Error("Falta la fecha de nacimiento");
+      if (!dateField.value) throw new Error("Falta la fecha de nacimiento.");
       const birthDate = new Date(dateField.value);
       const birthYear = birthDate.getUTCFullYear();
       if (birthYear < 2008 || birthYear > 2015) {
-          throw new Error("El año de nacimiento del estudiante debe estar entre 2008 y 2015");
+          throw new Error("El año de nacimiento del estudiante debe estar entre 2008 y 2015.");
       }
 
       const cedulaValStr = ciField.value.trim();
@@ -476,16 +498,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       if (useSchoolIdCheckbox.checked) {
           if (cedulaValStr.length < 11 || cedulaValStr.length > 12) {
-              throw new Error("La Cédula Escolar generada es inválida (longitud incorrecta)");
+              throw new Error("La Cédula Escolar generada es inválida (longitud incorrecta).");
           }
       } else {
-          if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad");
+          if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad.");
           const cedulaNum = parseInt(cedulaValStr, 10);
           const isExtranjero = nacionalidadSelect.value === "E";
           
-          if (isNaN(cedulaNum) || cedulaNum < 33000000) throw new Error("El número de Cédula de Identidad del estudiante debe ser mayor a 33.000.000");
-          if (!isExtranjero && cedulaNum > 40000000) throw new Error("El número de Cédula de Identidad para Venezolanos (V) no debe exceder los 40.000.000");
-          if (isExtranjero && cedulaNum > 90000000) throw new Error("El número de Cédula de Identidad para Extranjeros (E) no debe exceder los 90.000.000");
+          if (isNaN(cedulaNum) || cedulaNum < 33000000) throw new Error("El número de Cédula de Identidad del estudiante debe ser mayor a 33.000.000.");
+          if (!isExtranjero && cedulaNum > 40000000) throw new Error("El número de Cédula de Identidad para Venezolanos (V) no debe exceder los 40.000.000.");
+          if (isExtranjero && cedulaNum > 90000000) throw new Error("El número de Cédula de Identidad para Extranjeros (E) no debe exceder los 90.000.000.");
           
           finalCedulaToSubmit = `${nacionalidadSelect.value}-${cedulaValStr}`;
       }
@@ -524,17 +546,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
         } else if (!editId && !reinscribeId) {
-             // Obligatorio para NUEVAS inscripciones
-             if(key === "DocAutorizacion") throw new Error("Debe cargar el Documento de Autorización Legal / Motivo");
-             else if(key === "DocDni") throw new Error("Debe cargar la Cédula de Identidad en formato PDF");
-             else throw new Error(`Falta cargar: ${key}`);
+             if(key === "DocAutorizacion") throw new Error("Debe cargar el Documento de Autorización Legal / Motivo.");
+             else if(key === "DocDni") throw new Error("Debe cargar la Cédula de Identidad en formato PDF.");
+             else throw new Error(`Falta cargar el siguiente documento: ${key}.`);
         } else if (reinscribeId) {
-             // En reinscripción, exigimos actualizar notas obligatoriamente
-             if (key === "DocNotasCertificadas") throw new Error("Para reinscribir, debe cargar las Notas Certificadas del año que acaba de cursar.");
+             if (key === "DocNotasCertificadas") throw new Error("Para reinscribir, debe cargar obligatoriamente las Notas Certificadas del año que acaba de cursar.");
         }
       }
 
-      // Direccionamiento Inteligente
       let url = editId
         ? `${window.APP_CONFIG.api_url}/students/correct_application/${editId}`
         : reinscribeId 
@@ -543,30 +562,38 @@ document.addEventListener("DOMContentLoaded", async () => {
           
       let method = editId || reinscribeId ? "PUT" : "POST";
 
-      const response = await fetch(url, {
-        method: method,
-        body: formData,
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      let response;
+      try {
+        response = await fetch(url, {
+          method: method,
+          body: formData,
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (networkError) {
+        throw new Error("Ocurrió un error de conexión. Verifique su internet e intente nuevamente.");
+      }
 
       const resData = await response.json();
-      if (!response.ok) throw new Error(resData.message);
+      if (!response.ok) throw new Error(resData.message || "Error al procesar la solicitud en el servidor.");
 
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "success");
-      notification.setAttribute("text", resData.message);
+      notification.setAttribute("text", resData.message || "Operación realizada con éxito.");
       notificationsContainer.appendChild(notification);
 
       setTimeout(() => {
         window.location.href = "/app/representante/inicio/";
       }, 2000);
     } catch (err) {
+      // AQUÍ PASAMOS EL MENSAJE POR NUESTRO FILTRO AMIGABLE
+      const friendlyMessage = translateError(err.message);
+      
       const notification = document.createElement("notification-component");
       notification.setAttribute("type", "error");
-      notification.setAttribute("text", err.message);
+      notification.setAttribute("text", friendlyMessage);
       notificationsContainer.appendChild(notification);
     } finally {
-      loader.remove();
+      if (document.body.contains(loader)) loader.remove();
     }
   });
 

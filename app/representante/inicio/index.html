@@ -3,166 +3,143 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Inicio</title>
+    <title>Inicio - Representante</title>
 
     <!-- Estilos -->
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/parentsdashboard.css" />
 
-    <!-- Configuración -->
-    <script src="/src/scripts/config.js"></script>
+    <!-- Estilos específicos para unificar con el diseño del Admin -->
+    <style>
+      .sidebar {
+        width: 260px !important;
+        background-color: #ffffff !important; 
+        border-right: 1px solid #e0e0e0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        height: 100vh !important;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important; 
+        z-index: 100 !important;
+      }
 
-    <!-- Componentes -->
-    <script
-      src="/src/components/loader.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/notification.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/notifications-container.component.js"
-      type="module"
-      defer
-    ></script>
+      .sidebar > div:first-child {
+        padding: 20px !important;
+      }
+
+      .sidebar .logo {
+        display: flex !important;
+        align-items: center !important;
+        gap: 15px !important;
+        padding-bottom: 20px !important;
+        border-bottom: 1px solid #eee !important;
+        margin-bottom: 20px !important;
+      }
+
+      .sidebar .logo img {
+        width: 45px !important;
+        height: auto !important;
+      }
+
+      .sidebar .logo h2 {
+        font-size: 16px !important;
+        color: #003366 !important; 
+        margin: 0 !important;
+        line-height: 1.3 !important;
+        font-weight: 700 !important;
+      }
+
+      .sidebar ul {
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+
+      .sidebar ul li a {
+        text-decoration: none !important;
+        color: #333 !important;
+        font-size: 15px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px !important;
+        padding: 10px 12px !important;
+        border-radius: 6px !important;
+        transition: background 0.2s, color 0.2s !important;
+      }
+
+      .sidebar ul li a:hover {
+        background-color: #f0f4f8 !important;
+        color: #003366 !important;
+      }
+
+      .sidebar .user {
+        padding: 20px !important;
+        border-top: 1px solid #eee !important;
+        background-color: #ffffff !important;
+      }
+
+      .sidebar .user-info strong {
+        display: block !important;
+        color: #333 !important;
+        font-size: 14px !important;
+      }
+      
+      .sidebar .user-info span {
+        color: #666 !important;
+        font-size: 12px !important;
+      }
+
+      .main-content {
+        margin-left: 260px !important;
+        width: calc(100% - 260px) !important;
+      }
+    </style>
+
+    <script src="/src/scripts/config.js"></script>
+    <script src="/src/components/loader.component.js" type="module" defer></script>
+    <script src="/src/components/notification.component.js" type="module" defer></script>
+    <script src="/src/components/notifications-container.component.js" type="module" defer></script>
   </head>
   <body>
     <notifications-container id="notifications"></notifications-container>
-    <nav class="sidebar">
-      <div class="logo-container">
-        <div class="logo-icon">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-            <path
-              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-            ></path>
-          </svg>
+    
+    <aside class="sidebar">
+      <div>
+        <div class="logo">
+          <img src="/src/assets/images/romulo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/45'" />
+          <h2>Liceo Romulo<br>Gallegos</h2>
         </div>
-        <div class="app-name">
-          <h2>Representante</h2>
-          <span>Sistema Académico</span>
+        <ul>
+          <li><a href="/app/representante/inscripcion/">📋 Inscribir a Estudiante</a></li>
+          <li><a href="/app/representante/boletas/">📝 Boletas</a></li>
+          <li><a href="/app/representante/horarios/">📅 Horarios</a></li>
+          <li><a href="/app/representante/editar-perfil/">👤 Editar Perfil</a></li>
+          <li style="margin-top: 15px;">
+            <a href="#" id="logout">➜] Salir</a>
+          </li>
+        </ul>
+      </div>
+      <div class="user">
+        <div class="user-info">
+          <!-- ID FUNDAMENTAL: Aquí se inyecta el nombre -->
+          <strong id="sidebar-user-name">Cargando...</strong>
+          <span>Representante</span>
         </div>
       </div>
-
-      <ul class="menu">
-        <li>
-          <a href="/app/representante/inscripcion/">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
-            </svg>
-            <div>
-              <span>Registrar Estudiante</span>
-              <small>Agregar nuevo</small>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="/app/representante/boletas/">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              ></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            <div>
-              <span>Boletas</span>
-              <small>Calificaciones</small>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="/app/representante/horarios/">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="16" y1="2" x2="16" y2="6"></line>
-              <line x1="8" y1="2" x2="8" y2="6"></line>
-              <line x1="3" y1="10" x2="21" y2="10"></line>
-            </svg>
-            <div>
-              <span>Horarios</span>
-              <small>Horas de clase</small>
-            </div>
-          </a>
-        </li>
-        <li>
-          <a href="/app/representante/editar-perfil/">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            <div>
-              <span>Editar Perfil</span>
-              <small>Mi perfil</small>
-            </div>
-          </a>
-        </li>
-      </ul>
-
-      <div class="logout" id="logout">
-        <a href="">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          <span>Cerrar Sesión</span>
-        </a>
-      </div>
-    </nav>
+    </aside>
 
     <main class="main-content">
       <div class="content-wrapper">
         <div class="page-header">
-          <h1>Mis Estudiantes</h1>
+          <!-- ID FUNDAMENTAL: Aquí se inyecta el saludo -->
+          <h1 id="welcome-name">Mis Estudiantes</h1>
           <p>Gestiona la Información académica de tus representados</p>
         </div>
 
