@@ -555,3 +555,8 @@ input:disabled {
     color: var(--text-muted);
     font-size: 0.8rem;
 }
+
+#btnResetFilters {
+    width: 200px;
+    margin-bottom: 1rem;
+}

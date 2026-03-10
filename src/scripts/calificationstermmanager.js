@@ -51,6 +51,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     loader.setAttribute("title", "Cargando datos...");
 
+    const filter = () => {
+        selectedCalificationTerms = uploadCalificationTerms.filter(u => u.PeriodoEscolar.PeriodoEscolarId === schoolTermFilter.value);
+        if (lapseFilter.value !== "") {
+            selectedCalificationTerms = selectedCalificationTerms.filter(u => u.Lapso.LapsoId === lapseFilter.value);
+        }
+        if (startDateFilter.value !== "") {
+            selectedCalificationTerms = selectedCalificationTerms.filter(u => new Date(u.FechaInicio) >= new Date(startDateFilter.value));
+        }
+        if (endDateFilter.value !== "") {
+            selectedCalificationTerms = selectedCalificationTerms.filter(u => new Date(u.FechaFin) <= new Date(endDateFilter.value));
+        }
+        renderCards();
+    }
+
     const renderCards = () => {
         const resultCounters = document.querySelectorAll(".result-counter");
         resultCounters[0].textContent = selectedCalificationTerms.length;
@@ -191,7 +205,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         schoolTermFilter.innerHTML = "";
         schoolTerms.forEach(schoolTerm => {
             const option = document.createElement("option");
-            option.value = schoolTerm.id;
+            option.value = schoolTerm.PeriodoEscolarId;
             option.textContent = `${new Date(schoolTerm.FechaInicio).getFullYear()}-${new Date(schoolTerm.FechaFin).getFullYear()}`;
             schoolTermFilter.appendChild(option);
         });
@@ -199,7 +213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lapseFilter.innerHTML = "<option value=''>Todos</option>";
         lapses.filter(l => l["AñoEscolar"] === `${schoolTerm.FechaInicio.split("-")[0]}-${schoolTerm.FechaFin.split("-")[0]}`).forEach(lapse => {
             const option = document.createElement("option");
-            option.value = lapse.id;
+            option.value = lapse.LapsoId;
             option.textContent = `${lapse.Numero}° Lapso`;
             lapseFilter.appendChild(option);
         });
@@ -212,6 +226,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     } finally {
         loader.remove();
     }
+
+    schoolTermFilter.addEventListener("change", () => {
+        const schoolTerm = schoolTerms.find(t => t.id === schoolTermFilter.value);
+        lapseFilter.innerHTML = "<option value=''>Todos</option>";
+        lapses.filter(l => l["AñoEscolar"] === `${schoolTerm.FechaInicio.split("-")[0]}-${schoolTerm.FechaFin.split("-")[0]}`).forEach(lapse => {
+            const option = document.createElement("option");
+            option.value = lapse.id;
+            option.textContent = `${lapse.Numero}° Lapso`;
+            lapseFilter.appendChild(option);
+        });
+        filter();
+    });
+
+    lapseFilter.addEventListener("change", filter);
+    startDateFilter.addEventListener("change", filter);
+    endDateFilter.addEventListener("change", filter);
+
+    document.getElementById("btnResetFilters").addEventListener("click", () => {
+        schoolTermFilter.value = schoolTerm.id;
+        lapseFilter.value = "";
+        startDateFilter.value = "";
+        endDateFilter.value = "";
+        filter();
+    });
 
     if (periodForm) {
         periodForm.addEventListener('submit', async (e) => {
@@ -227,7 +265,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 const activeElement = uploadCalificationTerms.find(t => t["Activo"]);
 
-                console.log(btnSubmit.getAttribute("data-action") === "update");
                 const calificationTermPromise = await fetch(`${window.APP_CONFIG.api_url}/load-calification-term/save`, {
                     method: "POST",
                     headers: {
