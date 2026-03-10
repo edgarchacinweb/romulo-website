@@ -244,16 +244,16 @@ const addTeacherCard = (teacher) => {
 
       <div class="subjects-list">
         ${teacher["Materias"].reduce((prev, current) => {
-          return (
-            prev +
-            `
+    return (
+      prev +
+      `
           <div class="subject-item ${current["Nivel"].toLowerCase() === "secundaria" ? "subject-blue" : "subject-purple"}">
             <span class="subject-name">${current["Nombre"]}</span>
             <span class="badge">${current["Nivel"]}</span>
           </div>
           `
-          );
-        }, "")}
+    );
+  }, "")}
       </div>
     </div>
   </div>
@@ -345,16 +345,16 @@ const addTeacherCard = (teacher) => {
       <span class="info-label">MATERIAS QUE IMPARTE</span>
       <ul class="subjects-list">
           ${teacher.Materias.reduce((prev, current) => {
-            return (
-              prev +
-              `
+    return (
+      prev +
+      `
             <li class="subject-item">
                 <span class="subject-name">${current["Nombre"]}</span>
                 <span class="badge badge-highschool">${current["Nivel"]}</span>
             </li>
             `
-            );
-          }, "")}
+    );
+  }, "")}
       </ul>
   </div>
   `;
@@ -372,24 +372,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   addSubjectBtn.addEventListener("click", () => {
     if (subjectField.options.length === 1)
       addSubjectBtn.classList.add("disabled");
-      
+
     const selectedElement = subjectField.options[subjectField.selectedIndex];
     const id = subjectField.value;
     const subjectFullText = selectedElement.textContent; // Ej: "Matemáticas - Secundaria"
-    
+
     // SOLUCIÓN: Separamos el Nombre de la materia y el Nivel
     // asumiendo que el texto viene en formato "Nombre - Nivel"
     const [subjectName, subjectLevel] = subjectFullText.split(" - ");
-    
+
     selectedElement.remove();
-    
+
     // Ahora guardamos tanto el Nombre como el Nivel por separado
-    selectedSubjects.push({ 
-        MateriaId: id, 
-        Nombre: subjectName, 
-        Nivel: subjectLevel || "" 
+    selectedSubjects.push({
+      MateriaId: id,
+      Nombre: subjectName,
+      Nivel: subjectLevel || ""
     });
-    
+
     const newSubject = document.createElement("p");
     newSubject.textContent = subjectFullText;
     newSubject.classList.add("materia");
@@ -543,6 +543,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         Usuario: {
           Email: email,
         },
+        Activo: true
       });
 
       const teachersCounter = document.getElementById("active-teachers");
