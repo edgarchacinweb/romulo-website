@@ -63,6 +63,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loader = document.createElement("loader-spinner");
   document.body.appendChild(loader);
   try {
+    // Cargando periodo de carga de notas activo
+    const calificationTermPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/load-calification-term/get`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const calificationTermResponse = await calificationTermPromise.json();
+    if (!calificationTermPromise.ok) {
+      alert("No existe un periodo de carga de notas activo en este momento");
+      btnVolver.click();
+    }
+
     // Cargando lapso activo actual
     const lapsoPromise = await fetch(
       `${window.APP_CONFIG.api_url}/lapsos/get`,
