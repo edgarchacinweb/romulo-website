@@ -7,11 +7,41 @@
     
     <!-- Estilos -->
     <link rel="stylesheet" href="/src/styles/global.css" />
-    <!-- Usamos el CSS del admin para unificar diseño -->
     <link rel="stylesheet" href="/src/styles/dashboard.css" />
+    
+    <!-- FontAwesome para los íconos y CSS específico del Dashboard Resumen -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+      .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+      .kpi-card { background: white; border-radius: 0.75rem; border: 1px solid #e2e8f0; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+      .kpi-icon { width: 3rem; height: 3rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+      .kpi-blue { background: #eff6ff; color: #2563eb; }
+      .kpi-green { background: #f0fdf4; color: #16a34a; }
+      .kpi-purple { background: #faf5ff; color: #9333ea; }
+      .kpi-info p { margin: 0; font-size: 0.875rem; color: #64748b; font-weight: 500; }
+      .kpi-info h3 { margin: 0; font-size: 1.5rem; font-weight: 700; color: #1e293b; }
+      
+      .dash-panels { display: block; margin-bottom: 2rem; }
+      .panel { background: white; border-radius: 0.75rem; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 1.5rem; }
+      .panel-header { padding: 1.25rem; border-bottom: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: #1e293b; }
+      
+      .schedule-item { padding: 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 1rem; }
+      .schedule-item:last-child { border-bottom: none; }
+      .schedule-item.active { border-left: 4px solid #16a34a; background: #f0fdf4; }
+      .s-time { width: 80px; font-size: 0.875rem; font-weight: 700; color: #334155; }
+      .s-time span { display: block; font-size: 0.75rem; color: #94a3b8; font-weight: 400; }
+      .s-details { flex-grow: 1; }
+      .s-details h4 { margin: 0; font-size: 1rem; font-weight: 700; color: #1e293b; }
+      .s-details p { margin: 0; font-size: 0.875rem; color: #64748b; }
+      .btn-action { padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; }
+      .btn-primary { background: #16a34a; color: white; }
+      .btn-primary:hover { background: #15803d; }
+      .btn-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
+      .btn-outline:hover { background: #f8fafc; }
+    </style>
   </head>
   <body>
-    <!-- Barra lateral con el diseño del Admin -->
+    <!-- Barra lateral -->
     <aside class="sidebar">
       <div>
         <div class="logo">
@@ -22,7 +52,6 @@
           <li><a href="/app/docente/horarios/">📅 Visualizar Horario</a></li>
           <li><a href="/app/docente/calificaciones/">📝 Calificaciones</a></li>
           <li><a href="../asistencia/index.html">✅ Asistencias</a></li>
-          <!-- Enlace de Cerrar Sesión en la Sidebar -->
           <li style="margin-top: 15px;">
             <a href="#" id="sidebar-logout">➜] Salir</a>
           </li>
@@ -30,35 +59,75 @@
       </div>
       <div class="user">
         <div class="user-info">
-          <!-- ID aquí para el nombre en la barra lateral -->
           <strong id="sidebar-user-name">Cargando...</strong>
           <span>Panel de Gestión</span>
         </div>
       </div>
     </aside>
 
-    <!-- Contenido Principal con el diseño del Admin -->
+    <!-- Contenido Principal -->
     <main class="main">
-      <header>
+      <header style="display: flex; justify-content: space-between; align-items: center;">
         <h1>Sistema de Gestión Docente</h1>
+        <div style="color: #64748b; font-size: 0.9rem; font-weight: 500;">
+          <i class="fa-regular fa-clock" style="margin-right: 5px;"></i> <span id="current-date">Cargando fecha...</span>
+        </div>
       </header>
 
-      <section class="welcome" style="display: flex; align-items: center; gap: 20px;">
-        <div class="welcome-icon" style="background-color: #2563eb; padding: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
+      <section class="welcome" style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
+        <div class="welcome-icon" style="background-color: #3b82f6; padding: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); width: 60px; height: 60px;">
+          <i class="fa-solid fa-user-graduate" style="color: white; font-size: 26px;"></i>
         </div>
         <div>
-          <!-- ID aquí para el título de bienvenida -->
-          <h2 id="welcome-name">Bienvenido(a)</h2>
-          <p style="color: #666; margin-top: 5px;">Accede a las herramientas de gestión educativa desde este panel centralizado</p>
+          <h2 id="welcome-name" style="margin: 0; font-size: 1.5rem; color: #1e293b;">Bienvenido(a)</h2>
+          <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem;">Aquí tienes el resumen de tu día académico.</p>
         </div>
       </section>
 
-      <!-- SECCIÓN DE TARJETAS ELIMINADA -->
-      
+      <!-- TARJETAS DE RESUMEN (KPIs) -->
+      <div class="dash-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-blue"><i class="fa-solid fa-book"></i></div>
+          <div class="kpi-info">
+            <p>Materias Asignadas</p>
+            <h3 id="kpi-subjects">-</h3>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-green"><i class="fa-solid fa-person-chalkboard"></i></div>
+          <div class="kpi-info">
+            <p>Clases Hoy</p>
+            <h3 id="kpi-classes">-</h3>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-purple"><i class="fa-solid fa-chart-line"></i></div>
+          <div class="kpi-info">
+            <p>Asistencia Mensual</p>
+            <!-- ID AGREGADO PARA ESTADÍSTICAS REALES -->
+            <h3 id="kpi-attendance">-</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN INFERIOR -->
+      <div class="dash-panels">
+        <!-- HORARIO DE HOY -->
+        <div class="panel">
+          <div class="panel-header">
+            <span><i class="fa-regular fa-calendar" style="color: #3b82f6; margin-right: 8px;"></i> Mi Horario de Hoy</span>
+            <a href="/app/docente/horarios/" style="font-size: 0.875rem; color: #3b82f6; text-decoration: none; font-weight: 500;">Ver semana completa</a>
+          </div>
+          <div id="today-schedule-container">
+            <!-- Los ítems del horario se inyectarán aquí dinámicamente vía Javascript -->
+            <div style="padding: 2rem; text-align: center; color: #64748b;">
+                <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 2rem; margin-bottom: 1rem; color: #cbd5e1;"></i>
+                <p>Cargando horario del día...</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </main>
 
     <script src="/src/scripts/config.js" type="module"></script>
