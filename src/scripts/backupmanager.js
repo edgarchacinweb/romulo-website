@@ -20,6 +20,8 @@ const listBackups = async () => {
     },
   });
 
+  loader.remove();
+
   if (response.status === 404) {
     notification.setAttribute("type", "warning");
     notification.setAttribute(
@@ -43,9 +45,8 @@ const listBackups = async () => {
         <td>${(backupFile["Peso"] / 1000 / 100).toFixed(2)} MB</td>
         <td>
           <a
-            href="${window.APP_CONFIG.api_url}/backup/download/${
-              backupFile["Archivo"]
-            }"
+            href="${window.APP_CONFIG.api_url}/backup/download/${backupFile["Archivo"]
+        }"
             class="action-link"
             download="${backupFile["Archivo"]}"
             >Descargar</a

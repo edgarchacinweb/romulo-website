@@ -117,28 +117,23 @@
             <div class="filters-row">
                 <div class="input-group">
                     <label>Periodo Escolar</label>
-                    <select>
-                        <option>Todos</option>
-                        <option>2025-2026</option>
-                        <option>2024-2025</option>
+                    <select id="schoolTermFilter">
+                        <option value="">Cargando...</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label>Lapso</label>
-                    <select>
-                        <option>Todos</option>
-                        <option>1er Lapso</option>
-                        <option>2do Lapso</option>
-                        <option>3er Lapso</option>
+                    <select id="lapseFilter">
+                        <option value="">Cargando...</option>
                     </select>
                 </div>
                 <div class="input-group">
                     <label>Inicio Desde</label>
-                    <input type="date">
+                    <input type="date" id="startDateFilter">
                 </div>
                 <div class="input-group">
                     <label>Inicio Hasta</label>
-                    <input type="date">
+                    <input type="date" id="endDateFilter">
                 </div>
             </div>
             <p class="results-text">Mostrando <span class="result-counter"></span> de <span

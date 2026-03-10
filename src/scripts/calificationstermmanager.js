@@ -6,7 +6,9 @@ const token = localStorage.getItem("auth");
 document.addEventListener('DOMContentLoaded', async () => {
     let userdata = {};
     let schoolTerm = {};
+    let schoolTerms = {};
     let lapse = {};
+    let lapses = [];
     let uploadCalificationTerms = [];
     let selectedCalificationTerms = [];
     const loader = document.createElement("loader-spinner");
@@ -18,6 +20,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const periodForm = document.getElementById('periodForm');
     const successMessage = document.getElementById('successMessage');
     const btnSubmit = document.getElementById("btnSubmit");
+    const schoolTermFilter = document.getElementById("schoolTermFilter");
+    const lapseFilter = document.getElementById("lapseFilter");
+    const startDateFilter = document.getElementById("startDateFilter");
+    const endDateFilter = document.getElementById("endDateFilter");
 
     const today = new Date().toISOString().split("T")[0];
     const dateLimit = new Date();
@@ -138,7 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         schoolTermField.setAttribute("data-id", schoolTerm.id)
 
         // Cargando lapso actual
-        const lapsePromise = await fetch(`${window.APP_CONFIG.api_url}/lapsos/get`, {
+        const lapsePromise = await fetch(`${window.APP_CONFIG.api_url}/lapsos/list`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -148,8 +154,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const lapseResponse = await lapsePromise.json();
         if (!lapsePromise.ok) throw new Error(lapseResponse.message);
-        lapse = { ...lapseResponse };
-        lapseField.value = `${lapse.Numero}° Lapso`;
+        const currentDate = new Date();
+        lapse = lapseResponse.find(l => l["AñoEscolar"] === `${schoolTerm.FechaInicio.split("-")[0]}-${schoolTerm.FechaFin.split("-")[0]}` && currentDate >= new Date(l.FechaInicio) && currentDate <= new Date(l.FechaFin));
+        lapses = [...lapseResponse];
+        lapseField.value = `${lapse?.Numero ?? ""}° Lapso`;
         lapseField.setAttribute("data-id", lapseField.LapsoId)
 
         // Cargando periodos de carga
@@ -166,6 +174,35 @@ document.addEventListener('DOMContentLoaded', async () => {
         uploadCalificationTerms = [...loadCalificationTermsResponse];
         selectedCalificationTerms = [...loadCalificationTermsResponse];
         renderCards();
+
+        // Cargando períodos escolares
+        const schoolTermsPromise = await fetch(`${window.APP_CONFIG.api_url}/school_term/list`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        });
+
+        const schoolTermsResponse = await schoolTermsPromise.json();
+        if (!schoolTermsPromise.ok) throw new Error(schoolTermsResponse.message);
+        schoolTerms = [...schoolTermsResponse];
+
+        schoolTermFilter.innerHTML = "";
+        schoolTerms.forEach(schoolTerm => {
+            const option = document.createElement("option");
+            option.value = schoolTerm.id;
+            option.textContent = `${new Date(schoolTerm.FechaInicio).getFullYear()}-${new Date(schoolTerm.FechaFin).getFullYear()}`;
+            schoolTermFilter.appendChild(option);
+        });
+
+        lapseFilter.innerHTML = "<option value=''>Todos</option>";
+        lapses.filter(l => l["AñoEscolar"] === `${schoolTerm.FechaInicio.split("-")[0]}-${schoolTerm.FechaFin.split("-")[0]}`).forEach(lapse => {
+            const option = document.createElement("option");
+            option.value = lapse.id;
+            option.textContent = `${lapse.Numero}° Lapso`;
+            lapseFilter.appendChild(option);
+        });
     } catch (Error) {
         console.error(Error.stack);
         const notification = document.createElement("notification-component");
