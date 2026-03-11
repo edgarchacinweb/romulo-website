@@ -38,6 +38,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const sectionsField = document.getElementById("SectionsField");
   const stateField = document.getElementById("StateField");
 
+  // --- NUEVO: LEER PARÁMETRO DE URL PARA APLICAR FILTRO AUTOMÁTICO ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const estadoParam = urlParams.get("estado");
+  
+  if (estadoParam && stateField) {
+      stateField.value = estadoParam;
+  }
+  // -----------------------------------------------------------------
+
   // --- FUNCIÓN HELPER PARA FORMATEAR CÉDULA ---
   const formatCedula = (cedula) => {
       let str = String(cedula).toUpperCase().trim();

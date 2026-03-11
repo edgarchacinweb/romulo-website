@@ -9,7 +9,65 @@
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/dashboard.css" />
 
-    <!-- 1. AQUÍ ESTÁ LA LIBRERÍA DE LAS GRÁFICAS -->
+    <style>
+      /* Estilos para la alerta de inscripciones rechazadas */
+      .alert-banner {
+        display: none; 
+        background-color: #fef2f2;
+        border: 1px solid #fee2e2;
+        color: #991b1b;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        animation: fadeIn 0.5s ease-out;
+      }
+      
+      .alert-banner.active {
+        display: flex;
+      }
+
+      .alert-icon {
+        background: #ef4444;
+        color: white;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        flex-shrink: 0;
+      }
+
+      .alert-content {
+        flex-grow: 1;
+        font-size: 0.95rem;
+      }
+
+      .alert-action {
+        background-color: #ef4444;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: bold;
+        transition: background 0.2s;
+      }
+
+      .alert-action:hover {
+        background-color: #dc2626;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Components -->
@@ -43,9 +101,7 @@
           <li><a href="/app/admin/docentes/">👨‍🏫 Docentes</a></li>
           <li><a href="/app/admin/materias/">📚 Materias</a></li>
           <li><a href="/app/admin/horarios/">📅 Horarios</a></li>
-
           <li><a href="/app/admin/lapsos/index.html">🗓️Lapsos</a></li>
-
           <li><a href="/app/admin/auditorias/">🧾 Auditorías</a></li>
           <li><a href="/app/admin/respaldo/">💾 Respaldos</a></li>
           <li>
@@ -70,23 +126,40 @@
         <h2>Bienvenido al Sistema Administrativo</h2>
       </section>
 
-      <!-- TARJETAS CON IDS -->
+      <!-- SECCIÓN DE ALERTA PARA RECHAZADOS -->
+      <div id="rejectedAlert" class="alert-banner">
+        <div class="alert-icon">!</div>
+        <div class="alert-content">
+          Hay <strong id="rejectedCount">0</strong> solicitudes de inscripción en estado <strong>Rechazado</strong>.
+        </div>
+        <a href="/app/admin/estudiantes/" class="alert-action">Revisar Estudiantes</a>
+      </div>
+
+      <!-- TARJETAS ESTADÍSTICAS -->
       <section class="cards">
         <div class="card">
           <h3>Total Estudiantes <span>🎓</span></h3>
-          <div class="value" id="totalStudents">—</div>
+          <div class="value" id="totalStudents">0</div>
           <small id="delta-students"></small>
         </div>
         <div class="card">
           <h3>Total Docentes <span>👨‍🏫</span></h3>
-          <div class="value" id="totalTeachers">—</div>
+          <div class="value" id="totalTeachers">0</div>
           <small id="delta-teachers"></small>
         </div>
         <div class="card">
           <h3>Inscripciones Activas <span>🧾</span></h3>
-          <div class="value" id="activeEnrollments">—</div>
+          <div class="value" id="activeEnrollments">0</div>
           <small id="delta-enrollments"></small>
         </div>
+        
+        <!-- TARJETA DE RECHAZADOS -->
+        <div class="card">
+          <h3>Rechazadas <span>❌</span></h3>
+          <div class="value" id="rejectedEnrollments" style="color: #ef4444;">0</div>
+          <small id="delta-rejected"></small>
+        </div>
+        
         <div class="card">
           <h3>Período Escolar <span>📅</span></h3>
           <div class="value" id="schoolTerm">—</div>
@@ -94,7 +167,7 @@
         </div>
       </section>
 
-      <!-- 2. AQUÍ ESTÁ EL CONTENEDOR DE LA GRÁFICA -->
+      <!-- CONTENEDOR DE LA GRÁFICA -->
       <section class="chart-container" style="margin-top: 2rem; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);">
         <h3 style="margin-bottom: 20px; color: #555; font-size: 16px;">Resumen Estadístico</h3>
         <div style="position: relative; height: 350px; width: 100%;">
