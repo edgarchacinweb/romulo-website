@@ -10,7 +10,8 @@
 
   /* Colores Interactivos */
   --primary-blue: #0f4c81;
-  --hover-dark-red: #7c2d23; /* El color exacto del hover de tus imágenes */
+  --hover-dark-red: #7c2d23;
+  /* El color exacto del hover de tus imágenes */
 
   /* Colores Píldoras / Íconos */
   --role-admin-bg: #e0e7ff;
@@ -25,6 +26,8 @@
   --act-green-bg: #dcfce7;
   --act-green-txt: #16a34a;
   --act-blue-bg: #e0f2fe;
+  --act-dark-blue-bg: #1e87cdff;
+  --act-dark-blue-txt: #dff2ff;
   --act-blue-txt: #0284c7;
   --act-purple-bg: #f3e8ff;
   --act-purple-txt: #9333ea;
@@ -78,6 +81,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -89,6 +93,7 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+
   to {
     opacity: 0;
     transform: translateY(20px);
@@ -326,6 +331,7 @@ button {
   font-weight: 600;
   background-color: #f1f5f9;
 }
+
 .select-options li.selected:hover {
   background-color: var(--hover-dark-red);
 }
@@ -371,14 +377,17 @@ button {
   background-color: #e0f2fe;
   color: #0284c7;
 }
+
 .icon-red {
   background-color: #fee2e2;
   color: #dc2626;
 }
+
 .icon-blue-light {
   background-color: #e0e7ff;
   color: #4f46e5;
 }
+
 .icon-purple {
   background-color: #f3e8ff;
   color: #9333ea;
@@ -444,14 +453,17 @@ td:first-child {
   background: var(--role-admin-bg);
   color: var(--role-admin-txt);
 }
+
 .role-docente {
   background: var(--role-docente-bg);
   color: var(--role-docente-txt);
 }
+
 .role-representante {
   background: var(--role-estud-bg);
   color: var(--role-estud-txt);
 }
+
 .role-secretario {
   background: var(--role-secre-bg);
   color: var(--role-secre-txt);
@@ -461,34 +473,47 @@ td:first-child {
   background: var(--act-green-bg);
   color: var(--act-green-txt);
 }
+
 .act-register {
   background: var(--act-blue-bg);
   color: var(--act-blue-txt);
 }
+
+.act-modify {
+  background: var(--act-dark-blue-bg);
+  color: var(--act-dark-blue-txt);
+}
+
 .act-backup {
   background: var(--act-purple-bg);
   color: var(--act-purple-txt);
 }
+
 .act-update {
   background: var(--act-orange-bg);
   color: var(--act-orange-txt);
 }
+
 .act-permissions {
   background: var(--act-yellow-bg);
   color: var(--act-yellow-txt);
 }
+
 .act-export {
   background: var(--act-blue-bg);
   color: var(--act-blue-txt);
 }
+
 .act-delete {
   background: var(--act-red-bg);
   color: var(--act-red-txt);
 }
+
 .act-config {
   background: var(--act-purple-bg);
   color: var(--act-purple-txt);
 }
+
 .act-password {
   background: var(--act-pink-bg);
   color: var(--act-pink-txt);
@@ -569,7 +594,8 @@ td:first-child {
       system-ui,
       -apple-system,
       sans-serif;
-    background-color: #f0f2f5; /* Fondo grisáceo fuera del documento para contraste */
+    background-color: #f0f2f5;
+    /* Fondo grisáceo fuera del documento para contraste */
     color: var(--text-main);
     line-height: 1.6;
     display: flex;
@@ -582,7 +608,8 @@ td:first-child {
   .report-container {
     background-color: var(--bg-page);
     width: 100%;
-    max-width: 1400px; /* Ancho amplio para que la tabla respire */
+    max-width: 1400px;
+    /* Ancho amplio para que la tabla respire */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     border-radius: 4px;
   }

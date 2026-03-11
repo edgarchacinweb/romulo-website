@@ -1,123 +1,100 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Carga de Calificaciones - Instituto Educativo San Miguel</title>
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="/src/styles/global.css" />
-    <link rel="stylesheet" href="/src/styles/teachercalificationmanager.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carga de Calificaciones - Instituto Educativo San Miguel</title>
 
-    <!-- Componentes -->
-    <script
-      type="module"
-      src="/src/components/notification.component.js"
-    ></script>
-    <script
-      type="module"
-      src="/src/components/notifications-container.component.js"
-    ></script>
-  </head>
-  <body>
-    <notifications-container id="notifications"></notifications-container>
-    <div id="app-container" class="page-enter">
-      <header class="navbar">
-        <div class="brand">
-          <div class="logo-container">
-            <img
-              src="/src/assets/images/romulo.webp"
-              alt="Logo institucional"
-              width="50px"
-            />
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/teachercalificationmanager.css" />
+
+  <!-- Componentes -->
+  <script type="module" src="/src/components/loader.component.js"></script>
+  <script type="module" src="/src/components/notification.component.js"></script>
+  <script type="module" src="/src/components/notifications-container.component.js"></script>
+</head>
+
+<body>
+  <notifications-container id="notifications"></notifications-container>
+  <div id="app-container" class="page-enter">
+    <header class="navbar">
+      <div class="brand">
+        <div class="logo-container">
+          <img src="/src/assets/images/romulo.webp" alt="Logo institucional" width="50px" />
+        </div>
+        <div class="brand-text">
+          <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
+          <p>Carga de Notas</p>
+        </div>
+      </div>
+      <button id="btn-volver" class="btn-outline">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Volver al Dashboard
+      </button>
+    </header>
+
+    <main class="main-content">
+      <section class="card params-card">
+        <h2>Seleccione los Parámetros de Búsqueda</h2>
+        <div class="params-grid">
+          <div class="form-group">
+            <label>Grado Académico</label>
+            <div class="select-wrapper">
+              <select id="gradeField" class="custom-select">
+                <option value="" disabled selected>
+                  Seleccionar grado...
+                </option>
+              </select>
+            </div>
           </div>
-          <div class="brand-text">
-            <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
-            <p>Carga de Notas</p>
+          <div class="form-group">
+            <label>Sección</label>
+            <div class="select-wrapper">
+              <select id="sectionField" class="custom-select" disabled>
+                <option value="" disabled selected>
+                  Seleccionar sección...
+                </option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Materia</label>
+            <div class="select-wrapper">
+              <select id="subjectField" class="custom-select" disabled>
+                <option value="" disabled selected>
+                  Seleccionar materia...
+                </option>
+              </select>
+            </div>
           </div>
         </div>
-        <button id="btn-volver" class="btn-outline">
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-          </svg>
-          Volver al Dashboard
-        </button>
-      </header>
+      </section>
 
-      <main class="main-content">
-        <section class="card params-card">
-          <h2>Seleccione los Parámetros de Búsqueda</h2>
-          <div class="params-grid">
-            <div class="form-group">
-              <label>Grado Académico</label>
-              <div class="select-wrapper">
-                <select id="gradeField" class="custom-select">
-                  <option value="" disabled selected>
-                    Seleccionar grado...
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Sección</label>
-              <div class="select-wrapper">
-                <select id="sectionField" class="custom-select" disabled>
-                  <option value="" disabled selected>
-                    Seleccionar sección...
-                  </option>
-                </select>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Materia</label>
-              <div class="select-wrapper">
-                <select id="subjectField" class="custom-select" disabled>
-                  <option value="" disabled selected>
-                    Seleccionar materia...
-                  </option>
-                </select>
-              </div>
-            </div>
+      <section id="dynamic-area" class="dynamic-area fade-transition">
+        <div id="state-initial" class="state-container active">
+          <div class="icon-circle">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#64748b" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
           </div>
-        </section>
+          <h3>Seleccione los parámetros de búsqueda</h3>
+          <p>
+            Escoja el grado, sección y materia para cargar la lista de
+            estudiantes
+          </p>
+        </div>
+      </section>
+    </main>
+  </div>
 
-        <section id="dynamic-area" class="dynamic-area fade-transition">
-          <div id="state-initial" class="state-container active">
-            <div class="icon-circle">
-              <svg
-                viewBox="0 0 24 24"
-                width="32"
-                height="32"
-                fill="none"
-                stroke="#64748b"
-                stroke-width="2"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <polyline points="19 12 12 19 5 12"></polyline>
-              </svg>
-            </div>
-            <h3>Seleccione los parámetros de búsqueda</h3>
-            <p>
-              Escoja el grado, sección y materia para cargar la lista de
-              estudiantes
-            </p>
-          </div>
-        </section>
-      </main>
-    </div>
+  <script src="/src/scripts/config.js"></script>
+  <script src="/src/scripts/teachercalificationmanager.js" type="module"></script>
+</body>
 
-    <script src="/src/scripts/config.js"></script>
-    <script
-      src="/src/scripts/teachercalificationmanager.js"
-      type="module"
-    ></script>
-  </body>
 </html>

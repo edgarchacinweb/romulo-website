@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const actionTags = {
     Sesión: "act-login",
     Registro: "act-register",
+    Modificación: "act-modify",
     Respaldo: "act-backup",
     Configuración: "act-config",
   };
