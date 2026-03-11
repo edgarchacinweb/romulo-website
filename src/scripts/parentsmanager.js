@@ -39,6 +39,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     briefcase: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
   };
 
+  // --- FUNCIÓN GLOBAL: CANCELAR EDICIÓN ---
+  window.cancelEdit = () => {
+    isEditing = false;
+    currentEditId = null;
+    repForm.reset();
+    if(typeIdEntry) typeIdEntry.value = "V";
+    
+    // Restaurar el botón original
+    submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Registrar Representante`;
+    submitBtn.classList.remove("btn-warning");
+
+    const cancelBtn = document.getElementById("btn-cancel-edit");
+    if (cancelBtn) cancelBtn.remove();
+  };
+
   // --- FUNCIÓN GLOBAL: CARGAR DATOS EN FORMULARIO (EDITAR) ---
   window.editRep = (usuarioId) => {
     const parentFound = parents.find(
@@ -68,9 +83,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     isEditing = true;
     currentEditId = DatosPersona.DatosPersonaId;
 
-    submitBtn.textContent = "Actualizar Representante";
+    submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Actualizar Representante`;
     submitBtn.classList.add("btn-warning");
+    
+    // Crear el botón de cancelar si no existe
+    if (!document.getElementById("btn-cancel-edit")) {
+      const cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.id = "btn-cancel-edit";
+      cancelBtn.textContent = "Cancelar Edición";
+      cancelBtn.style.marginTop = "10px";
+      cancelBtn.style.width = "100%";
+      cancelBtn.style.padding = "0.75rem";
+      cancelBtn.style.borderRadius = "6px";
+      cancelBtn.style.border = "1px solid #d1d5db";
+      cancelBtn.style.background = "#f3f4f6";
+      cancelBtn.style.cursor = "pointer";
+      cancelBtn.style.fontWeight = "bold";
+      cancelBtn.onclick = cancelEdit;
+      repForm.appendChild(cancelBtn);
+    }
+
     firstNameEntry.focus();
+    // Scroll arriba para móvil
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // --- RENDERIZAR LISTA ---
@@ -98,15 +134,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("article");
       card.className = "rep-card";
 
-      // Nota: Si quieres activar la edición, descomenta el botón de abajo
+      // El botón de edición ahora está habilitado
       card.innerHTML = `
                 <div class="rep-top">
                     <h3>${DatosPersona.Nombre} ${DatosPersona.Apellido}</h3>
-                      <!-- 
-                    <button class="btn-edit" onclick="editRep('${userId}')" title="Editar">
+                    <button class="btn-edit" onclick="editRep('${userId}')" title="Editar" style="cursor: pointer; background: transparent; border: none; color: #4b5563;">
                         ${icons.edit}
                     </button> 
-                    -->
                 </div>
                 <span class="cedula-text">Cédula: ${displayCedula}</span>
 
@@ -240,7 +274,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (email.length === 0) throw new Error("Indica el correo");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
 
-      // NUEVA VALIDACIÓN: DOMINIOS PERMITIDOS
       const allowedDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com"];
       const emailDomain = email.split('@')[1];
       if (!allowedDomains.includes(emailDomain)) {
@@ -258,11 +291,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         Apellido: lastName,
         Sexo: gender,
         Cedula: finalIdentity, 
-        // FIX: Enviamos cadenas vacías explícitamente para evitar que el backend asigne 
-        // valores por defecto (como "Calle principal del arsenal...")
-        Direccion: "",
-        Ocupacion: "",
-        Telefono: ""
       };
 
       if (isEditing) {
@@ -285,13 +313,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("text", "Datos actualizados correctamente");
         await loadParentsData(true);
         
-        isEditing = false;
-        currentEditId = null;
-        submitBtn.textContent = "Registrar Representante";
-        submitBtn.classList.remove("btn-warning");
+        // Finalizar modo edición limpiando el formulario
+        cancelEdit();
 
       } else {
         // --- CREAR ---
+        // Enviamos campos vacíos extra solo en la creación
+        payloadPerson.Direccion = "";
+        payloadPerson.Ocupacion = "";
+        payloadPerson.Telefono = "";
+
         const dataResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/create`,
           {
@@ -327,10 +358,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("type", "success");
         notification.setAttribute("text", "Representante registrado correctamente");
         await loadParentsData(true);
+        
+        repForm.reset();
+        if(typeIdEntry) typeIdEntry.value = "V";
       }
-
-      repForm.reset();
-      if(typeIdEntry) typeIdEntry.value = "V";
 
     } catch (error) {
       console.error(error);
