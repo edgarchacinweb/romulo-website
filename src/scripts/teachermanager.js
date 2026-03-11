@@ -4,7 +4,8 @@ authorize("administrador");
 
 const token = localStorage.getItem("auth");
 let teachers = [];
-let currentSearchQuery = ""; // Control de búsqueda actual
+let currentSearchQuery = ""; // Control de búsqueda actual de texto
+let currentSubjectFilter = ""; // Control del filtro de materia
 
 const teacherForm = document.getElementById("teacher-form");
 const firstNameField = document.getElementById("nombre");
@@ -379,7 +380,10 @@ const renderTeachers = (teachersData) => {
   const activeCount = teachersData.filter((t) => t.Activo).length;
   const activeTeachers = document.getElementById("active-teachers");
   
-  activeTeachers.textContent = currentSearchQuery !== "" ? `${activeCount} (Filtrados)` : activeCount;
+  activeTeachers.textContent = (currentSearchQuery !== "" || currentSubjectFilter !== "") 
+        ? `${activeCount} (Filtrados)` 
+        : activeCount;
+
   document.getElementById("teachers-count").textContent = `(${activeCount})`;
   
   if (teachersData.length > 0) exportBtn.removeAttribute("disabled");
@@ -390,23 +394,31 @@ const renderTeachers = (teachersData) => {
   });
 };
 
-// --- LÓGICA DE FILTRADO ---
+// --- LÓGICA COMPLETA DE FILTRADO (TEXTO + MATERIA) ---
 const applyFilterAndRender = () => {
-  if (!currentSearchQuery) {
-    renderTeachers(teachers);
-    return;
+  let filtered = teachers;
+
+  // 1. Filtro por Búsqueda de Texto
+  if (currentSearchQuery) {
+    const query = currentSearchQuery.toLowerCase();
+    filtered = filtered.filter((t) => {
+      const { DatosPersona } = t;
+      const nameMatch = (DatosPersona.Nombre || "").toLowerCase().includes(query);
+      const lastNameMatch = (DatosPersona.Apellido || "").toLowerCase().includes(query);
+      const fullNameMatch = `${DatosPersona.Nombre} ${DatosPersona.Apellido}`.toLowerCase().includes(query);
+      const cedulaMatch = (DatosPersona.Cedula || "").toString().toLowerCase().includes(query);
+
+      return nameMatch || lastNameMatch || fullNameMatch || cedulaMatch;
+    });
   }
 
-  const query = currentSearchQuery.toLowerCase();
-  const filtered = teachers.filter((t) => {
-    const { DatosPersona } = t;
-    const nameMatch = (DatosPersona.Nombre || "").toLowerCase().includes(query);
-    const lastNameMatch = (DatosPersona.Apellido || "").toLowerCase().includes(query);
-    const fullNameMatch = `${DatosPersona.Nombre} ${DatosPersona.Apellido}`.toLowerCase().includes(query);
-    const cedulaMatch = (DatosPersona.Cedula || "").toString().toLowerCase().includes(query);
-
-    return nameMatch || lastNameMatch || fullNameMatch || cedulaMatch;
-  });
+  // 2. Filtro por Selección de Materia
+  if (currentSubjectFilter) {
+    filtered = filtered.filter((t) => {
+      // Retorna true si el docente imparte alguna materia cuyo ID coincida con el seleccionado
+      return t.Materias.some(m => m.MateriaId === currentSubjectFilter);
+    });
+  }
 
   renderTeachers(filtered);
 };
@@ -419,11 +431,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   loader.setAttribute("title", "Cargando docentes...");
   document.body.appendChild(loader);
 
-  // --- BÚSQUEDA EN TIEMPO REAL ---
+  // --- EVENTOS DE BÚSQUEDA Y FILTROS ---
   const searchInput = document.getElementById("searchInput");
+  const subjectFilterSelect = document.getElementById("subjectFilter");
+
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       currentSearchQuery = e.target.value.trim();
+      applyFilterAndRender();
+    });
+  }
+
+  if (subjectFilterSelect) {
+    subjectFilterSelect.addEventListener("change", (e) => {
+      currentSubjectFilter = e.target.value;
       applyFilterAndRender();
     });
   }
@@ -436,13 +457,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const id = subjectField.value;
     const subjectFullText = selectedElement.textContent; // Ej: "Matemáticas - Secundaria"
 
-    // SOLUCIÓN: Separamos el Nombre de la materia y el Nivel
-    // asumiendo que el texto viene en formato "Nombre - Nivel"
     const [subjectName, subjectLevel] = subjectFullText.split(" - ");
 
     selectedElement.remove();
 
-    // Ahora guardamos tanto el Nombre como el Nivel por separado
     selectedSubjects.push({
       MateriaId: id,
       Nombre: subjectName,
@@ -478,7 +496,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const teachersData = await teachersResponse.json();
     if (!teachersResponse.ok) throw new Error(teachersData.message);
     
-    // Asignamos a la variable global y renderizamos mediante el filtro centralizado
+    // Asignamos a la variable global y renderizamos
     teachers = [...teachersData];
     applyFilterAndRender();
 
@@ -521,10 +539,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     subjectList.firstElementChild.remove();
 
     subjectsData.forEach((s) => {
-      const subject = document.createElement("option");
-      subject.setAttribute("value", s["MateriaId"]);
-      subject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
-      subjectList.appendChild(subject);
+      // 1. Agregar a la lista desplegable del formulario de creación
+      const subjectOption = document.createElement("option");
+      subjectOption.setAttribute("value", s["MateriaId"]);
+      subjectOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+      subjectList.appendChild(subjectOption);
+
+      // 2. Agregar a la lista desplegable del filtro de búsqueda
+      if (subjectFilterSelect) {
+        const filterOption = document.createElement("option");
+        filterOption.setAttribute("value", s["MateriaId"]);
+        filterOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+        subjectFilterSelect.appendChild(filterOption);
+      }
     });
 
     subjectsSelectHtml = subjectList.innerHTML;
@@ -589,10 +616,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (updateAttribute) {
-        // En lugar de añadir, si es actualización recargamos para tener datos frescos
         window.location.reload(); 
       } else {
-        // En creación exitosa, añadimos al arreglo principal y re-renderizamos
         teachers.push({
           DatosPersona: { ...peopleData },
           HorasAcademicas: hours,

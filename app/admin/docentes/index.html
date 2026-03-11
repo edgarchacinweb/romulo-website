@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/teachermanager.css" />
 
-    <!-- Estilos adicionales para la barra de búsqueda -->
+    <!-- Estilos adicionales para la barra de búsqueda y filtros -->
     <style>
       .list-header-top {
         display: flex;
@@ -20,10 +20,18 @@
         gap: 1rem;
       }
       
-      .search-wrapper {
-        position: relative;
+      .filters-row {
+        display: flex;
+        gap: 1rem;
         width: 100%;
         margin-top: 1rem;
+        flex-wrap: wrap; 
+      }
+
+      .search-wrapper {
+        flex: 2;
+        min-width: 200px;
+        position: relative;
       }
 
       .search-wrapper svg {
@@ -46,6 +54,25 @@
       }
 
       .search-wrapper input:focus {
+        outline: none;
+        border-color: #2563eb;
+      }
+
+      .filter-select {
+        flex: 1;
+        min-width: 180px;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid var(--border-color, #d1d5db);
+        border-radius: 6px;
+        background-color: #fff;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+        cursor: pointer;
+        color: #374151;
+      }
+
+      .filter-select:focus {
         outline: none;
         border-color: #2563eb;
       }
@@ -326,14 +353,23 @@
                       <span>Exportar</span>
                     </button>
                   </div>
-                  <!-- NUEVO: Contenedor del Buscador -->
-                  <div class="search-wrapper">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <circle cx="11" cy="11" r="8"></circle>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                    </svg>
-                    <input type="text" id="searchInput" placeholder="Buscar por nombre o cédula..." />
+                  
+                  <!-- NUEVO: Contenedor con Buscador de Texto y Select de Materia -->
+                  <div class="filters-row">
+                    <div class="search-wrapper">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <input type="text" id="searchInput" placeholder="Buscar por nombre o cédula..." />
+                    </div>
+                    
+                    <select id="subjectFilter" class="filter-select">
+                      <option value="">Todas las materias</option>
+                      <!-- Las opciones se inyectarán por JavaScript -->
+                    </select>
                   </div>
+
                 </div>
   
                 <!-- Lista de Docentes -->
