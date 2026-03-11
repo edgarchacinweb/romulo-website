@@ -22,11 +22,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const repsList = document.getElementById("repsList");
   const loader = document.createElement("loader-spinner");
   const totalCount = document.getElementById("totalCount");
+  const searchInput = document.getElementById("searchInput"); // Elemento de Búsqueda
 
   // Estado de la aplicación
   let parents = []; 
   let isEditing = false; 
   let currentEditId = null; 
+  let currentSearchQuery = ""; // Control de búsqueda actual
 
   // Iconos
   const icons = {
@@ -74,6 +76,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- RENDERIZAR LISTA ---
   const renderParents = (parentsData) => {
     repsList.innerHTML = ""; 
+
+    if(parentsData.length === 0) {
+      repsList.innerHTML = `<p style="text-align:center; color:#666; width:100%; grid-column: 1 / -1;">No se encontraron representantes.</p>`;
+    }
 
     parentsData.forEach((parent) => {
       const userId = parent.UsuarioId;
@@ -129,8 +135,40 @@ document.addEventListener("DOMContentLoaded", async () => {
             `;
       repsList.appendChild(card);
     });
-    totalCount.textContent = parentsData.length;
+    
+    // Actualizamos el contador total. Si hay búsqueda mostramos los filtrados, sino el total real.
+    totalCount.textContent = currentSearchQuery !== "" ? `${parentsData.length} (Filtrados)` : parentsData.length;
   };
+
+  // --- APLICAR FILTRO ---
+  const applyFilterAndRender = () => {
+    if (!currentSearchQuery) {
+      renderParents(parents);
+      return;
+    }
+
+    const filtered = parents.filter(p => {
+      const { DatosPersona } = p;
+      const query = currentSearchQuery.toLowerCase();
+      
+      const nameMatch = (DatosPersona.Nombre || "").toLowerCase().includes(query);
+      const lastNameMatch = (DatosPersona.Apellido || "").toLowerCase().includes(query);
+      const fullNameMatch = `${DatosPersona.Nombre} ${DatosPersona.Apellido}`.toLowerCase().includes(query);
+      const cedulaMatch = (DatosPersona.Cedula || "").toString().toLowerCase().includes(query);
+      
+      return nameMatch || lastNameMatch || fullNameMatch || cedulaMatch;
+    });
+
+    renderParents(filtered);
+  };
+
+  // Escuchar entrada en la barra de búsqueda
+  if(searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      currentSearchQuery = e.target.value.trim();
+      applyFilterAndRender();
+    });
+  }
 
   // --- CARGAR DATOS (POLLING) ---
   const loadParentsData = async (isBackgroundUpdate = false) => {
@@ -150,8 +188,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       const parentsData = await parentsResponse.json();
       if (parentsResponse.status !== 200) throw new Error(parentsData.message);
+      
       parents = parentsData;
-      renderParents(parents);
+      // En vez de usar renderParents directo, aplicamos el filtro por si el administrador estaba buscando algo
+      applyFilterAndRender(); 
+      
     } catch (error) {
       if (!isBackgroundUpdate) {
         const loadNotification = document.createElement("notification-component");
