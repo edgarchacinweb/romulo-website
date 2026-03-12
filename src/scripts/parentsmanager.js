@@ -22,11 +22,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const repsList = document.getElementById("repsList");
   const loader = document.createElement("loader-spinner");
   const totalCount = document.getElementById("totalCount");
+  const searchInput = document.getElementById("searchInput"); // Elemento de Búsqueda
 
   // Estado de la aplicación
   let parents = []; 
   let isEditing = false; 
   let currentEditId = null; 
+  let currentSearchQuery = ""; // Control de búsqueda actual
 
   // Iconos
   const icons = {
@@ -35,6 +37,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     phone: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>`,
     map: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`,
     briefcase: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>`,
+  };
+
+  // --- FUNCIÓN GLOBAL: CANCELAR EDICIÓN ---
+  window.cancelEdit = () => {
+    isEditing = false;
+    currentEditId = null;
+    repForm.reset();
+    if(typeIdEntry) typeIdEntry.value = "V";
+    
+    // Restaurar el botón original
+    submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Registrar Representante`;
+    submitBtn.classList.remove("btn-warning");
+
+    const cancelBtn = document.getElementById("btn-cancel-edit");
+    if (cancelBtn) cancelBtn.remove();
   };
 
   // --- FUNCIÓN GLOBAL: CARGAR DATOS EN FORMULARIO (EDITAR) ---
@@ -66,14 +83,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     isEditing = true;
     currentEditId = DatosPersona.DatosPersonaId;
 
-    submitBtn.textContent = "Actualizar Representante";
+    submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Actualizar Representante`;
     submitBtn.classList.add("btn-warning");
+    
+    // Crear el botón de cancelar si no existe
+    if (!document.getElementById("btn-cancel-edit")) {
+      const cancelBtn = document.createElement("button");
+      cancelBtn.type = "button";
+      cancelBtn.id = "btn-cancel-edit";
+      cancelBtn.textContent = "Cancelar Edición";
+      cancelBtn.style.marginTop = "10px";
+      cancelBtn.style.width = "100%";
+      cancelBtn.style.padding = "0.75rem";
+      cancelBtn.style.borderRadius = "6px";
+      cancelBtn.style.border = "1px solid #d1d5db";
+      cancelBtn.style.background = "#f3f4f6";
+      cancelBtn.style.cursor = "pointer";
+      cancelBtn.style.fontWeight = "bold";
+      cancelBtn.onclick = cancelEdit;
+      repForm.appendChild(cancelBtn);
+    }
+
     firstNameEntry.focus();
+    // Scroll arriba para móvil
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // --- RENDERIZAR LISTA ---
   const renderParents = (parentsData) => {
     repsList.innerHTML = ""; 
+
+    if(parentsData.length === 0) {
+      repsList.innerHTML = `<p style="text-align:center; color:#666; width:100%; grid-column: 1 / -1;">No se encontraron representantes.</p>`;
+    }
 
     parentsData.forEach((parent) => {
       const userId = parent.UsuarioId;
@@ -92,15 +134,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("article");
       card.className = "rep-card";
 
-      // Nota: Si quieres activar la edición, descomenta el botón de abajo
+      // El botón de edición ahora está habilitado
       card.innerHTML = `
                 <div class="rep-top">
                     <h3>${DatosPersona.Nombre} ${DatosPersona.Apellido}</h3>
-                      <!-- 
-                    <button class="btn-edit" onclick="editRep('${userId}')" title="Editar">
+                    <button class="btn-edit" onclick="editRep('${userId}')" title="Editar" style="cursor: pointer; background: transparent; border: none; color: #4b5563;">
                         ${icons.edit}
                     </button> 
-                    -->
                 </div>
                 <span class="cedula-text">Cédula: ${displayCedula}</span>
 
@@ -129,8 +169,40 @@ document.addEventListener("DOMContentLoaded", async () => {
             `;
       repsList.appendChild(card);
     });
-    totalCount.textContent = parentsData.length;
+    
+    // Actualizamos el contador total. Si hay búsqueda mostramos los filtrados, sino el total real.
+    totalCount.textContent = currentSearchQuery !== "" ? `${parentsData.length} (Filtrados)` : parentsData.length;
   };
+
+  // --- APLICAR FILTRO ---
+  const applyFilterAndRender = () => {
+    if (!currentSearchQuery) {
+      renderParents(parents);
+      return;
+    }
+
+    const filtered = parents.filter(p => {
+      const { DatosPersona } = p;
+      const query = currentSearchQuery.toLowerCase();
+      
+      const nameMatch = (DatosPersona.Nombre || "").toLowerCase().includes(query);
+      const lastNameMatch = (DatosPersona.Apellido || "").toLowerCase().includes(query);
+      const fullNameMatch = `${DatosPersona.Nombre} ${DatosPersona.Apellido}`.toLowerCase().includes(query);
+      const cedulaMatch = (DatosPersona.Cedula || "").toString().toLowerCase().includes(query);
+      
+      return nameMatch || lastNameMatch || fullNameMatch || cedulaMatch;
+    });
+
+    renderParents(filtered);
+  };
+
+  // Escuchar entrada en la barra de búsqueda
+  if(searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      currentSearchQuery = e.target.value.trim();
+      applyFilterAndRender();
+    });
+  }
 
   // --- CARGAR DATOS (POLLING) ---
   const loadParentsData = async (isBackgroundUpdate = false) => {
@@ -150,8 +222,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       const parentsData = await parentsResponse.json();
       if (parentsResponse.status !== 200) throw new Error(parentsData.message);
+      
       parents = parentsData;
-      renderParents(parents);
+      // En vez de usar renderParents directo, aplicamos el filtro por si el administrador estaba buscando algo
+      applyFilterAndRender(); 
+      
     } catch (error) {
       if (!isBackgroundUpdate) {
         const loadNotification = document.createElement("notification-component");
@@ -199,7 +274,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (email.length === 0) throw new Error("Indica el correo");
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Correo inválido");
 
-      // NUEVA VALIDACIÓN: DOMINIOS PERMITIDOS
       const allowedDomains = ["gmail.com", "outlook.com", "hotmail.com", "yahoo.com"];
       const emailDomain = email.split('@')[1];
       if (!allowedDomains.includes(emailDomain)) {
@@ -217,11 +291,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         Apellido: lastName,
         Sexo: gender,
         Cedula: finalIdentity, 
-        // FIX: Enviamos cadenas vacías explícitamente para evitar que el backend asigne 
-        // valores por defecto (como "Calle principal del arsenal...")
-        Direccion: "",
-        Ocupacion: "",
-        Telefono: ""
       };
 
       if (isEditing) {
@@ -244,13 +313,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("text", "Datos actualizados correctamente");
         await loadParentsData(true);
         
-        isEditing = false;
-        currentEditId = null;
-        submitBtn.textContent = "Registrar Representante";
-        submitBtn.classList.remove("btn-warning");
+        // Finalizar modo edición limpiando el formulario
+        cancelEdit();
 
       } else {
         // --- CREAR ---
+        // Enviamos campos vacíos extra solo en la creación
+        payloadPerson.Direccion = "";
+        payloadPerson.Ocupacion = "";
+        payloadPerson.Telefono = "";
+
         const dataResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/create`,
           {
@@ -286,10 +358,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("type", "success");
         notification.setAttribute("text", "Representante registrado correctamente");
         await loadParentsData(true);
+        
+        repForm.reset();
+        if(typeIdEntry) typeIdEntry.value = "V";
       }
-
-      repForm.reset();
-      if(typeIdEntry) typeIdEntry.value = "V";
 
     } catch (error) {
       console.error(error);

@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/src/styles/global.css" />
     <link rel="stylesheet" href="/src/styles/parentsmanager.css" />
 
-    <!-- Estilo adicional para el grupo de cédula -->
+    <!-- Estilo adicional para el grupo de cédula y búsqueda -->
     <style>
       .cedula-group {
         display: flex;
@@ -17,9 +17,52 @@
       .cedula-type {
         width: 70px;
         padding: 0.75rem;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--border-color, #ccc);
         border-radius: 6px;
         background-color: #fff;
+      }
+      
+      /* Estilos para el contenedor del buscador */
+      .header-with-search {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        border-bottom: 1px solid var(--border-color, #eee);
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .search-wrapper {
+        flex: 1;
+        max-width: 350px;
+        min-width: 250px;
+        position: relative;
+      }
+
+      .search-wrapper svg {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+      }
+
+      .search-wrapper input {
+        width: 100%;
+        padding: 0.6rem 0.75rem 0.6rem 38px;
+        border: 1px solid var(--border-color, #d1d5db);
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 0.95rem;
+        transition: border-color 0.2s;
+      }
+
+      .search-wrapper input:focus {
+        outline: none;
+        border-color: #2563eb;
       }
     </style>
 
@@ -99,7 +142,6 @@
                 />
               </div>
 
-              <!-- CAMBIO AQUÍ: Selector de Tipo de Cédula -->
               <div class="form-group">
                 <label for="cedula">Cédula de Identidad</label>
                 <div class="cedula-group">
@@ -156,9 +198,19 @@
 
         <main class="list-panel">
           <div class="card list-container">
-            <div class="card-header">
-              <h2>Representantes Activos</h2>
-              <p>Total registrados: <span id="totalCount">...</span></p>
+            <!-- NUEVO: Encabezado con buscador -->
+            <div class="header-with-search">
+              <div>
+                <h2>Representantes Activos</h2>
+                <p>Total registrados: <span id="totalCount">...</span></p>
+              </div>
+              <div class="search-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="searchInput" placeholder="Buscar por nombre o cédula..." />
+              </div>
             </div>
 
             <div id="repsList" class="reps-grid"></div>
