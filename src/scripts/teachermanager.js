@@ -4,6 +4,8 @@ authorize("administrador");
 
 const token = localStorage.getItem("auth");
 let teachers = [];
+let currentSearchQuery = ""; // Control de búsqueda actual de texto
+let currentSubjectFilter = ""; // Control del filtro de materia
 
 const teacherForm = document.getElementById("teacher-form");
 const firstNameField = document.getElementById("nombre");
@@ -301,9 +303,7 @@ const addTeacherCard = (teacher) => {
     });
   });
 
-  // Agregando reporte
-  document.getElementById("teachers-count").textContent =
-    `(${teachers.filter((t) => t["Activo"]).length})`;
+  // Agregando reporte (la actualización del contador se maneja centralizadamente)
   if (!teacher["Activo"]) return;
   const report = document.createElement("article");
   report.classList.add("teacher-card");
@@ -362,12 +362,92 @@ const addTeacherCard = (teacher) => {
   document.getElementById("report").appendChild(report);
 };
 
+// --- RENDERIZACIÓN CENTRALIZADA ---
+const renderTeachers = (teachersData) => {
+  const teachersCardContainer = document.getElementById("teacher-list");
+  teachersCardContainer.innerHTML = "";
+
+  // Limpiamos los reportes viejos generados dinámicamente
+  const reportContainer = document.getElementById("report");
+  const reportCards = reportContainer.querySelectorAll("article.teacher-card");
+  reportCards.forEach((card) => card.remove());
+
+  if (teachersData.length === 0) {
+    teachersCardContainer.innerHTML = `<p style="text-align:center; color:#666; width:100%; padding: 2rem 0;">No se encontraron docentes.</p>`;
+  }
+
+  // Actualizamos contadores 
+  const activeCount = teachersData.filter((t) => t.Activo).length;
+  const activeTeachers = document.getElementById("active-teachers");
+  
+  activeTeachers.textContent = (currentSearchQuery !== "" || currentSubjectFilter !== "") 
+        ? `${activeCount} (Filtrados)` 
+        : activeCount;
+
+  document.getElementById("teachers-count").textContent = `(${activeCount})`;
+  
+  if (teachersData.length > 0) exportBtn.removeAttribute("disabled");
+  else exportBtn.setAttribute("disabled", true);
+
+  teachersData.forEach((teacher) => {
+    addTeacherCard(teacher);
+  });
+};
+
+// --- LÓGICA COMPLETA DE FILTRADO (TEXTO + MATERIA) ---
+const applyFilterAndRender = () => {
+  let filtered = teachers;
+
+  // 1. Filtro por Búsqueda de Texto
+  if (currentSearchQuery) {
+    const query = currentSearchQuery.toLowerCase();
+    filtered = filtered.filter((t) => {
+      const { DatosPersona } = t;
+      const nameMatch = (DatosPersona.Nombre || "").toLowerCase().includes(query);
+      const lastNameMatch = (DatosPersona.Apellido || "").toLowerCase().includes(query);
+      const fullNameMatch = `${DatosPersona.Nombre} ${DatosPersona.Apellido}`.toLowerCase().includes(query);
+      const cedulaMatch = (DatosPersona.Cedula || "").toString().toLowerCase().includes(query);
+
+      return nameMatch || lastNameMatch || fullNameMatch || cedulaMatch;
+    });
+  }
+
+  // 2. Filtro por Selección de Materia
+  if (currentSubjectFilter) {
+    filtered = filtered.filter((t) => {
+      // Retorna true si el docente imparte alguna materia cuyo ID coincida con el seleccionado
+      return t.Materias.some(m => m.MateriaId === currentSubjectFilter);
+    });
+  }
+
+  renderTeachers(filtered);
+};
+
+
 document.addEventListener("DOMContentLoaded", async () => {
   const notificationContainer = document.getElementById("notifications");
 
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando docentes...");
   document.body.appendChild(loader);
+
+  // --- EVENTOS DE BÚSQUEDA Y FILTROS ---
+  const searchInput = document.getElementById("searchInput");
+  const subjectFilterSelect = document.getElementById("subjectFilter");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      currentSearchQuery = e.target.value.trim();
+      applyFilterAndRender();
+    });
+  }
+
+  if (subjectFilterSelect) {
+    subjectFilterSelect.addEventListener("change", (e) => {
+      currentSubjectFilter = e.target.value;
+      applyFilterAndRender();
+    });
+  }
 
   addSubjectBtn.addEventListener("click", () => {
     if (subjectField.options.length === 1)
@@ -377,13 +457,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const id = subjectField.value;
     const subjectFullText = selectedElement.textContent; // Ej: "Matemáticas - Secundaria"
 
-    // SOLUCIÓN: Separamos el Nombre de la materia y el Nivel
-    // asumiendo que el texto viene en formato "Nombre - Nivel"
     const [subjectName, subjectLevel] = subjectFullText.split(" - ");
 
     selectedElement.remove();
 
-    // Ahora guardamos tanto el Nombre como el Nivel por separado
     selectedSubjects.push({
       MateriaId: id,
       Nombre: subjectName,
@@ -418,15 +495,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const teachersData = await teachersResponse.json();
     if (!teachersResponse.ok) throw new Error(teachersData.message);
+    
+    // Asignamos a la variable global y renderizamos
     teachers = [...teachersData];
+    applyFilterAndRender();
 
-    if (teachers.length > 0) exportBtn.removeAttribute("disabled");
-
-    const activeTeachers = document.getElementById("active-teachers");
-    activeTeachers.textContent = teachers.length;
-    teachers.forEach((teacher) => {
-      addTeacherCard(teacher);
-    });
   } catch (Error) {
     console.log(Error);
     const notification = document.createElement("notification-component");
@@ -466,10 +539,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     subjectList.firstElementChild.remove();
 
     subjectsData.forEach((s) => {
-      const subject = document.createElement("option");
-      subject.setAttribute("value", s["MateriaId"]);
-      subject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
-      subjectList.appendChild(subject);
+      // 1. Agregar a la lista desplegable del formulario de creación
+      const subjectOption = document.createElement("option");
+      subjectOption.setAttribute("value", s["MateriaId"]);
+      subjectOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+      subjectList.appendChild(subjectOption);
+
+      // 2. Agregar a la lista desplegable del filtro de búsqueda
+      if (subjectFilterSelect) {
+        const filterOption = document.createElement("option");
+        filterOption.setAttribute("value", s["MateriaId"]);
+        filterOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+        subjectFilterSelect.appendChild(filterOption);
+      }
     });
 
     subjectsSelectHtml = subjectList.innerHTML;
@@ -533,21 +615,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error(registerTeacherAnswer.message);
       }
 
-      if (updateAttribute) window.location.reload();
+      if (updateAttribute) {
+        window.location.reload(); 
+      } else {
+        teachers.push({
+          DatosPersona: { ...peopleData },
+          HorasAcademicas: hours,
+          Materias: selectedSubjects,
+          DocenteId: registerTeacherAnswer["DocenteId"],
+          Usuario: {
+            Email: email,
+          },
+          Activo: state.toLowerCase() === "true"
+        });
 
-      addTeacherCard({
-        DatosPersona: { ...peopleData },
-        HorasAcademicas: hours,
-        Materias: selectedSubjects,
-        DocenteId: registerTeacherAnswer["DocenteId"],
-        Usuario: {
-          Email: email,
-        },
-        Activo: true
-      });
-
-      const teachersCounter = document.getElementById("active-teachers");
-      teachersCounter.textContent = parseInt(teachersCounter.textContent) + 1;
+        applyFilterAndRender();
+      }
 
       teacherForm.reset();
       subjectsContainer.querySelectorAll("p").forEach((p) => p.remove());
