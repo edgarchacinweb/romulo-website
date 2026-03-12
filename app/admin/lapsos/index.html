@@ -88,7 +88,7 @@
                 type="date"
                 id="inicio1"
                 required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               />
             </div>
             <div class="w-full md:w-3/8">
@@ -99,7 +99,7 @@
                 type="date"
                 id="fin1"
                 required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               />
             </div>
           </div>
@@ -125,7 +125,7 @@
                 type="date"
                 id="inicio2"
                 required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               />
             </div>
             <div class="w-full md:w-3/8">
@@ -136,7 +136,7 @@
                 type="date"
                 id="fin2"
                 required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@
                 type="date"
                 id="inicio3"
                 required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               />
             </div>
             <div class="w-full md:w-3/8">
@@ -171,7 +171,7 @@
                 type="date"
                 id="fin3"
                 required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border"
+                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
               />
             </div>
           </div>
@@ -197,15 +197,14 @@
             >
           </div>
 
-          <!-- Botón Guardar -->
+          <!-- Botón Guardar / Editar -->
           <div class="mt-8 flex justify-end">
             <button
               type="submit"
-              id="btnSave"
+              id="btnAction"
               class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-medium shadow-sm transition flex items-center gap-2"
             >
-              <i data-lucide="save" class="w-5 h-5"></i>
-              Guardar Configuración
+              <!-- El contenido será rellenado dinámicamente con JS -->
             </button>
           </div>
         </form>
@@ -239,6 +238,32 @@
       const errorMessage = document.getElementById("errorMessage");
       const successAlert = document.getElementById("successAlert");
       const loadingModal = document.getElementById("loadingModal");
+      const btnAction = document.getElementById("btnAction");
+
+      let isEditing = true; // Variable para controlar el estado del formulario
+
+      // Función para cambiar entre modo Lectura (false) y Edición (true)
+      function setEditMode(enable) {
+        isEditing = enable;
+        
+        // Bloquea o desbloquea los inputs
+        const inputs = document.querySelectorAll('input[type="date"]');
+        inputs.forEach(input => input.disabled = !enable);
+
+        if (enable) {
+          btnAction.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Guardar Configuración';
+          btnAction.className = "bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-medium shadow-sm transition flex items-center gap-2";
+        } else {
+          btnAction.innerHTML = '<i data-lucide="edit" class="w-5 h-5"></i> Editar fechas de lapsos';
+          btnAction.className = "bg-amber-500 hover:bg-amber-600 text-white px-8 py-2.5 rounded-lg font-medium shadow-sm transition flex items-center gap-2";
+        }
+        
+        // Renderizar los nuevos iconos inyectados
+        lucide.createIcons();
+      }
+
+      // Por defecto arranca en modo edición, en caso de no cargar datos
+      setEditMode(true);
 
       // Función para obtener el token (igual que en subjectsmanager)
       const token = localStorage.getItem("auth");
@@ -260,24 +285,24 @@
 
           if (response.ok) {
             const data = await response.json();
-            document.getElementById("inicio1").value =
-              data.lapsos[0].fecha_inicio;
+            document.getElementById("inicio1").value = data.lapsos[0].fecha_inicio;
             document.getElementById("fin1").value = data.lapsos[0].fecha_fin;
-            document.getElementById("inicio2").value =
-              data.lapsos[1].fecha_inicio;
+            document.getElementById("inicio2").value = data.lapsos[1].fecha_inicio;
             document.getElementById("fin2").value = data.lapsos[1].fecha_fin;
-            document.getElementById("inicio3").value =
-              data.lapsos[2].fecha_inicio;
+            document.getElementById("inicio3").value = data.lapsos[2].fecha_inicio;
             document.getElementById("fin3").value = data.lapsos[2].fecha_fin;
+            
+            // Como sí hay datos en base de datos, lo pasamos a modo de lectura
+            setEditMode(false);
           } else {
             // Valores por defecto si la base de datos está vacía
             document.getElementById("inicio1").value = "2025-10-01";
             document.getElementById("fin1").value = "2025-12-15";
+            setEditMode(true);
           }
         } catch (error) {
-          console.warn(
-            "No se pudo conectar al servidor para obtener las fechas. Mostrando datos por defecto.",
-          );
+          console.warn("No se pudo conectar al servidor para obtener las fechas. Mostrando datos por defecto.");
+          setEditMode(true);
         }
       });
 
@@ -287,6 +312,12 @@
 
         errorAlert.classList.add("hidden");
         successAlert.classList.add("hidden");
+
+        // Si el usuario presionó el botón pero estamos en "Modo Lectura", activamos la "Edición"
+        if (!isEditing) {
+          setEditMode(true);
+          return; // Detenemos la ejecución aquí, no se enviará nada a la base de datos aún
+        }
 
         const lapsos = [
           {
@@ -306,19 +337,15 @@
           },
         ];
 
-        // Validaciones (Se mantienen igual)
+        // Validaciones
         for (let i = 0; i < lapsos.length; i++) {
           if (lapsos[i].fin <= lapsos[i].inicio) {
-            showError(
-              `En el ${i + 1}° Lapso, la fecha de cierre debe ser posterior a la fecha de inicio.`,
-            );
+            showError(`En el ${i + 1}° Lapso, la fecha de cierre debe ser posterior a la fecha de inicio.`);
             return;
           }
           if (i > 0) {
             if (lapsos[i].inicio <= lapsos[i - 1].fin) {
-              showError(
-                `El ${i + 1}° Lapso no puede iniciar antes de que termine el ${i}° Lapso.`,
-              );
+              showError(`El ${i + 1}° Lapso no puede iniciar antes de que termine el ${i}° Lapso.`);
               return;
             }
           }
@@ -348,7 +375,7 @@
         };
 
         try {
-          // Petición POST real al backend de tu amigo
+          // Petición POST real al backend
           const response = await fetch(`${apiUrl}/lapsos/create`, {
             method: "POST",
             headers: {
@@ -361,17 +388,15 @@
           if (response.ok || response.status === 201) {
             loadingModal.classList.add("hidden");
             successAlert.classList.remove("hidden");
+            // Al guardar exitosamente, lo devolvemos a modo lectura
+            setEditMode(false);
           } else {
             const errorData = await response.json();
-            throw new Error(
-              errorData.message || "Error al guardar en el servidor",
-            );
+            throw new Error(errorData.message || "Error al guardar en el servidor");
           }
         } catch (error) {
           loadingModal.classList.add("hidden");
-          showError(
-            "Ocurrió un error conectando con el backend: " + error.message,
-          );
+          showError("Ocurrió un error conectando con el backend: " + error.message);
         }
       });
 
