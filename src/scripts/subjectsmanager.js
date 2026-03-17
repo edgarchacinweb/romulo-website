@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loader = document.createElement("loader-spinner");
   const notifications = document.getElementById("notifications");
   const addSubjectBtn = document.getElementById("AddSubjectBtn");
+  const hoursInput = Array.from(document.querySelectorAll(".hours-input"));
 
   // Estado de la aplicación (Lista de materias)
   let subjects = [];
@@ -23,7 +24,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const getCurrentDate = (strdate = "") => {
     let date = new Date();
     if (strdate.length > 0) {
-      console.log(strdate);
       date = new Date(strdate);
     }
     const options = { day: "numeric", month: "long", year: "numeric" };
@@ -40,36 +40,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     dynamicList.innerHTML = "";
     ["Secundaria", "Bachillerato"].forEach((level) => {
-      const levelSubjects = subjects.filter((s) => s["Nivel"] === level);
-      if (levelSubjects.length === 0) return;
 
       const groupSection = document.createElement("div");
       groupSection.classList.add("level-group");
       groupSection.innerHTML = `
-                  <div class="level-header">
-                      <div class="level-title">
-                          <svg
-                             width="20"
-                             height="20"
-                             viewBox="0 0 24 24"
-                             fill="none"
-                             stroke="#6366f1"
-                             stroke-width="2"
-                             stroke-linecap="round"
-                             stroke-linejoin="round"
-                           >
-                               <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                               <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                           </svg>
-                          <span>Materias de ${level}</span>
-                      </div>
-                      <span class="subject-count">${levelSubjects.length} Materia${levelSubjects.length > 1 ? "s" : ""}</span>
-                  </div>
                   <div class="subjects-grid">
-                    ${levelSubjects.reduce((accum, subject) => {
-                      return (
-                        accum +
-                        `
+                    ${subjects.reduce((accum, subject) => {
+        return (
+          accum +
+          `
                           <div class="subject-card">
                             <div class="card-info">
                               <h4>${subject["Nombre"].toUpperCase()}</h4>
@@ -94,8 +73,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                             </button>
                           </div>
                         `
-                      );
-                    }, "")}
+        );
+      }, "")}
                   </div>
               `;
 
@@ -161,6 +140,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       ).test(name)
     )
       return;
+    else if (hoursInput.filter(h => h.value === "" || h.value === "0").length === 5) return;
+    else if (hoursInput.some(h => parseInt(h.value ?? "0") > 4 || parseInt(h.value ?? "0") < 0)) return;
 
     addSubjectBtn.removeAttribute("disabled");
   };
@@ -187,7 +168,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     subjects = [...subjectsAnswer];
     renderSubjects();
   } catch (Error) {
-    console.log(Error.stack);
+    console.error(Error.stack);
     const notification = document.createElement("notification-component");
     notification.setAttribute("type", "error");
     notification.setAttribute("text", Error.message);
@@ -198,6 +179,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   nameInput.addEventListener("change", enableBtn);
   nameInput.addEventListener("keyup", enableBtn);
+  hoursInput.forEach((h) => h.addEventListener("change", enableBtn));
+  hoursInput.forEach((h) => h.addEventListener("keyup", enableBtn));
 
   // Manejador del envío del formulario
   addSubjectBtn.addEventListener("click", async () => {
@@ -205,7 +188,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const name = nameInput.value.trim();
-      const level = levelSelect.value;
 
       if (name.length === 0) {
         const notification = document.createElement("notification-component");
@@ -224,25 +206,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       ) {
         nameInput.focus();
         throw new Error("El nombre de la materia tiene un formato inválido");
-      } else if (name.length > 20) {
+      } else if (name.length > 40) {
         nameInput.focus();
         throw new Error(
-          "El nombre de la materia es demasiado largo. Límite máximo: 20 caracteres",
+          "El nombre de la materia es demasiado largo. Límite máximo: 40 caracteres",
         );
       } else if (
         subjects.findIndex(
           (s) =>
-            s["Nombre"].toLowerCase() === name.toLowerCase() &&
-            s["Nivel"] === level,
+            s["Nombre"].toLowerCase() === name.toLowerCase()
         ) !== -1
       ) {
         nameInput.focus();
         throw new Error("Esa materia ya se encuentra registrada");
+      } else if (hoursInput.filter(h => h.value === "" || h.value === "0").length === 5) {
+        throw new Error("La materia se debe impartir en al menos un año");
       }
+
+      hoursInput.forEach((h) => {
+        if (h.value > 4) {
+          h.focus();
+          throw new Error("La materia no se puede impartir más de 4 horas semanales");
+        }
+      });
 
       const newSubject = {
         Nombre: name.toUpperCase(),
-        Nivel: level,
+        HorasAcademicas: hoursInput.reduce((accum, h) => [...accum, parseInt(h.value ?? "0")], []),
         Fecha: "",
       };
 
@@ -267,7 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       subjects.push(newSubject);
 
       // Mostrar notificación
-      alertMessage.textContent = `${name.toUpperCase()} agregada a ${level}`;
+      alertMessage.textContent = `Agregada la materia ${name.toUpperCase()}`;
       successAlert.classList.remove("hidden");
 
       // Ocultar notificación después de 3 segundos

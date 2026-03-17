@@ -1,8 +1,10 @@
 /* --- Variables y Reset --- */
 :root {
   --bg-color: #f7f9fc;
-  --primary-blue: #93c5fd; /* Azul suave del botón */
-  --primary-blue-dark: #60a5fa; /* Hover botón */
+  --primary-blue: #93c5fd;
+  /* Azul suave del botón */
+  --primary-blue-dark: #60a5fa;
+  /* Hover botón */
   --logo-cyan: #0ea5e9;
   --text-dark: #1f2937;
   --text-muted: #6b7280;
@@ -11,6 +13,13 @@
   --success-bg: #dcfce7;
   --success-text: #166534;
   --danger: #ef4444;
+  --text-main: #001e36;
+  --text-label: #1a202c;
+  --text-hint: #64748b;
+  --blue-primary: #10419b;
+  --blue-focus: #3b82f6;
+  --bg-addon: #e0f2fe;
+  --border-color: #e2e8f0;
 }
 
 * {
@@ -29,12 +38,125 @@ body {
   padding-bottom: 50px;
 }
 
+.weekly-hours-card {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 950px;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Cabecera --- */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.icon-clock {
+  width: 24px;
+  height: 24px;
+  stroke: var(--blue-primary);
+  /* Color azul oscuro para el reloj */
+}
+
+.card-header h2 {
+  color: var(--text-main);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* --- Cuadrícula de Inputs --- */
+.grades-grid {
+  display: grid;
+  /* Crea 5 columnas que se reparten el espacio equitativamente */
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.grade-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grade-column label {
+  color: var(--text-label);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* --- Estilos del Input y su Sufijo --- */
+.input-wrapper {
+  display: flex;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  /* Esto asegura que el input y el addon no se salgan de las esquinas redondeadas */
+  transition: all 0.2s ease-in-out;
+}
+
+/* Este es el truco para pintar todo el contenedor cuando el input hijo está en foco */
+.input-wrapper:focus-within {
+  border-color: var(--blue-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.input-wrapper input {
+  flex: 1;
+  /* Ocupa todo el espacio restante a la izquierda del sufijo */
+  width: 100%;
+  border: none;
+  outline: none;
+  /* Quitamos el borde por defecto porque ya estilizamos el contenedor padre */
+  padding: 12px;
+  text-align: center;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-label);
+}
+
+/* Estilo para el pequeño bloque de "h/sem" */
+.unit {
+  background-color: var(--bg-addon);
+  color: var(--text-hint);
+  padding: 12px 14px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--border-color);
+  /* Una sutil línea divisoria */
+}
+
+/* --- Pie de nota (Hint) --- */
+.card-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-bulb {
+  width: 18px;
+  height: 18px;
+}
+
+.card-footer p {
+  color: var(--text-hint);
+  font-size: 0.9rem;
+}
+
 /* --- Animaciones de Entrada --- */
 @keyframes fadeInUp {
   from {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -45,6 +167,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -53,6 +176,7 @@ body {
 .fade-in {
   animation: fadeIn 0.8s ease-out forwards;
 }
+
 .fade-in-up {
   animation: fadeInUp 0.8s ease-out forwards;
 }
@@ -101,6 +225,7 @@ body {
   font-size: 1.1rem;
   color: var(--text-dark);
 }
+
 .brand-text p {
   font-size: 0.85rem;
   color: var(--text-muted);
@@ -169,12 +294,14 @@ body {
   font-size: 0.9rem;
   font-weight: 600;
   margin-bottom: 8px;
+  margin-left: 2.5%;
   color: var(--text-dark);
 }
 
 input[type="text"],
 select {
-  width: 100%;
+  width: 95%;
+  margin-left: 2.5%;
   padding: 12px 15px;
   border: 1px solid #e5e7eb;
   background-color: #f9fafb;
@@ -218,6 +345,7 @@ select:focus {
 .btn-primary:hover {
   transform: scale(1.03);
 }
+
 .btn-primary:active {
   transform: scale(0.99);
 }
@@ -316,6 +444,7 @@ select:focus {
   margin-bottom: 5px;
   font-size: 1rem;
 }
+
 .card-info span {
   font-size: 0.8rem;
   color: #9ca3af;
@@ -332,7 +461,8 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0; /* Oculto por defecto */
+  opacity: 0;
+  /* Oculto por defecto */
   transform: translateX(10px);
   transition: all 0.2s ease;
 }

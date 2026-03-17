@@ -1,180 +1,178 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestión de Materias</title>
 
-    <!-- Estilos CSS -->
-    <link rel="stylesheet" href="/src/styles/global.css" />
-    <link rel="stylesheet" href="/src/styles/subjectsmanager.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Materias</title>
 
-    <!-- Componentes -->
-    <script type="module" src="/src/components/loader.component.js"></script>
-    <script
-      type="module"
-      src="/src/components/notification.component.js"
-    ></script>
-    <script
-      type="module"
-      src="/src/components/notifications-container.component.js"
-    ></script>
-  </head>
-  <body>
-    <notifications-container id="notifications"></notifications-container>
-    <header class="main-header fade-in">
-      <div class="brand">
-        <div class="logo-box">
-          <img
-            src="/src/assets/images/romulo.webp"
-            alt="Logo institucional"
-            class="logo-img"
-          />
-        </div>
-        <div class="brand-text">
-          <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
-          <p>Gestión de Materias</p>
-        </div>
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/subjectsmanager.css" />
+
+  <!-- Componentes -->
+  <script type="module" src="/src/components/loader.component.js"></script>
+  <script type="module" src="/src/components/notification.component.js"></script>
+  <script type="module" src="/src/components/notifications-container.component.js"></script>
+</head>
+
+<body>
+  <notifications-container id="notifications"></notifications-container>
+  <header class="main-header fade-in">
+    <div class="brand">
+      <div class="logo-box">
+        <img src="/src/assets/images/romulo.webp" alt="Logo institucional" class="logo-img" />
       </div>
-      <button class="btn-back" id="BtnBack">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Atrás
-      </button>
-    </header>
+      <div class="brand-text">
+        <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
+        <p>Gestión de Materias</p>
+      </div>
+    </div>
+    <button class="btn-back" id="BtnBack">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Atrás
+    </button>
+  </header>
 
-    <main class="container fade-in-up">
-      <section class="card form-section">
-        <h2 class="section-title">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#2c8bd6"
-            stroke-width="2.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            style="margin-right: 8px"
-          >
+  <main class="container fade-in-up">
+    <section class="card form-section">
+      <h2 class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2c8bd6" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Agregar Nueva Materia
+      </h2>
+
+      <form id="addSubjectForm">
+        <div class="form-row">
+          <div class="form-group flex-grow">
+            <label for="subjectName">Nombre de la Materia</label>
+            <input type="text" id="subjectName" placeholder="Ej: Matemáticas, Historia, Biología..."
+              autocomplete="off" />
+          </div>
+        </div>
+        <section class="weekly-hours-card">
+          <header class="card-header">
+            <svg class="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <h2>Horas Semanales por Año Académico</h2>
+          </header>
+
+          <div class="grades-grid">
+
+            <div class="grade-column">
+              <label for="grade-1">Primer Año</label>
+              <div class="input-wrapper">
+                <input type="number" class="hours-input" id="grade-1" value="0" min="0" max="4">
+                <span class="unit">h/sem</span>
+              </div>
+            </div>
+
+            <div class="grade-column">
+              <label for="grade-2">Segundo Año</label>
+              <div class="input-wrapper">
+                <input type="number" class="hours-input" id="grade-2" value="0" min="0" max="4">
+                <span class="unit">h/sem</span>
+              </div>
+            </div>
+
+            <div class="grade-column">
+              <label for="grade-3">Tercer Año</label>
+              <div class="input-wrapper">
+                <input type="number" class="hours-input" id="grade-3" value="0" min="0" max="4">
+                <span class="unit">h/sem</span>
+              </div>
+            </div>
+
+            <div class="grade-column">
+              <label for="grade-4">Cuarto Año</label>
+              <div class="input-wrapper">
+                <input type="number" class="hours-input" id="grade-4" value="0" min="0" max="4">
+                <span class="unit">h/sem</span>
+              </div>
+            </div>
+
+            <div class="grade-column">
+              <label for="grade-5">Quinto Año</label>
+              <div class="input-wrapper">
+                <input type="number" class="hours-input" id="grade-5" value="0" min="0" max="4">
+                <span class="unit">h/sem</span>
+              </div>
+            </div>
+
+          </div>
+
+          <footer class="card-footer">
+            <svg class="icon-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18h6" stroke="#8c9bab" />
+              <path d="M10 22h4" stroke="#8c9bab" />
+              <path
+                d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1.55.59 2.79 1.5 3.5.76.76 1.23 1.52 1.41 2.5"
+                stroke="#fcd34d" fill="#fef3c7" />
+            </svg>
+            <p>Ingresa el número de horas semanales (máximo 4 horas)</p>
+          </footer>
+        </section>
+
+        <div id="successAlert" class="alert-success hidden">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#155724" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span id="alertMessage">Materia agregada correctamente</span>
+        </div>
+
+        <button type="button" class="btn-primary" id="AddSubjectBtn" disabled>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          Agregar Nueva Materia
-        </h2>
+          Agregar Materia
+        </button>
+      </form>
+    </section>
 
-        <form id="addSubjectForm">
-          <div class="form-row">
-            <div class="form-group flex-grow">
-              <label for="subjectName">Nombre de la Materia</label>
-              <input
-                type="text"
-                id="subjectName"
-                placeholder="Ej: Matemáticas, Historia, Biología..."
-                autocomplete="off"
-              />
-            </div>
-            <div class="form-group">
-              <label for="educationLevel">Nivel Educativo</label>
-              <select id="educationLevel">
-                <option value="Secundaria">Secundaria</option>
-                <option value="Bachillerato">Bachillerato</option>
-              </select>
-            </div>
-          </div>
+    <section class="card list-section">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon-bg">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#8ebbf0" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+        </div>
+        <h3>No hay materias registradas</h3>
+        <p>Comienza agregando una materia desde el formulario anterior</p>
+      </div>
 
-          <div id="successAlert" class="alert-success hidden">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#155724"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span id="alertMessage">Materia agregada correctamente</span>
-          </div>
-
-          <button type="button" class="btn-primary" id="AddSubjectBtn" disabled>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Agregar Materia
-          </button>
-        </form>
-      </section>
-
-      <section class="card list-section">
-        <div id="emptyState" class="empty-state">
-          <div class="empty-icon-bg">
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#8ebbf0"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-          </div>
-          <h3>No hay materias registradas</h3>
-          <p>Comienza agregando una materia desde el formulario anterior</p>
+      <div id="subjectsContainer" class="hidden">
+        <div class="subjects-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3d5a80" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+          <h2>Materias Registradas</h2>
         </div>
 
-        <div id="subjectsContainer" class="hidden">
-          <div class="subjects-header">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#3d5a80"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              style="margin-right: 10px"
-            >
-              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-            </svg>
-            <h2>Materias Registradas</h2>
-          </div>
+        <div id="dynamicList"></div>
+      </div>
+    </section>
+  </main>
 
-          <div id="dynamicList"></div>
-        </div>
-      </section>
-    </main>
+  <script type="module" src="/src/scripts/config.js"></script>
+  <script type="module" src="/src/scripts/subjectsmanager.js"></script>
+</body>
 
-    <script type="module" src="/src/scripts/config.js"></script>
-    <script type="module" src="/src/scripts/subjectsmanager.js"></script>
-  </body>
 </html>
