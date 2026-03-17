@@ -124,7 +124,7 @@ const addRemoveListener = (newSubject, subject) => {
   newSubject.addEventListener("click", () => {
     const newOption = document.createElement("option");
     newOption.setAttribute("value", subject["MateriaId"]);
-    newOption.textContent = `${subject["Nombre"]} - ${subject["Nivel"]}`;
+    newOption.textContent = subject["Nombre"];
     subjectField.appendChild(newOption);
     newSubject.remove();
     selectedSubjects = selectedSubjects.filter(
@@ -249,9 +249,8 @@ const addTeacherCard = (teacher) => {
     return (
       prev +
       `
-          <div class="subject-item ${current["Nivel"].toLowerCase() === "secundaria" ? "subject-blue" : "subject-purple"}">
+          <div class="subject-item subject-blue">
             <span class="subject-name">${current["Nombre"]}</span>
-            <span class="badge">${current["Nivel"]}</span>
           </div>
           `
     );
@@ -262,7 +261,7 @@ const addTeacherCard = (teacher) => {
   `;
   teachersCardContainer.appendChild(card);
 
-  card.addEventListener("click", async () => {
+  card.addEventListener("click", () => {
     firstNameField.focus();
     selectedTeacherId = teacher["DocenteId"];
     document.querySelectorAll(".materia").forEach((m) => m.remove());
@@ -291,7 +290,7 @@ const addTeacherCard = (teacher) => {
 
     teacher["Materias"].forEach((s) => {
       const newSubject = document.createElement("p");
-      newSubject.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+      newSubject.textContent = s["Nombre"];
       newSubject.classList.add("materia");
       subjectsContainer.appendChild(newSubject);
       addRemoveListener(newSubject, s);
@@ -350,7 +349,6 @@ const addTeacherCard = (teacher) => {
       `
             <li class="subject-item">
                 <span class="subject-name">${current["Nombre"]}</span>
-                <span class="badge badge-highschool">${current["Nivel"]}</span>
             </li>
             `
     );
@@ -379,13 +377,13 @@ const renderTeachers = (teachersData) => {
   // Actualizamos contadores 
   const activeCount = teachersData.filter((t) => t.Activo).length;
   const activeTeachers = document.getElementById("active-teachers");
-  
-  activeTeachers.textContent = (currentSearchQuery !== "" || currentSubjectFilter !== "") 
-        ? `${activeCount} (Filtrados)` 
-        : activeCount;
+
+  activeTeachers.textContent = (currentSearchQuery !== "" || currentSubjectFilter !== "")
+    ? `${activeCount} (Filtrados)`
+    : activeCount;
 
   document.getElementById("teachers-count").textContent = `(${activeCount})`;
-  
+
   if (teachersData.length > 0) exportBtn.removeAttribute("disabled");
   else exportBtn.setAttribute("disabled", true);
 
@@ -463,8 +461,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     selectedSubjects.push({
       MateriaId: id,
-      Nombre: subjectName,
-      Nivel: subjectLevel || ""
+      Nombre: subjectName
     });
 
     const newSubject = document.createElement("p");
@@ -495,7 +492,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const teachersData = await teachersResponse.json();
     if (!teachersResponse.ok) throw new Error(teachersData.message);
-    
+
     // Asignamos a la variable global y renderizamos
     teachers = [...teachersData];
     applyFilterAndRender();
@@ -535,21 +532,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     const subjectsData = await subjectsResponse.json();
     subjects = [...subjectsData];
+    subjects = subjects.filter((materia, indice, self) =>
+      indice === self.findIndex((m) => m.Nombre === materia.Nombre)
+    );
     const subjectList = document.getElementById("materia");
     subjectList.firstElementChild.remove();
 
-    subjectsData.forEach((s) => {
+    subjects.forEach((s) => {
       // 1. Agregar a la lista desplegable del formulario de creación
       const subjectOption = document.createElement("option");
       subjectOption.setAttribute("value", s["MateriaId"]);
-      subjectOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+      subjectOption.textContent = s["Nombre"];
       subjectList.appendChild(subjectOption);
 
       // 2. Agregar a la lista desplegable del filtro de búsqueda
       if (subjectFilterSelect) {
         const filterOption = document.createElement("option");
         filterOption.setAttribute("value", s["MateriaId"]);
-        filterOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
         subjectFilterSelect.appendChild(filterOption);
       }
     });
@@ -616,7 +615,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (updateAttribute) {
-        window.location.reload(); 
+        window.location.reload();
       } else {
         teachers.push({
           DatosPersona: { ...peopleData },
@@ -637,7 +636,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       selectedSubjects.forEach((s) => {
         const subjectOption = document.createElement("option");
         subjectOption.setAttribute("value", s["MateriaId"]);
-        subjectOption.textContent = `${s["Nombre"]} - ${s["Nivel"]}`;
+        subjectOption.textContent = s["Nombre"];
         subjectField.appendChild(subjectOption);
       });
 
