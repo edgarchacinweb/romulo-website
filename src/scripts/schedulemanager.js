@@ -535,6 +535,16 @@ const filter = async (grade, section) => {
                   `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} superó su límite de horas académicas semanales`,
                 );
               }
+
+              const scheduleHours = schedule.filter(
+                (s) => s["MateriaId"] === us["MateriaId"] && s["CursoId"] === us["CursoId"] && s["Seccion"] === us["Seccion"],
+              );
+
+              if (scheduleHours.length > 4) {
+                throw new Error(
+                  `La materia ${us["MateriaId"]} superó su límite de horas semanales`,
+                );
+              }
             });
 
             const updateSchedulePromise = await fetch(
