@@ -50,6 +50,14 @@ function buildSidebarForRole(role) {
             <li><a href="/app/representante/horarios/index.html" class="nav-item">📅 Horarios</a></li>
             <li><a href="/app/representante/editar-perfil/index.html" class="nav-item">⚙️ Editar Perfil</a></li>
         `;
+    } else if (role.toLowerCase() === 'docente') {
+        // Enlaces para Docente
+        navList.innerHTML = `
+            <li><a href="/app/docente/inicio/index.html" class="nav-item">🏠 Inicio</a></li>
+            <li><a href="/app/docente/horarios/index.html" class="nav-item">📅 Visualizar Horario</a></li>
+            <li><a href="/app/docente/calificaciones/index.html" class="nav-item">📝 Calificaciones</a></li>
+            <li><a href="/app/docente/asistencia/index.html" class="nav-item">✅ Asistencias</a></li>
+        `;
     } else {
         // Para Admin mantendremos los generados desde HTML
         // Solo aseguramos que el enlace de Inicio apunte al dashboard de Admin
@@ -97,6 +105,30 @@ function initializeLayoutLogic() {
                 })();
             }
             if(!displayInfo) displayInfo = 'Representante';
+        } else if (roleStr.toLowerCase() === 'docente') {
+            displayInfo = localStorage.getItem('nombre_docente');
+            
+            if(!displayInfo && token) {
+                displayInfo = 'Cargando...'; // Texto temporal
+                
+                // Extraer de forma asíncrona vía API
+                (async () => {
+                   try {
+                       const res = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+                           headers: { "Authorization": `Bearer ${token}` }
+                       });
+                       if (res.ok) {
+                           const data = await res.json();
+                           if (data && data.Nombre) {
+                               const fullname = `${data.Nombre} ${data.Apellido}`;
+                               localStorage.setItem('nombre_docente', fullname);
+                               userEmailElement.textContent = fullname;
+                           }
+                       }
+                   } catch(e) {}
+                })();
+            }
+            if(!displayInfo) displayInfo = 'Docente';
         } else {
             // Lógica original para Administrador (mostrar email)
             const savedEmail = localStorage.getItem('email');
