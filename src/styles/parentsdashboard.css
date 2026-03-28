@@ -20,10 +20,7 @@
 }
 
 body {
-  display: flex;
   background-color: var(--bg-light);
-  height: 100vh;
-  overflow: hidden;
 }
 
 /* --- SIDEBAR --- */
@@ -126,40 +123,6 @@ body {
 }
 
 /* --- MAIN CONTENT --- */
-.main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.top-bar {
-  background: var(--white);
-  padding: 15px 30px;
-  border-bottom: 1px solid #e0e0e0;
-  display: flex;
-  align-items: center;
-}
-
-.user-badge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.user-avatar-text {
-  background: #e3f2fd;
-  color: var(--primary-blue);
-  padding: 8px;
-  border-radius: 50%;
-  font-weight: bold;
-  font-size: 12px;
-}
-
-.content-wrapper {
-  padding: 30px;
-}
 .page-header {
   margin-bottom: 30px;
 }
@@ -424,18 +387,6 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-  body {
-    flex-direction: column;
-    overflow-y: auto;
-  }
-  .sidebar {
-    width: 100%;
-    height: auto;
-    padding: 10px;
-  }
-  .menu {
-    display: none;
-  } /* En móvil ocultamos menú para simplificar */
   .content-wrapper {
     padding: 15px;
   }

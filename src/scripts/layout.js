@@ -37,6 +37,29 @@ function setTabName() {
     }
 }
 
+function buildSidebarForRole(role) {
+    const navList = document.querySelector('.nav-list');
+    if (!navList) return;
+
+    if (role.toLowerCase() === 'representante') {
+        // Enlaces para representante
+        navList.innerHTML = `
+            <li><a href="/app/representante/inicio/index.html" class="nav-item">🏠 Inicio</a></li>
+            <li><a href="/app/representante/inscripcion/index.html" class="nav-item">📝 Inscribir a Estudiante</a></li>
+            <li><a href="/app/representante/boletas/index.html" class="nav-item">📊 Boletas</a></li>
+            <li><a href="/app/representante/horarios/index.html" class="nav-item">📅 Horarios</a></li>
+            <li><a href="/app/representante/editar-perfil/index.html" class="nav-item">⚙️ Editar Perfil</a></li>
+        `;
+    } else {
+        // Para Admin mantendremos los generados desde HTML
+        // Solo aseguramos que el enlace de Inicio apunte al dashboard de Admin
+        const inicioLink = navList.querySelector('a[href*="inicio"]');
+        if (inicioLink) {
+            inicioLink.href = "/app/admin/dashboard/index.html";
+        }
+    }
+}
+
 function initializeLayoutLogic() {
     /* DATOS DEL USUARIO */
     const roleStr = localStorage.getItem('role') || 'Usuario';
@@ -46,36 +69,60 @@ function initializeLayoutLogic() {
     const token = localStorage.getItem('auth');
     const userEmailElement = document.getElementById('userEmail');
     
-    // Obtener el correo guardado directamente al hacer login
-    const savedEmail = localStorage.getItem('email');
-
     if (userEmailElement) {
-        if (savedEmail) {
-            userEmailElement.textContent = savedEmail;
-        } else if (token) {
-            // Fallback: Si no hay email guardado (sesión iniciada antes del parche), intenta extraerlo del JWT
-            try {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                let extractedEmail = payload.email || payload.Email || payload.correo || payload.sub;
+        let displayInfo = 'Cargando...';
+        
+        // Si es Representante, mostrar Nombre y Apellido
+        if (roleStr.toLowerCase() === 'representante') {
+            displayInfo = localStorage.getItem('nombre_representante');
+            
+            if(!displayInfo && token) {
+                displayInfo = 'Cargando...'; // Texto temporal
                 
-                // Si aún no se encuentra, buscar alguna llave que contenga arroba
-                if (!extractedEmail) {
-                    for (const key in payload) {
-                        if (typeof payload[key] === 'string' && payload[key].includes('@')) {
-                            extractedEmail = payload[key];
-                            break;
+                // Extraer de forma asíncrona porque el JWT no parece contener el nombre
+                (async () => {
+                   try {
+                       const res = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+                           headers: { "Authorization": `Bearer ${token}` }
+                       });
+                       if (res.ok) {
+                           const data = await res.json();
+                           if (data && data.Nombre) {
+                               const fullname = `${data.Nombre} ${data.Apellido}`;
+                               localStorage.setItem('nombre_representante', fullname);
+                               userEmailElement.textContent = fullname;
+                           }
+                       }
+                   } catch(e) {}
+                })();
+            }
+            if(!displayInfo) displayInfo = 'Representante';
+        } else {
+            // Lógica original para Administrador (mostrar email)
+            const savedEmail = localStorage.getItem('email');
+            if (savedEmail) {
+                displayInfo = savedEmail;
+            } else if (token) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    displayInfo = payload.email || payload.Email || payload.correo || payload.sub;
+                    if (!displayInfo) {
+                        for (const key in payload) {
+                            if (typeof payload[key] === 'string' && payload[key].includes('@')) {
+                                displayInfo = payload[key];
+                                break;
+                            }
                         }
                     }
-                }
-                
-                userEmailElement.textContent = extractedEmail || 'Cierra sesión y entra de nuevo';
-            } catch (e) {
-                userEmailElement.textContent = 'Cierra sesión y entra de nuevo';
+                } catch (e) {}
             }
-        } else {
-            userEmailElement.textContent = '';
         }
+        
+        userEmailElement.textContent = displayInfo || 'Cierra sesión y entra de nuevo';
     }
+
+    /* SIDEBAR ROLE LOGIC */
+    buildSidebarForRole(roleStr);
 
     /* LOGOUT */
     const logoutBtn = document.getElementById('logoutBtnLayout');

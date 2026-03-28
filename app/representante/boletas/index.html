@@ -12,31 +12,19 @@
   <script type="module" src="/src/components/loader.component.js"></script>
   <script type="module" src="/src/components/notification.component.js"></script>
   <script type="module" src="/src/components/notifications-container.component.js"></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
 </head>
 
 <body>
   <notifications-container id="notifications"></notifications-container>
-  <div id="app-wrapper" class="app-wrapper fade-in-up">
-    <header class="top-header">
-      <div class="header-left">
-        <div class="logo-box">
-          <img src="/src/assets/images/romulo.webp" alt="Logo institucional" width="50px" />
-        </div>
-        <div class="header-titles">
-          <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
-          <p>Emisión de boletas</p>
-        </div>
-      </div>
-      <button id="btn-salir" class="btn-outline">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 17l5-5-5-5M21 12H9M9 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"></path>
-        </svg>
-        Salir
-      </button>
-    </header>
+  <header id="navbar-container" class="navbar-wrapper"></header>
 
-    <main class="main-content">
+  <div class="layout-main">
+    <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+
+    <main class="content-wrapper main-content">
+      <div id="app-wrapper" class="app-wrapper fade-in-up">
       <section class="search-section">
         <label>Seleccionar estudiante</label>
         <div class="custom-select" id="student-select">
@@ -176,6 +164,7 @@
             Exportar a PDF
           </button>
         </div>
+      </div>
       </div>
     </main>
   </div>
