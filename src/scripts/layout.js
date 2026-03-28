@@ -30,10 +30,13 @@ function setTabName() {
     const tabNameElement = document.getElementById('current-tab-name');
     if (tabNameElement) {
         // Obtenemos el title del documento para usarlo como subtítulo.
-        // Ej: "Calificaciones - Liceo Rómulo Gallegos" -> "Gestión de Calificaciones"
         let title = document.title.split('-')[0].trim();
-        if(title.length === 0) title = "Gestión";
-        tabNameElement.textContent = `Gestión de ${title}`;
+        if(title.length === 0) title = "Sección";
+        
+        // Remueve "Gestión de " del inicio de la cadena si existe
+        title = title.replace(/^Gestión de\s+/i, '');
+        
+        tabNameElement.textContent = title;
     }
 }
 
