@@ -131,6 +131,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td class="text-muted">${e["FechaCreacion"]}</td>
       `;
 
+      const tdAccion = document.createElement("td");
+      if (e["Activo"]) {
+        const btnCerrar = document.createElement("button");
+        btnCerrar.textContent = "Cerrar";
+        btnCerrar.style.backgroundColor = "#dc3545";
+        btnCerrar.style.color = "white";
+        btnCerrar.style.border = "none";
+        btnCerrar.style.padding = "5px 10px";
+        btnCerrar.style.borderRadius = "4px";
+        btnCerrar.style.cursor = "pointer";
+        btnCerrar.addEventListener("click", async () => {
+          if (confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) {
+            try {
+              const res = await fetch(`${window.APP_CONFIG.api_url}/registration/close/${e["InscripcionId"]}`, {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              if (res.ok) {
+                tdAccion.innerHTML = '<span style="color:red; font-weight:bold;">Inactivo/Cerrado</span>';
+              } else {
+                alert("Error al intentar cerrar el período.");
+              }
+            } catch (err) {
+              alert("Error de conexión con el servidor.");
+            }
+          }
+        });
+        tdAccion.appendChild(btnCerrar);
+      } else {
+        tdAccion.innerHTML = '<span style="color:gray; font-weight:bold;">Inactivo/Cerrado</span>';
+      }
+      item.appendChild(tdAccion);
+
       tableBody.appendChild(item);
     });
   } catch (error) {
@@ -234,6 +267,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         <td>${endDate}</td>
         <td class="text-muted">${dateFormat.format(new Date())}</td>
       `;
+
+      const tdAccion = document.createElement("td");
+      const btnCerrar = document.createElement("button");
+      btnCerrar.textContent = "Cerrar";
+      btnCerrar.style.backgroundColor = "#dc3545";
+      btnCerrar.style.color = "white";
+      btnCerrar.style.border = "none";
+      btnCerrar.style.padding = "5px 10px";
+      btnCerrar.style.borderRadius = "4px";
+      btnCerrar.style.cursor = "pointer";
+      btnCerrar.addEventListener("click", async () => {
+        if (confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) {
+          try {
+            const res = await fetch(`${window.APP_CONFIG.api_url}/registration/close/${data.id}`, {
+              method: "PATCH",
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+              tdAccion.innerHTML = '<span style="color:red; font-weight:bold;">Inactivo/Cerrado</span>';
+            } else {
+              alert("Error al intentar cerrar el período.");
+            }
+          } catch (err) {
+            alert("Error de conexión con el servidor.");
+          }
+        }
+      });
+      tdAccion.appendChild(btnCerrar);
+      registrationElement.appendChild(tdAccion);
 
       const beforeElement = document.querySelector("tbody tr");
       console.log(beforeElement);
