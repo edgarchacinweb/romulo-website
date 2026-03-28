@@ -1,0 +1,380 @@
+/* src/styles/lapsos.css */
+
+/* --- Variables Globales --- */
+:root {
+  --color-primary: #2563eb;       /* blue-600 */
+  --color-primary-hover: #1d4ed8; /* blue-700 */
+  --color-primary-active: #1e40af; /* blue-800 */
+  --color-primary-light: #dbeafe; /* blue-100 */
+  --color-primary-lighter: #bfdbfe; /* blue-200 */
+
+  --color-warning: #f59e0b;       /* amber-500 */
+  --color-warning-hover: #d97706; /* amber-600 */
+
+  --color-bg-body: #f9fafb;       /* gray-50 */
+  --color-bg-card: #ffffff;
+  
+  --color-text-main: #1f2937;     /* gray-800 */
+  --color-text-muted: #6b7280;    /* gray-500 */
+  --color-text-darker: #374151;   /* gray-700 */
+  
+  --color-border: #e5e7eb;        /* gray-200 */
+  --color-border-light: #f3f4f6;  /* gray-100 */
+  --color-border-input: #d1d5db;  /* gray-300 */
+  
+  --color-error-bg: #fef2f2;      /* red-50 */
+  --color-error-border: #fecaca;  /* red-200 */
+  --color-error-text: #b91c1c;    /* red-700 */
+
+  --color-success-bg: #f0fdf4;    /* green-50 */
+  --color-success-border: #bbf7d0;/* green-200 */
+  --color-success-text: #15803d;  /* green-700 */
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* --- Base --- */
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg-body);
+  color: var(--color-text-main);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Utilidades básicas */
+.hidden {
+  display: none !important;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+/* --- Header --- */
+.lapsos-header {
+  background-color: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+.lapsos-header__container {
+  max-width: 64rem; /* 1024px max-w-5xl */
+  margin: 0 auto;
+  padding: 1rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lapsos-header__branding {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.lapsos-header__icon {
+  width: 2rem;
+  height: 2rem;
+}
+
+.lapsos-header__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.lapsos-header__subtitle {
+  font-size: 0.875rem;
+  color: var(--color-primary-lighter);
+  margin: 0;
+}
+
+/* Base de Botones */
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.btn__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn--back {
+  background-color: var(--color-primary-hover);
+  color: #fff;
+}
+
+.btn--back:hover {
+  background-color: var(--color-primary-active);
+}
+
+.btn--submit {
+  padding: 0.625rem 2rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  color: #fff;
+}
+
+.btn--submit-save {
+  background-color: var(--color-primary);
+}
+
+.btn--submit-save:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn--submit-edit {
+  background-color: var(--color-warning);
+}
+
+.btn--submit-edit:hover {
+  background-color: var(--color-warning-hover);
+}
+
+/* --- Contenedor Principal --- */
+.lapsos-main {
+  max-width: 56rem; /* 896px max-w-4xl */
+  margin: 0 auto;
+  padding: 2.5rem 1rem;
+}
+
+/* --- Tarjeta de Configuración --- */
+.config-card {
+  background-color: var(--color-bg-card);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.config-card__header {
+  background-color: var(--color-bg-body);
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.config-card__icon-box {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+}
+
+.config-card__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.config-card__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0 0 0.125rem 0;
+}
+
+.config-card__description {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.config-card__body {
+  padding: 1.5rem;
+}
+
+/* --- Formulario --- */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.form-row--bordered {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.form-row__label-group {
+  width: 100%;
+  font-weight: 600;
+  color: var(--color-text-darker);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.form-row__badge {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.form-group {
+  width: 100%;
+}
+
+.form-group__label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.form-group__input {
+  width: 100%;
+  border: 1px solid var(--color-border-input);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-sm);
+  padding: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-group__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.form-group__input:disabled {
+  background-color: var(--color-border-light);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+.form-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* --- Alertas --- */
+.alert {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.alert__icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.alert--error {
+  background-color: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
+}
+
+.alert--success {
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success-border);
+  color: var(--color-success-text);
+}
+
+/* --- Modal Base --- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-content__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.modal-content__text {
+  font-weight: 500;
+  color: var(--color-text-main);
+  margin: 0;
+}
+
+/* --- Media Queries Responsivas (Recreación de las utilidades sm:, md:, lg: de Tailwind) --- */
+@media (min-width: 640px) { /* sm: */
+  .lapsos-header__container, .lapsos-main {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) { /* md: */
+  .form-row {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .form-row__label-group {
+    width: 25%; /* w-1/4 */
+  }
+  
+  .form-group {
+    width: 37.5%; /* w-3/8 equiv. (100-25)/2 = 37.5 */
+  }
+}
+
+@media (min-width: 1024px) { /* lg: */
+  .lapsos-header__container, .lapsos-main {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}

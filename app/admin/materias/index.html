@@ -14,30 +14,16 @@
   <script type="module" src="/src/components/loader.component.js"></script>
   <script type="module" src="/src/components/notification.component.js"></script>
   <script type="module" src="/src/components/notifications-container.component.js"></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
 </head>
 
 <body>
   <notifications-container id="notifications"></notifications-container>
-  <header class="main-header fade-in">
-    <div class="brand">
-      <div class="logo-box">
-        <img src="/src/assets/images/romulo.webp" alt="Logo institucional" class="logo-img" />
-      </div>
-      <div class="brand-text">
-        <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
-        <p>Gestión de Materias</p>
-      </div>
-    </div>
-    <button class="btn-back" id="BtnBack">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round">
-        <line x1="19" y1="12" x2="5" y2="12"></line>
-        <polyline points="12 19 5 12 12 5"></polyline>
-      </svg>
-      Atrás
-    </button>
-  </header>
-
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
   <main class="container fade-in-up">
     <section class="card form-section">
       <h2 class="section-title">
@@ -173,6 +159,9 @@
 
   <script type="module" src="/src/scripts/config.js"></script>
   <script type="module" src="/src/scripts/subjectsmanager.js"></script>
+        </main>
+      </main>
+    </div>
 </body>
 
 </html>

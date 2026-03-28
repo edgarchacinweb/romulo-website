@@ -31,37 +31,15 @@
       type="module"
       defer
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <notifications-container id="notifications"></notifications-container>
-    <header class="top-header">
-      <div class="header-content">
-        <div class="header-titles">
-          <h1>Gestión de Períodos de Inscripción</h1>
-          <p>
-            Administra los períodos de inscripción para tu institución educativa
-          </p>
-        </div>
-
-        <a href="/app/admin/dashboard/" class="btn-logout" id="BtnBack">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          Salir
-        </a>
-      </div>
-    </header>
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
 
     <main class="main-container">
       <section class="card form-section">
@@ -120,9 +98,11 @@
       </section>
     </main>
 
-    <script
+      <script
       src="/src/scripts/studentsregistrationtermmanger.js"
       type="module"
     ></script>
-  </body>
+      </main>
+    </div>
+</body>
 </html>

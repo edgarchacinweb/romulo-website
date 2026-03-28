@@ -221,10 +221,15 @@
       type="module"
       defer
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <notifications-container id="notifications"></notifications-container>
-    <a href="/app/admin/dashboard/" class="exit-button">Salir</a>
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
     <div class="container">
       <header class="header">
         <img
@@ -263,5 +268,8 @@
 
     <script src="/src/scripts/config.js" type="module"></script>
     <script src="/src/scripts/backupmanager.js" type="module"></script>
-  </body>
+       </div>
+      </main>
+    </div>
+</body>
 </html>

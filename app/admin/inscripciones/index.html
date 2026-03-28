@@ -21,10 +21,16 @@
       type="module"
       defer
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <section id="notifications" class="notifications"></section>
-    <div class="container">
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
+        <div class="container">
       <header class="page-header">
         <div>
           <h1>Gestión de Inscripciones</h1>
@@ -127,5 +133,8 @@
 
     <script src="/src/scripts/config.js" type="module"></script>
     <script src="/src/scripts/registrationmanager.js" type="module"></script>
-  </body>
+        </div>
+      </main>
+    </div>
+</body>
 </html>

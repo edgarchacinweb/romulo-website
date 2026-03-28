@@ -27,11 +27,16 @@
       type="module"
       defer
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
-    <a href="/app/admin/dashboard/" id="exitBtn" class="exit-button">Salir</a>
     <notifications-container id="notifications"></notifications-container>
-    <main class="container">
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
+        <main class="container">
       <header class="main-header">
         <h1>Gestión de Períodos Escolares</h1>
         <p>Administra los períodos académicos de tu institución educativa</p>
@@ -117,5 +122,8 @@
       src="/src/scripts/registrationtermmanager.js"
       type="module"
     ></script>
-  </body>
+        </main>
+      </main>
+    </div>
+</body>
 </html>

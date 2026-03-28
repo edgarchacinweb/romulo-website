@@ -21,10 +21,7 @@
       }
 
       .main {
-        margin-left: 0 !important;
         padding: 30px 4% !important;
-        width: 100% !important;
-        max-width: 100% !important;
         box-sizing: border-box;
         min-height: 100vh;
       }
@@ -130,11 +127,17 @@
       .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
       .btn-cancel { background: white; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
     </style>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <section class="notifications" id="notifications"></section>
+    
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
 
-    <main class="main">
+      <main class="content-wrapper main">
       <header class="page-header">
         <div class="header-brand">
           <img src="/src/assets/images/romulo.png" alt="Logo Liceo Romulo Gallegos" width="50" height="50" onerror="this.style.display='none'" style="border-radius: 8px;" />
@@ -257,5 +260,7 @@
 
     <script src="/src/scripts/config.js"></script>
     <script src="/src/scripts/admin_asistencia.js" type="module"></script>
-  </body>
+      </main>
+    </div>
+</body>
 </html>
