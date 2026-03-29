@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estadísticas del Período</title>
+
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+    <link rel="stylesheet" href="/src/styles/detalles_periodo.css" />
+
+    <script src="/src/scripts/config.js" defer></script>
+    <script src="/src/components/notifications-container.component.js" type="module" defer></script>
+    <script src="/src/components/notification.component.js" type="module" defer></script>
+    <script src="/src/components/loader.component.js" type="module" defer></script>
+    <script src="/src/scripts/layout.js" defer></script>
+</head>
+<body>
+    <notifications-container id="notifications"></notifications-container>
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+        <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+        <main class="content-wrapper main">
+            <main class="container">
+                <header class="main-header header-detalles">
+                    <div class="header-left">
+                        <h1 id="period-title">Cargando Estadísticas...</h1>
+                        <p>Resumen general de métricas del período seleccionado</p>
+                    </div>
+                    <div class="header-right">
+                        <a href="index.html" class="btn-primary" style="text-decoration: none;">
+                            <span class="icon">⬅️</span> Volver atrás
+                        </a>
+                    </div>
+                </header>
+
+                <section class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon">👨‍🎓</div>
+                        <div class="kpi-info">
+                            <h3>Estudiantes Inscritos</h3>
+                            <p class="kpi-value" id="kpi-estudiantes">--</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">👨‍🏫</div>
+                        <div class="kpi-info">
+                            <h3>Docentes Activos</h3>
+                            <p class="kpi-value" id="kpi-docentes">--</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">📚</div>
+                        <div class="kpi-info">
+                            <h3>Secciones Abiertas</h3>
+                            <p class="kpi-value" id="kpi-secciones">--</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-icon">⏱️</div>
+                        <div class="kpi-info">
+                            <h3>Estado</h3>
+                            <p class="kpi-value" id="kpi-estado">--</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </main>
+    </div>
+    
+    <script src="/src/scripts/detalles_periodo.js" type="module"></script>
+</body>
+</html>

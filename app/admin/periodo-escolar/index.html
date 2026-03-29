@@ -83,9 +83,14 @@
                 <input type="date" id="term-start-date" class="input-readonly" readonly required title="La fecha de inicio es oficial e inamovible" />
               </div>
               <div class="input-group">
-                <label for="term-end-date">Fecha de Fin (Fija)</label>
-                <!-- AHORA LA FECHA DE FIN TAMBIÉN ES READONLY Y ESTÁ DESHABILITADA -->
-                <input type="date" id="term-end-date" class="input-readonly" readonly required title="La fecha de fin es oficial e inamovible" />
+                <label for="term-end-date">Fecha de Fin (Editable para el actual)</label>
+                <!-- AHORA LA FECHA DE FIN TAMBIÉN ES READONLY Y ESTÁ DESHABILITADA, PERO EDITABLE VIA BOTÓN -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <input type="date" id="term-end-date" class="input-readonly" readonly required title="La fecha de fin es oficial" style="flex: 1;" />
+                  <button type="button" id="edit-end-date" class="btn-icon" style="background:none; border:none; cursor:pointer;" title="Editar Fecha de Fin">✏️</button>
+                  <button type="button" id="save-end-date" class="btn-icon" style="background:none; border:none; cursor:pointer; display:none;" title="Guardar">✔️</button>
+                  <button type="button" id="cancel-end-date" class="btn-icon" style="background:none; border:none; cursor:pointer; display:none;" title="Cancelar">❌</button>
+                </div>
               </div>
             </div>
 
@@ -110,6 +115,7 @@
                 <th>Período</th>
                 <th>Estado</th>
                 <th>Fecha de Creación</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="history-body"></tbody>

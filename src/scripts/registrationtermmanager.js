@@ -14,36 +14,18 @@ document.addEventListener("DOMContentLoaded", () => {
   
   const startDateInput = document.getElementById("term-start-date");
   const endDateInput = document.getElementById("term-end-date");
+  
+  let activePeriodId = null;
+  let activePeriodEndDate = null;
 
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando registros");
   document.body.appendChild(loader);
 
-  // --- LÓGICA CORREGIDA DE CÁLCULO DE AÑO ESCOLAR ---
-  const today = new Date();
-  const currentMonth = today.getMonth(); // 0 = Enero, ..., 6 = Julio, 7 = Agosto
-  const currentYear = today.getFullYear();
-
-  let startYear, endYear;
-
-  if (currentMonth >= 7) { 
-    startYear = currentYear;
-    endYear = currentYear + 1;
-  } else {
-    startYear = currentYear - 1;
-    endYear = currentYear;
-  }
-
-  // Fijar fechas bloqueadas
-  startDateInput.value = `${startYear}-09-16`;
+  // Fechas bloqueadas por defecto hasta que cargue la info
   startDateInput.readOnly = true;
-
-  endDateInput.value = `${endYear}-07-31`;
   endDateInput.readOnly = true;
-
-  const currentPeriodText = `${startYear} - ${endYear}`;
-  termPreview.textContent = currentPeriodText;
-  // ----------------------------------------
+  btnCreate.disabled = true;
 
   // Listar todos los períodos escolares
   const dateFormat = Intl.DateTimeFormat("es-VE", {
@@ -77,41 +59,104 @@ document.addEventListener("DOMContentLoaded", () => {
       return response.json();
     })
     .then((terms) => {
-      if (!terms || terms.length === 0) return;
+      if (!terms || terms.length === 0) {
+          // No hay períodos, sugerir un período inicial basado en la fecha actual
+          const today = new Date();
+          const currentMonth = today.getMonth(); // 0 = Enero, ..., 6 = Julio, 7 = Agosto
+          const currentYear = today.getFullYear();
+
+          let startYear, endYear;
+
+          if (currentMonth >= 7) { 
+            startYear = currentYear;
+            endYear = currentYear + 1;
+          } else {
+            startYear = currentYear - 1;
+            endYear = currentYear;
+          }
+
+          termPreview.textContent = `${startYear} - ${endYear}`;
+          startDateInput.value = `${startYear}-09-16`;
+          endDateInput.value = `${endYear}-07-31`;
+          startDateInput.readOnly = true;
+          endDateInput.readOnly = true;
+          
+          btnCreate.disabled = false;
+          btnCreate.textContent = `Registrar Período Inicial ${startYear} - ${endYear}`;
+          btnCreate.style.backgroundColor = "";
+          btnCreate.style.cursor = "pointer";
+          
+          return;
+      }
       
       let periodAlreadyExists = false;
+      let targetStartYear = null;
+      let targetEndYear = null;
 
       terms.forEach((termItem, index) => {
-        const item = document.createElement("tr");
-        const startDate = new Date(termItem["FechaInicio"]);
-        const endDate = new Date(termItem["FechaFin"]);
+        if (index === 0) {
+            activePeriodId = termItem["id"] || termItem["PeriodoEscolarId"];
+            activePeriodEndDate = termItem["FechaFin"];
+            const activePeriodStartDate = termItem["FechaInicio"];
+            
+            // Lógica de Caducidad
+            const currentDate = new Date();
+            const expirationDate = new Date(`${activePeriodEndDate}T23:59:59`);
+
+            if (currentDate > expirationDate) {
+                // Período Caducado
+                const prevStartYear = parseInt(activePeriodStartDate.split("-")[0]);
+                targetStartYear = prevStartYear + 1;
+                targetEndYear = targetStartYear + 1;
+                
+                termPreview.textContent = `${targetStartYear} - ${targetEndYear}`;
+                startDateInput.value = `${targetStartYear}-09-16`;
+                endDateInput.value = `${targetEndYear}-07-31`;
+                
+                btnCreate.disabled = false;
+                btnCreate.textContent = `Registrar Período ${targetStartYear} - ${targetEndYear}`;
+                btnCreate.style.backgroundColor = ""; // Default CSS class
+                btnCreate.style.cursor = "pointer";
+                btnCreate.title = "Abre un nuevo período escolar automáticamente.";
+            } else {
+                // Período Activo y vigente
+                periodAlreadyExists = true;
+                targetStartYear = parseInt(activePeriodStartDate.split("-")[0]);
+                targetEndYear = targetStartYear + 1;
+
+                termPreview.textContent = `${targetStartYear} - ${targetEndYear}`;
+                startDateInput.value = `${targetStartYear}-09-16`;
+                endDateInput.value = activePeriodEndDate;
+
+                btnCreate.disabled = true;
+                btnCreate.textContent = "Período actual ya registrado";
+                btnCreate.style.backgroundColor = "#9ca3af"; // Color gris
+                btnCreate.style.cursor = "not-allowed";
+                btnCreate.title = "Debes esperar a que finalice este período para crear el siguiente.";
+            }
+        }
         
+        const startDate = new Date(termItem["FechaInicio"] + "T00:00:00");
+        const endDate = new Date(termItem["FechaFin"] + "T00:00:00");
         const rowPeriodText = `${startDate.getFullYear()} - ${endDate.getFullYear()}`;
 
-        // Validamos si el periodo que intentamos crear ya existe en el listado
-        if (rowPeriodText === currentPeriodText) {
-            periodAlreadyExists = true;
-        }
-
+        const termId = termItem["id"] || termItem["PeriodoEscolarId"];
+        const item = document.createElement("tr");
         item.innerHTML = `
           <td class="font-bold">${rowPeriodText}</td>
           <td><span class="badge ${index === 0 ? "active" : "inactive"}">${
             index === 0 ? "Activo" : "Inactivo"
           }</span></td>
           <td class="text-muted">${termItem["FechaCreacion"] || 'N/A'}</td>
+          <td>
+            <a href="detalles_periodo.html?id=${termId}" class="btn-icon" title="Ver Detalles de Período" style="text-decoration:none;">
+              👁️
+            </a>
+          </td>
         `;
 
         termContainer.appendChild(item);
       });
-
-      // --- NUEVO: BLOQUEO VISUAL DEL BOTÓN SI YA EXISTE ---
-      if (periodAlreadyExists) {
-          btnCreate.disabled = true;
-          btnCreate.textContent = "Período actual ya registrado";
-          btnCreate.style.backgroundColor = "#9ca3af"; // Color gris
-          btnCreate.style.cursor = "not-allowed";
-          btnCreate.title = "Debes esperar a que finalice este período para crear el siguiente.";
-      }
 
     })
     .catch((error) => {
@@ -127,6 +172,103 @@ document.addEventListener("DOMContentLoaded", () => {
   // Crear período escolar
   const registrationTermStatus = document.createElement("notification-component");
   
+  // LÓGICA DE EDICIÓN DE FECHA DE FIN
+  const editEndDateBtn = document.getElementById("edit-end-date");
+  const saveEndDateBtn = document.getElementById("save-end-date");
+  const cancelEndDateBtn = document.getElementById("cancel-end-date");
+  let tempEndDateValue = "";
+
+  if (editEndDateBtn) {
+    editEndDateBtn.addEventListener("click", () => {
+      tempEndDateValue = endDateInput.value;
+      endDateInput.removeAttribute("readonly");
+      endDateInput.classList.remove("input-readonly");
+      endDateInput.focus();
+
+      editEndDateBtn.style.display = "none";
+      saveEndDateBtn.style.display = "inline-block";
+      cancelEndDateBtn.style.display = "inline-block";
+    });
+
+    cancelEndDateBtn.addEventListener("click", () => {
+      endDateInput.value = tempEndDateValue;
+      endDateInput.setAttribute("readonly", "true");
+      endDateInput.classList.add("input-readonly");
+
+      editEndDateBtn.style.display = "inline-block";
+      saveEndDateBtn.style.display = "none";
+      cancelEndDateBtn.style.display = "none";
+    });
+
+    saveEndDateBtn.addEventListener("click", async () => {
+      const newEndDate = endDateInput.value;
+      if (!newEndDate) {
+        const notif = document.createElement("notification-component");
+        notif.setAttribute("type", "warning");
+        notif.setAttribute("text", "La fecha de fin original es inválida o está vacía.");
+        notificationsContainer.appendChild(notif);
+        return;
+      }
+      if (newEndDate === tempEndDateValue) {
+        cancelEndDateBtn.click();
+        return;
+      }
+
+      if (!activePeriodId) {
+        const notif = document.createElement("notification-component");
+        notif.setAttribute("type", "warning");
+        notif.setAttribute("text", "No hay un período activo para editar.");
+        notificationsContainer.appendChild(notif);
+        return;
+      }
+
+      loader.setAttribute("title", "Actualizando fecha de fin...");
+      document.body.appendChild(loader);
+
+      try {
+        const response = await fetch(`${window.APP_CONFIG.api_url}/school_term/${activePeriodId}/end_date`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ FechaFin: newEndDate })
+        });
+
+        if (!response.ok) {
+          const result = await response.json();
+          throw result.message || "Error al actualizar la fecha de fin";
+        }
+
+        const result = await response.json();
+        
+        endDateInput.setAttribute("readonly", "true");
+        endDateInput.classList.add("input-readonly");
+        editEndDateBtn.style.display = "inline-block";
+        saveEndDateBtn.style.display = "none";
+        cancelEndDateBtn.style.display = "none";
+        
+        tempEndDateValue = newEndDate;
+
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "success");
+        notification.setAttribute("text", result.message || "Fecha de fin actualizada correctamente.");
+        notificationsContainer.appendChild(notification);
+        
+        // Actualizar visualmente la tabla de historicos si es necesario
+        // En este caso, solo recargamos la página después de un pequeño delay
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (error) {
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "error");
+        notification.setAttribute("text", error);
+        notificationsContainer.appendChild(notification);
+      } finally {
+        loader.remove();
+      }
+    });
+  }
+
   btnCreate.addEventListener("click", () => {
     // Si el botón fue deshabilitado por el código anterior, salir de la función
     if (btnCreate.disabled) return;
