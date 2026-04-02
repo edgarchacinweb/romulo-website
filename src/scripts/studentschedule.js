@@ -124,6 +124,30 @@ const filter = async (grade, section) => {
     (s) => s["Seccion"] === numberSection && s["CursoId"] === courseId,
   );
 
+  if (selectedSchedule.length === 0) {
+    scheduleCard.innerHTML = "";
+    if (document.getElementById("results-container")) {
+      document.getElementById("results-container").innerHTML = "";
+    }
+
+    emptyState.style.display = "flex";
+    emptyState.innerHTML = `
+        <div class="warning-banner">
+            <div class="warning-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                    <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                    <line x1="9" y1="16" x2="15" y2="16"/>
+                </svg>
+            </div>
+            <h3>Sin Horario Asignado</h3>
+            <p>El estudiante seleccionado aún no tiene un horario cargado en el sistema.</p>
+            <p class="small">Esto puede deberse a que la sección aún está en proceso de conformación o el administrador no ha publicado los horarios. Por favor, consulte con la dirección del plantel.</p>
+        </div>
+    `;
+    return;
+  }
+
   try {
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
       const minutes = calcMinutesDifferences(
@@ -232,7 +256,7 @@ const filter = async (grade, section) => {
       );
     }, "");
 
-    emptyState.remove();
+    emptyState.style.display = "none";
     scheduleCard.innerHTML = `
     <div class="card-header border-bottom">
             <div class="icon-title">
