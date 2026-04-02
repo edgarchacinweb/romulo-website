@@ -14,6 +14,21 @@ let schedule = [];
 let courses = [];
 let termList = [];
 let selectedTerm = undefined;
+let isEditingMode = true;
+
+const toggleEditMode = (enable) => {
+  isEditingMode = enable;
+  const selectPills = document.querySelectorAll(".select-subject");
+  const teacherSelectors = document.querySelectorAll(".teacher-selector");
+  const btnSubmit = document.getElementById("btn-submit");
+  const btnEdit = document.getElementById("btn-edit-schedule");
+
+  selectPills.forEach((s) => (s.disabled = !enable));
+  teacherSelectors.forEach((s) => (s.disabled = !enable));
+
+  if (btnSubmit) btnSubmit.style.display = enable ? "flex" : "none";
+  if (btnEdit) btnEdit.style.display = enable ? "none" : "flex";
+};
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -117,7 +132,7 @@ const loadAdminStatus = async () => {
 
 const renderTeacherSelector = (assignedSubjects) => {
   const disabledValue =
-    selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
+    selectedTerm === termList[0]["PeriodoEscolarId"] && isEditingMode ? "" : " disabled";
   const tableList = document.getElementById("table-list");
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
 
@@ -283,18 +298,14 @@ const filter = async (grade, section) => {
 
   try {
     const disabledValue =
-      selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
-    const level =
-      courses.find((c) => c["CursoId"] === grade)["Grado"] < 4
-        ? "Secundaria"
-        : "Bachillerato";
+      selectedTerm === termList[0]["PeriodoEscolarId"] && isEditingMode ? "" : " disabled";
     const options = subjects
-      .filter((s) => s["Nivel"] === level)
+      .filter((s) => s.CursoId === grade && parseInt(s.HorasAcademicas || 0) > 0)
       .reduce((prev, element) => {
         return (
           prev +
           `
-        <option value="${element["MateriaId"]}">${element["Nombre"]}</option>"
+        <option value="${element["MateriaId"]}">${element["Nombre"]}</option>
       `
         );
       }, '<option value="">Sin asignar</option>');
@@ -481,6 +492,21 @@ const filter = async (grade, section) => {
               </svg>
               Guardar Cambios
             </button>
+            <button class="btn btn-secondary" id="btn-edit-schedule" style="display: none;">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar Horario
+            </button>
               `
         : ""
       }
@@ -657,6 +683,7 @@ const filter = async (grade, section) => {
               "¡Horario Guardado Correctamente!",
             );
             notifications.appendChild(notification);
+            toggleEditMode(false);
           } catch (Error) {
             console.error(Error.stack);
             notification.setAttribute("type", "error");
@@ -671,6 +698,18 @@ const filter = async (grade, section) => {
     document
       .getElementById("btn-pdf")
       .addEventListener("click", () => exportToPdf(grade, section));
+
+    if (selectedSchedule.length > 0) {
+      toggleEditMode(false);
+    } else {
+      toggleEditMode(true);
+    }
+
+    if (document.getElementById("btn-edit-schedule")) {
+      document.getElementById("btn-edit-schedule").addEventListener("click", () => {
+        toggleEditMode(true);
+      });
+    }
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
