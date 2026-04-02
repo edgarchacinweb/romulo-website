@@ -449,6 +449,76 @@ document.addEventListener("DOMContentLoaded", async () => {
   birthOrderSelect.addEventListener("change", generarCedulaEscolar);
   dateField.addEventListener("change", generarCedulaEscolar);
 
+  // --- 5.1 VALIDACIÓN UX: EDAD POR GRADO EN TIEMPO REAL ---
+  function checkAgeGradeValidity() {
+    const errorId = "age-grade-warning";
+    let errorMsg = document.getElementById(errorId);
+
+    if (!dateField.value || !gradeField.value || gradeField.value === "Requerida") {
+      if (errorMsg) errorMsg.remove();
+      gradeField.style.borderColor = "";
+      btnSubmit.disabled = false;
+      btnSubmit.style.opacity = "";
+      btnSubmit.style.cursor = "";
+      return;
+    }
+
+    const birthDate = new Date(dateField.value);
+    const today = new Date();
+    let edad = today.getUTCFullYear() - birthDate.getUTCFullYear();
+    const m = today.getUTCMonth() - birthDate.getUTCMonth();
+    if (m < 0 || (m === 0 && today.getUTCDate() < birthDate.getUTCDate())) {
+      edad--;
+    }
+
+    const selectedOption = gradeField.options[gradeField.selectedIndex];
+    const gradeText = selectedOption ? selectedOption.text : "";
+    const gradoNum = parseInt(gradeText.charAt(0));
+
+    const rangos = {
+        1: { min: 11, max: 13, text: "1er Año" },
+        2: { min: 13, max: 14, text: "2do Año" },
+        3: { min: 14, max: 15, text: "3er Año" },
+        4: { min: 15, max: 16, text: "4to Año" },
+        5: { min: 16, max: 18, text: "5to Año" }
+    };
+
+    const config = rangos[gradoNum];
+    if (config) {
+        if (edad < config.min || edad > config.max) {
+             if (!errorMsg) {
+                 errorMsg = document.createElement("div");
+                 errorMsg.id = errorId;
+                 errorMsg.style.color = "#dc3545";
+                 errorMsg.style.fontSize = "0.85rem";
+                 errorMsg.style.marginTop = "5px";
+                 errorMsg.style.fontWeight = "bold";
+                 gradeField.closest(".form-group").appendChild(errorMsg);
+             }
+             errorMsg.textContent = `La edad del estudiante (${edad} años) no corresponde al rango permitido (${config.min}-${config.max} años) para ${config.text}.`;
+             gradeField.style.borderColor = "#dc3545";
+             btnSubmit.disabled = true;
+             btnSubmit.style.opacity = "0.5";
+             btnSubmit.style.cursor = "not-allowed";
+             return false;
+        } else {
+             if (errorMsg) errorMsg.remove();
+             gradeField.style.borderColor = "";
+             btnSubmit.disabled = false;
+             btnSubmit.style.opacity = "";
+             btnSubmit.style.cursor = "";
+             return true;
+        }
+    }
+    return true;
+  }
+
+  dateField.addEventListener("input", checkAgeGradeValidity);
+  gradeField.addEventListener("change", checkAgeGradeValidity);
+
+  // Llamada inicial por si ya hay datos (ej: modo edición o re-inscripción)
+  setTimeout(checkAgeGradeValidity, 1500); 
+
   if (ciField) {
     ciField.addEventListener("input", function() {
       if (useSchoolIdCheckbox.checked) return; 
@@ -487,10 +557,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento.");
-      const birthDate = new Date(dateField.value);
-      const birthYear = birthDate.getUTCFullYear();
-      if (birthYear < 2008 || birthYear > 2015) {
-          throw new Error("El año de nacimiento del estudiante debe estar entre 2008 y 2015.");
+      
+      // La validación de edad ahora es dinámica por grado
+      if (!checkAgeGradeValidity()) {
+          throw new Error("El estudiante no cumple con el rango de edad permitido para el grado seleccionado.");
       }
 
       const cedulaValStr = ciField.value.trim();
