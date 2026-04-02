@@ -30,6 +30,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   let isEditing = false; 
   let currentEditId = null; 
   let currentSearchQuery = ""; // Control de búsqueda actual
+  
+  // --- VALIDACIÓN EN TIEMPO REAL: CÉDULA (SOLO NÚMEROS) ---
+  if (identityEntry) {
+    identityEntry.addEventListener("input", function() {
+      this.value = this.value.replace(/\D/g, "");
+    });
+  }
 
   // Iconos
   const icons = {
@@ -260,7 +267,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (identityRaw.length === 0) { identityEntry.focus(); throw new Error("Introduce la cédula"); } 
       if (!/^\d+$/.test(identityRaw)) { identityEntry.focus(); throw new Error("La cédula solo debe contener números"); } 
       if (identityRaw.startsWith("0")) { identityEntry.focus(); throw new Error("La cédula no debe empezar por 0"); } 
-      if (identityRaw.length < 7 || identityRaw.length > 9) { identityEntry.focus(); throw new Error("La cédula debe tener entre 7 y 9 dígitos"); } 
+      if (identityRaw.length < 7) { 
+          identityEntry.focus(); 
+          throw new Error("La cédula debe tener entre 7 y 9 dígitos"); 
+      }
       if (parseInt(identityRaw) <= 1000000) { identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000"); }
 
       // === VALIDACIÓN DE CORREO Y DOMINIO ===
