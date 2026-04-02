@@ -80,6 +80,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let parentData = {};
 
+  // --- FUNCIÓN: RESTRICCIÓN DINÁMICA DE FECHA DE NACIMIENTO (11-18 AÑOS) ---
+  function configurarRestriccionesFechaNacimiento() {
+    const hoy = new Date();
+    
+    // Hace exactamente 18 años (Fecha Mínima permitida)
+    const minDateObj = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+    // Hace exactamente 11 años (Fecha Máxima permitida)
+    const maxDateObj = new Date(hoy.getFullYear() - 11, hoy.getMonth(), hoy.getDate());
+
+    const formatISO = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+
+    const minDateISO = formatISO(minDateObj);
+    const maxDateISO = formatISO(maxDateObj);
+
+    if (dateField) {
+      dateField.setAttribute("min", minDateISO);
+      dateField.setAttribute("max", maxDateISO);
+    }
+
+    return { minDateISO, maxDateISO };
+  }
+
+  // Ejecutamos la restricción dinámica al cargar
+  const { minDateISO, maxDateISO } = configurarRestriccionesFechaNacimiento();
+
   // --- FILTRO EN TIEMPO REAL: SOLO LETRAS PARA NOMBRES Y APELLIDOS ---
   function filterLetters(e) {
     e.target.value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, "");
@@ -558,6 +588,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento.");
       
+      // Validación de Seguridad: Rango absoluto 11-18 años
+      const fechaIngresada = dateField.value;
+      if (fechaIngresada < minDateISO || fechaIngresada > maxDateISO) {
+          alert("El estudiante debe tener entre 11 y 18 años de edad para poder ser inscrito.");
+          return;
+      }
+
       // La validación de edad ahora es dinámica por grado
       if (!checkAgeGradeValidity()) {
           throw new Error("El estudiante no cumple con el rango de edad permitido para el grado seleccionado.");

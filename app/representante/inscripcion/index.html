@@ -1,427 +1,313 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Inscripción Estudiantil</title>
 
-    <link rel="stylesheet" href="/src/styles/global.css" />
-    <link rel="stylesheet" href="/src/styles/studentsregister.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Inscripción Estudiantil</title>
 
-    <script
-      src="/src/components/loader.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/notifications-container.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/notification.component.js"
-      type="module"
-      defer
-    ></script>
-    <link rel="stylesheet" href="/src/styles/layout.css" />
-    <script src="/src/scripts/layout.js" defer></script>
-  </head>
-  <body>
-    <notifications-container id="notifications"></notifications-container>
-    <header id="navbar-container" class="navbar-wrapper"></header>
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/studentsregister.css" />
 
-    <div class="layout-main">
-      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+  <script src="/src/components/loader.component.js" type="module" defer></script>
+  <script src="/src/components/notifications-container.component.js" type="module" defer></script>
+  <script src="/src/components/notification.component.js" type="module" defer></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
 
-      <main class="content-wrapper main-content">
-        <div class="container fade-in">
-          <div class="page-title">
-        <h2>Inscripción Estudiantil</h2>
-        <p>
-          Complete el formulario para registrar un nuevo estudiante en el
-          sistema
-        </p>
-      </div>
+<body>
+  <notifications-container id="notifications"></notifications-container>
+  <header id="navbar-container" class="navbar-wrapper"></header>
 
-      <form id="inscriptionForm" class="inscription-layout">
-        <aside class="photo-section">
-          <div class="card">
-            <div class="card-header">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#0056b3"
-                stroke-width="2"
-              >
-                <path
-                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                ></path>
-                <circle cx="12" cy="13" r="4"></circle>
-              </svg>
-              <h3>Foto del Estudiante</h3>
-            </div>
-            <p class="helper-text">Foto tipo carnet con fondo blanco</p>
+  <div class="layout-main">
+    <aside id="sidebar-container" class="sidebar-wrapper"></aside>
 
-            <div class="upload-zone" id="photoUpload">
-              <input
-                type="file"
-                id="studentPhoto"
-                accept="image/png, image/jpeg"
-                hidden
-              />
-              <div class="upload-content">
-                <svg
-                  class="upload-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
+    <main class="content-wrapper main-content">
+      <div class="container fade-in">
+        <div class="page-title">
+          <h2>Inscripción Estudiantil</h2>
+          <p>
+            Complete el formulario para registrar un nuevo estudiante en el
+            sistema
+          </p>
+        </div>
+
+        <form id="inscriptionForm" class="inscription-layout">
+          <aside class="photo-section">
+            <div class="card">
+              <div class="card-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0056b3" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
                 </svg>
-                <span>Haga clic para cargar</span>
-                <small>JPG, PNG (máx. 5MB)</small>
+                <h3>Foto del Estudiante</h3>
               </div>
-            </div>
+              <p class="helper-text">Foto tipo carnet con fondo blanco</p>
 
-            <div class="requirements">
-              <h4>Requisitos:</h4>
-              <ul>
-                <li>Fondo blanco o claro</li>
-                <li>Rostro centrado y visible</li>
-                <li>Sin lentes de sol ni accesorios</li>
-                <li>Formato JPG o PNG</li>
-              </ul>
-            </div>
-          </div>
-        </aside>
-
-        <section class="form-section">
-          <div class="card">
-            <div class="card-header">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#0056b3"
-                stroke-width="2"
-              >
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              <h3>Datos del Estudiante</h3>
-            </div>
-            <p class="helper-text">
-              Información personal y académica del estudiante
-            </p>
-
-            <div class="form-grid">
-              <div class="form-group">
-                <label for="nombre">Nombres</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre" 
-                  placeholder="Ingrese el nombre"
-                />
-              </div>
-              <div class="form-group">
-                <label for="apellido">Apellidos</label>
-                <input
-                  type="text"
-                  id="apellido"
-                  name="apellido"
-                  placeholder="Ingrese el apellido"
-                />
-              </div>
-
-              <div class="form-group">
-                <label for="genero">Género</label>
-                <div class="select-wrapper">
-                  <select id="genero" name="genero">
-                    <option value="" disabled selected>
-                      Seleccione el Género
-                    </option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                  </select>
+              <div class="upload-zone" id="photoUpload">
+                <input type="file" id="studentPhoto" accept="image/png, image/jpeg" hidden />
+                <div class="upload-content">
+                  <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span>Haga clic para cargar</span>
+                  <small>JPG, PNG (máx. 5MB)</small>
                 </div>
               </div>
 
-              <div class="form-group full-width checkbox-wrapper" style="display: none;">
-                <input type="checkbox" id="hasId" checked />
-                <label for="hasId"
-                  >El estudiante posee cédula de identidad</label
-                >
-              </div> 
-
-              <!-- SECCIÓN: OPCIONES DE CÉDULA ESCOLAR -->
-              <div id="schoolIdSettings" class="form-group full-width" style="display: none; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ffffff;">
-                  <div class="checkbox-wrapper" style="margin-bottom: 10px;">
-                    <input type="checkbox" id="useSchoolId" />
-                    <label for="useSchoolId" style="color: #000000; font-weight: bold;">El estudiante no tiene cédula</label>
-                  </div>
-                  
-                  <div id="schoolIdOptions" style="display: none; margin-top: 10px;">
-                      <label for="birthOrder" style="font-size: 0.85rem;">Orden de Nacimiento (Hijos nacidos en el mismo año):</label>
-                      <select id="birthOrder" style="width: 100%; margin-top: 5px;">
-                          <option value="1">1 - Único hijo(a) en ese año</option>
-                          <option value="2">2 - Segundo hijo(a) (Gemelo/Mellizo)</option>
-                          <option value="3">3 - Tercer hijo(a)</option>
-                          <option value="4">4 - Cuarto hijo(a)</option>
-                      </select>
-                      <small style="display:block; margin-top:5px; color:#666;">Se usará la cédula del representante y el año de nacimiento para generar el código.</small>
-                  </div>
+              <div class="requirements">
+                <h4>Requisitos:</h4>
+                <ul>
+                  <li>Fondo blanco o claro</li>
+                  <li>Rostro centrado y visible</li>
+                  <li>Sin lentes de sol ni accesorios</li>
+                  <li>Formato JPG o PNG</li>
+                </ul>
               </div>
+            </div>
+          </aside>
 
-              <!-- CONTENEDOR DE CÉDULA CON NACIONALIDAD -->
-              <div class="form-group full-width" id="idContainer">
-                <label for="cedula">Cédula de Identidad / Escolar</label>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                  <div class="select-wrapper" id="nacionalidadWrapper" style="width: 80px; flex-shrink: 0;">
-                    <select id="nacionalidad" name="nacionalidad">
-                      <option value="V" selected>V</option>
-                      <option value="E">E</option>
+          <section class="form-section">
+            <div class="card">
+              <div class="card-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0056b3" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <h3>Datos del Estudiante</h3>
+              </div>
+              <p class="helper-text">
+                Información personal y académica del estudiante
+              </p>
+
+              <div class="form-grid">
+                <div class="form-group">
+                  <label for="nombre">Nombres</label>
+                  <input type="text" id="nombre" name="nombre" placeholder="Ingrese el nombre" />
+                </div>
+                <div class="form-group">
+                  <label for="apellido">Apellidos</label>
+                  <input type="text" id="apellido" name="apellido" placeholder="Ingrese el apellido" />
+                </div>
+
+                <div class="form-group">
+                  <label for="genero">Género</label>
+                  <div class="select-wrapper">
+                    <select id="genero" name="genero">
+                      <option value="" disabled selected>
+                        Seleccione el Género
+                      </option>
+                      <option value="Masculino">Masculino</option>
+                      <option value="Femenino">Femenino</option>
                     </select>
                   </div>
-                  <input 
-                    type="text" 
-                    id="cedula" 
-                    name="cedula" 
-                    placeholder="Ej: 33000000" 
-                    maxlength="12"
-                    style="flex-grow: 1;"
-                  />
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label for="fechaNac">Fecha de Nacimiento</label>
-                <!-- MODIFICADO: Rango de años 2008 a 2015 -->
-                <input
-                  type="date"
-                  id="fechaNac"
-                  name="fechaNac"
-                />
-              </div>
-              <div class="form-group">
-                <label for="parentesco"
-                  >Parentesco</label
-                >
-                <div class="select-wrapper">
-                  <select id="parentesco" name="parentesco">
-                    <option value="" disabled selected>
-                      Seleccione el parentesco
-                    </option>
-                    <option value="Madre">Madre</option>
-                    <option value="Padre">Padre</option>
-                    <option value="Abuelo/a">Abuelo/a</option>
-                    <option value="Tío/a">Tío/a</option>
-                    <option value="Hermano/a">Hermano/a</option>
-                    <option value="Padrastro">Padrastro</option>
-                    <option value="Madrastra">Madrastra</option>
-                    <option value="Tutor Legal">Tutor Legal</option>
-                    <option value="Otro">Otro</option>
-                  </select>
+                <div class="form-group full-width checkbox-wrapper" style="display: none;">
+                  <input type="checkbox" id="hasId" checked />
+                  <label for="hasId">El estudiante posee cédula de identidad</label>
                 </div>
-              </div>
 
-              <div class="form-group full-width">
-                <label for="grado">Grado a Cursar</label>
-                <div class="select-wrapper">
-                  <select id="grado" name="grado">
-                    <option value="" disabled selected>
-                      Seleccione el grado
-                    </option>
-                    <option class="grade-option" value="1">1er Año</option>
-                    <option class="grade-option" value="2">2do Año</option>
-                    <option class="grade-option" value="3">3er Año</option>
-                    <option class="grade-option" value="4">4to Año</option>
-                    <option class="grade-option" value="5">5to Año</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group full-width checkbox-wrapper">
-                <input type="checkbox" id="sameAddress" />
-                <label for="sameAddress"
-                  >La dirección es la misma que la del representante</label
-                >
-              </div>
-
-              <div class="form-group full-width">
-                <label for="direccion">Dirección de Habitación</label>
-                <textarea
-                  id="direccion"
-                  name="direccion"
-                  rows="3"
-                  placeholder="Ingrese la dirección completa"
-                ></textarea>
-              </div>
-              
-              <div class="form-group full-width checkbox-wrapper">
-                <div class="docs-section" style="width: 100%;">
-                  <div class="card-header">
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="#0056b3"
-                      stroke-width="2"
-                    >
-                      <path
-                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                      ></path>
-                      <polyline points="14 2 14 8 20 8"></polyline>
-                      <line x1="16" y1="13" x2="8" y2="13"></line>
-                      <line x1="16" y1="17" x2="8" y2="17"></line>
-                      <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
-                    <h3>Documentación Requerida</h3>
+                <!-- SECCIÓN: OPCIONES DE CÉDULA ESCOLAR -->
+                <div id="schoolIdSettings" class="form-group full-width"
+                  style="display: none; background: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #ffffff;">
+                  <div class="checkbox-wrapper" style="margin-bottom: 10px;">
+                    <input type="checkbox" id="useSchoolId" />
+                    <label for="useSchoolId" style="color: #000000; font-weight: bold;">El estudiante no tiene
+                      cédula</label>
                   </div>
-                  <p class="helper-text">
-                    Suba los documentos en formato PDF (máximo 10MB por archivo)
-                  </p>
 
-                  <div class="docs-grid">
-                    <div class="doc-upload" id="IdDoc">
-                      <label>Cédula de Identidad</label>
-                      <div class="upload-zone small">
-                        <input type="file" id="docDni" accept=".pdf" hidden />
-                        <div class="upload-content">
-                          <svg
-                            class="upload-icon"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path
-                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                            ></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          <span>Haga clic para cargar</span>
-                          <small>PDF (máx. 10MB)</small>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div class="doc-upload">
-                      <label>Partida de Nacimiento</label>
-                      <div class="upload-zone small">
-                        <input
-                          type="file"
-                          id="docPartidaNacimiento"
-                          accept=".pdf"
-                          hidden
-                        />
-                        <div class="upload-content">
-                          <svg
-                            class="upload-icon"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path
-                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                            ></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          <span>Haga clic para cargar</span>
-                          <small>PDF (máx. 10MB)</small>
-                        </div>
-                      </div>
-                    </div>
+                  <div id="schoolIdOptions" style="display: none; margin-top: 10px;">
+                    <label for="birthOrder" style="font-size: 0.85rem;">Orden de Nacimiento (Hijos nacidos en el mismo
+                      año):</label>
+                    <select id="birthOrder" style="width: 100%; margin-top: 5px;">
+                      <option value="1">1 - Único hijo(a) en ese año</option>
+                      <option value="2">2 - Segundo hijo(a) (Gemelo/Mellizo)</option>
+                      <option value="3">3 - Tercer hijo(a)</option>
+                      <option value="4">4 - Cuarto hijo(a)</option>
+                    </select>
+                    <small style="display:block; margin-top:5px; color:#666;">Se usará la cédula del representante y el
+                      año de nacimiento para generar el código.</small>
+                  </div>
+                </div>
 
-                    <div class="doc-upload">
-                      <label>Notas Certificadas</label>
-                      <div class="upload-zone small">
-                        <input
-                          type="file"
-                          id="docNotasCertificadas"
-                          accept=".pdf"
-                          hidden
-                        />
-                        <div class="upload-content">
-                          <svg
-                            class="upload-icon"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path
-                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                            ></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          <span>Haga clic para cargar</span>
-                          <small>PDF (máx. 10MB)</small>
-                        </div>
-                      </div>
+                <!-- CONTENEDOR DE CÉDULA CON NACIONALIDAD -->
+                <div class="form-group full-width" id="idContainer">
+                  <label for="cedula">Cédula de Identidad / Escolar</label>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <div class="select-wrapper" id="nacionalidadWrapper" style="width: 80px; flex-shrink: 0;">
+                      <select id="nacionalidad" name="nacionalidad">
+                        <option value="V" selected>V</option>
+                        <option value="E">E</option>
+                      </select>
                     </div>
+                    <input type="text" id="cedula" name="cedula" placeholder="Ej: 33000000" maxlength="12"
+                      style="flex-grow: 1;" />
+                  </div>
+                </div>
 
-                    <!-- NUEVO CAMPO: AUTORIZACIÓN LEGAL -->
-                    <div class="doc-upload" id="AutorizacionDoc" style="display: none;">
-                      <label>Autorización Legal / Motivo</label>
-                      <div class="upload-zone small">
-                        <input
-                          type="file"
-                          id="docAutorizacion"
-                          accept=".pdf"
-                          hidden
-                        />
-                        <div class="upload-content">
-                          <svg
-                            class="upload-icon"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                          >
-                            <path
-                              d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
-                            ></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          <span>Haga clic para cargar</span>
-                          <small>PDF (máx. 10MB)</small>
+                <div class="form-group">
+                  <label for="fechaNac">Fecha de Nacimiento</label>
+                  <!-- MODIFICADO: Rango de años 2008 a 2015 -->
+                  <input type="date" id="fechaNac" name="fechaNac" />
+                </div>
+                <div class="form-group">
+                  <label for="parentesco">Parentesco</label>
+                  <div class="select-wrapper">
+                    <select id="parentesco" name="parentesco">
+                      <option value="" disabled selected>
+                        Seleccione el parentesco
+                      </option>
+                      <option value="Madre">Madre</option>
+                      <option value="Padre">Padre</option>
+                      <option value="Abuelo/a">Abuelo/a</option>
+                      <option value="Tío/a">Tío/a</option>
+                      <option value="Hermano/a">Hermano/a</option>
+                      <option value="Padrastro">Padrastro</option>
+                      <option value="Madrastra">Madrastra</option>
+                      <option value="Tutor Legal">Tutor Legal</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="grado">Grado a Cursar</label>
+                  <div class="select-wrapper">
+                    <select id="grado" name="grado">
+                      <option value="" disabled selected>
+                        Seleccione el grado
+                      </option>
+                      <option class="grade-option" value="1">1er Año</option>
+                      <option class="grade-option" value="2">2do Año</option>
+                      <option class="grade-option" value="3">3er Año</option>
+                      <option class="grade-option" value="4">4to Año</option>
+                      <option class="grade-option" value="5">5to Año</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="form-group full-width checkbox-wrapper">
+                  <input type="checkbox" id="sameAddress" />
+                  <label for="sameAddress">La dirección es la misma que la del representante</label>
+                </div>
+
+                <div class="form-group full-width">
+                  <label for="direccion">Dirección de Habitación</label>
+                  <textarea id="direccion" name="direccion" rows="3"
+                    placeholder="Ingrese la dirección completa"></textarea>
+                </div>
+
+                <div class="form-group full-width checkbox-wrapper">
+                  <div class="docs-section" style="width: 100%;">
+                    <div class="card-header">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0056b3" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                      </svg>
+                      <h3>Documentación Requerida</h3>
+                    </div>
+                    <p class="helper-text">
+                      Suba los documentos en formato PDF (máximo 10MB por archivo)
+                    </p>
+
+                    <div class="docs-grid">
+                      <div class="doc-upload" id="IdDoc">
+                        <label>Cédula de Identidad</label>
+                        <div class="upload-zone small">
+                          <input type="file" id="docDni" accept=".pdf" hidden />
+                          <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="17 8 12 3 7 8"></polyline>
+                              <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span>Haga clic para cargar</span>
+                            <small>PDF (máx. 10MB)</small>
+                          </div>
                         </div>
                       </div>
+
+                      <div class="doc-upload">
+                        <label>Partida de Nacimiento</label>
+                        <div class="upload-zone small">
+                          <input type="file" id="docPartidaNacimiento" accept=".pdf" hidden />
+                          <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="17 8 12 3 7 8"></polyline>
+                              <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span>Haga clic para cargar</span>
+                            <small>PDF (máx. 10MB)</small>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="doc-upload">
+                        <label>Notas Certificadas</label>
+                        <div class="upload-zone small">
+                          <input type="file" id="docNotasCertificadas" accept=".pdf" hidden />
+                          <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="17 8 12 3 7 8"></polyline>
+                              <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span>Haga clic para cargar</span>
+                            <small>PDF (máx. 10MB)</small>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- NUEVO CAMPO: AUTORIZACIÓN LEGAL -->
+                      <div class="doc-upload" id="AutorizacionDoc" style="display: none;">
+                        <label>Autorización Legal / Motivo</label>
+                        <div class="upload-zone small">
+                          <input type="file" id="docAutorizacion" accept=".pdf" hidden />
+                          <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                              stroke-width="2">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                              <polyline points="17 8 12 3 7 8"></polyline>
+                              <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span>Haga clic para cargar</span>
+                            <small>PDF (máx. 10MB)</small>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- FIN NUEVO CAMPO -->
                     </div>
-                    <!-- FIN NUEVO CAMPO -->
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div class="form-actions">
-            <button type="button" class="btn-cancel" id="BtnCancel">
-              Cancelar
-            </button>
-            <button type="button" class="btn-submit" id="BtnSubmit">
-              Registrar Estudiante
-            </button>
-          </div>
-        </section>
-          </form>
-        </div>
-      </main>
-    </div>
-    <script src="/src/scripts/config.js" type="module"></script>
-    <script src="/src/scripts/studentsregister.js" type="module" defer></script>
-  </body>
+            <div class="form-actions">
+              <button type="button" class="btn-cancel" id="BtnCancel">
+                Cancelar
+              </button>
+              <button type="button" class="btn-submit" id="BtnSubmit">
+                Registrar Estudiante
+              </button>
+            </div>
+          </section>
+        </form>
+      </div>
+    </main>
+  </div>
+  <script src="/src/scripts/config.js" type="module"></script>
+  <script src="/src/scripts/studentsregister.js" type="module" defer></script>
+</body>
+
 </html>

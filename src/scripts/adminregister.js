@@ -56,6 +56,94 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (firstNameField) firstNameField.addEventListener("input", filterLetters);
   if (lastNameField) lastNameField.addEventListener("input", filterLetters);
+  
+  // --- FUNCIÓN: RESTRICCIÓN DINÁMICA DE FECHA DE NACIMIENTO (11-18 AÑOS) ---
+  function configurarRestriccionesFechaNacimiento() {
+    const hoy = new Date();
+    
+    // Hace exactamente 18 años (Fecha Mínima permitida)
+    const minDateObj = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+    // Hace exactamente 11 años (Fecha Máxima permitida)
+    const maxDateObj = new Date(hoy.getFullYear() - 11, hoy.getMonth(), hoy.getDate());
+
+    const formatISO = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+
+    const minDateISO = formatISO(minDateObj);
+    const maxDateISO = formatISO(maxDateObj);
+
+    if (dateField) {
+      dateField.setAttribute("min", minDateISO);
+      dateField.setAttribute("max", maxDateISO);
+    }
+    
+    return { minDateISO, maxDateISO };
+  }
+
+  // Ejecutamos la restricción dinámica al cargar
+  const { minDateISO, maxDateISO } = configurarRestriccionesFechaNacimiento();
+
+  // --- FUNCIÓN: VALIDACIÓN DE EDAD POR GRADO ---
+  function checkAgeGradeValidity() {
+    const errorId = "age-grade-warning";
+    let errorMsg = document.getElementById(errorId);
+
+    if (!dateField.value || !gradeField.value) {
+      if (errorMsg) errorMsg.remove();
+      gradeField.style.borderColor = "";
+      btnSubmit.disabled = false;
+      return true;
+    }
+
+    const birthDate = new Date(dateField.value);
+    const today = new Date();
+    let edad = today.getUTCFullYear() - birthDate.getUTCFullYear();
+    const m = today.getUTCMonth() - birthDate.getUTCMonth();
+    if (m < 0 || (m === 0 && today.getUTCDate() < birthDate.getUTCDate())) {
+      edad--;
+    }
+
+    const selectedOption = gradeField.options[gradeField.selectedIndex];
+    const gradeText = selectedOption ? selectedOption.text : "";
+    const gradoNum = parseInt(gradeText.charAt(0));
+
+    const rangos = {
+        1: { min: 11, max: 13, text: "1er Año" },
+        2: { min: 13, max: 14, text: "2do Año" },
+        3: { min: 14, max: 15, text: "3er Año" },
+        4: { min: 15, max: 16, text: "4to Año" },
+        5: { min: 16, max: 18, text: "5to Año" }
+    };
+
+    const config = rangos[gradoNum];
+    if (config) {
+        if (edad < config.min || edad > config.max) {
+             if (!errorMsg) {
+                 errorMsg = document.createElement("div");
+                 errorMsg.id = errorId;
+                 errorMsg.style.color = "#dc3545";
+                 errorMsg.style.fontSize = "0.85rem";
+                 errorMsg.style.marginTop = "5px";
+                 errorMsg.style.fontWeight = "bold";
+                 gradeField.closest(".form-group").appendChild(errorMsg);
+             }
+             errorMsg.textContent = `La edad del estudiante (${edad} años) no corresponde al rango permitido (${config.min}-${config.max} años) para ${config.text}.`;
+             gradeField.style.borderColor = "#dc3545";
+             return false;
+        }
+    }
+    
+    if (errorMsg) errorMsg.remove();
+    gradeField.style.borderColor = "";
+    return true;
+  }
+
+  dateField.addEventListener("input", checkAgeGradeValidity);
+  gradeField.addEventListener("change", checkAgeGradeValidity);
 
   function generarCedulaEscolar() {
     if (!useSchoolIdCheckbox.checked) return;
@@ -250,6 +338,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!gradeField.value) throw new Error("Debe seleccionar el Grado a cursar.");
       if (!relationshipField.value) throw new Error("Debe seleccionar el Parentesco.");
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento.");
+
+      // Validación de Seguridad: Rango absoluto 11-18 años
+      const fechaIngresada = dateField.value;
+      if (fechaIngresada < minDateISO || fechaIngresada > maxDateISO) {
+          alert("Error: El estudiante debe tener entre 11 y 18 años de edad.");
+          return;
+      }
+
+      // Validación 2: Coherencia de Grado a Cursar
+      if (!checkAgeGradeValidity()) {
+          alert("Error: El grado seleccionado no tiene coherencia con los requerimientos del sistema o con la edad del estudiante.");
+          return;
+      }
 
       const cedulaValStr = ciField.value.trim();
       let finalCedulaToSubmit = cedulaValStr;
