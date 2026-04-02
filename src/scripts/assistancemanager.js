@@ -82,7 +82,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!response.ok) throw new Error("No se pudieron cargar las materias");
 
-    const subjects = await response.json();
+    let subjects = await response.json();
+
+    // Blindaje: Garantizar opciones únicas eliminando duplicados por MateriaId
+    const seenSubjectIds = new Set();
+    subjects = subjects.filter(subject => {
+      if (seenSubjectIds.has(subject.MateriaId)) {
+        return false;
+      }
+      seenSubjectIds.add(subject.MateriaId);
+      return true;
+    });
 
     subjectSelect.innerHTML = '<option value="" disabled selected>Elige materia</option>';
 
