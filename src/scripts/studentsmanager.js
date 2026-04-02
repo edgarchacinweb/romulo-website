@@ -291,7 +291,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               />
               <div>
                 <h3>${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}</h3>
-                <span class="badge">${student["Curso"]["Grado"]}° Año • Sección ${numberToLetter(student["Curso"]["Seccion"])}</span>
+                <span class="badge">
+                    ${student["Curso"]["Grado"]}° Año • 
+                    ${student["Curso"]["Seccion"] === "Por asignar" || student["Curso"]["Seccion"] == 0 
+                        ? "Por asignar" 
+                        : `Sección ${typeof student["Curso"]["Seccion"] === "string" ? student["Curso"]["Seccion"] : numberToLetter(student["Curso"]["Seccion"])}`
+                    }
+                </span>
               </div>
             </div>
             
