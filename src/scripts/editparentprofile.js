@@ -1,4 +1,5 @@
 import authorize from "./auth.js";
+import { formatCedula } from "./utils.js";
 
 // 1. Autorización
 authorize("representante");
@@ -109,7 +110,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 4. Llenar campos
     if(firstNameField) firstNameField.value = parentData["Nombre"] ?? "";
     if(lastNameField) lastNameField.value = parentData["Apellido"] ?? "";
-    if(identityField) identityField.value = `V-${parentData["Cedula"]}` ?? "";
+    if(identityField) identityField.value = formatCedula(parentData["Cedula"]) ?? "";
     if(emailField) emailField.value = parentUserData["Email"] ?? "";
     if(occupationField) occupationField.value = parentData["Ocupacion"] || "";
     if(addressField) addressField.value = parentData["Direccion"] || "";

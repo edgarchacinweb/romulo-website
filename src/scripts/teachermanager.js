@@ -1,4 +1,5 @@
 import authorize from "./auth.js";
+import { formatCedula } from "./utils.js";
 
 authorize("administrador");
 
@@ -166,7 +167,7 @@ const addTeacherCard = (teacher) => {
         </div>
         <div class="text-box">
           <span class="label">Cédula de Identidad</span>
-          <span class="value">V-${teacher["DatosPersona"]["Cedula"]}</span>
+          <span class="value">${formatCedula(teacher["DatosPersona"]["Cedula"])}</span>
         </div>
       </li>
 
@@ -311,7 +312,7 @@ const addTeacherCard = (teacher) => {
     <div class="header-left">
         <div class="name-id-row">
             <h3 class="teacher-name">${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h3>
-            <span class="badge id-badge">Cédula: V-${teacher["DatosPersona"]["Cedula"]}</span>
+            <span class="badge id-badge">Cédula: ${formatCedula(teacher["DatosPersona"]["Cedula"])}</span>
         </div>
         <p class="teacher-status">Docente Activo | ${teacher["DatosPersona"]["Cedula"]}</p>
     </div>

@@ -1,4 +1,5 @@
 import authorize from "./auth.js";
+import { formatCedula } from "./utils.js";
 
 // Verificamos que el usuario tenga el rol de representante
 authorize("representante");
@@ -44,17 +45,7 @@ function calcularEdadExacta(fechaNacimientoObj) {
 /**
  * Formatea la cédula para mostrar el prefijo V- o E- correctamente
  */
-const formatCedula = (cedula) => {
-    let str = String(cedula).toUpperCase().trim();
-    if (str.length > 9) {
-        if (str.startsWith("E") || str.startsWith("V")) return str;
-        return "V-" + str;
-    }
-    if (str.startsWith("V-") || str.startsWith("E-")) return str;
-    if (str.startsWith("V")) return "V-" + str.substring(1);
-    if (str.startsWith("E")) return "E-" + str.substring(1);
-    return `V-${str}`;
-};
+
 
 document.addEventListener("DOMContentLoaded", async () => {
   const cardContainer = document.getElementById("card-container");

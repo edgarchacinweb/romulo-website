@@ -1,4 +1,5 @@
 import authorize from "./auth.js";
+import { formatCedula } from "./utils.js";
 
 authorize("administrador");
 
@@ -122,14 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const { DatosPersona } = parent;
       
       // 2. Formateo visual inteligente
-      let displayCedula = DatosPersona.Cedula.toString().toUpperCase();
-      
-      // Si no empieza con E ni con V, asumimos V
-      if (!displayCedula.startsWith("E") && !displayCedula.startsWith("V")) {
-          displayCedula = `V-${displayCedula}`;
-      } else if (displayCedula.startsWith("E")) {
-           displayCedula = `E-${displayCedula.substring(1)}`;
-      }
+      let displayCedula = formatCedula(DatosPersona.Cedula);
 
       const card = document.createElement("article");
       card.className = "rep-card";
