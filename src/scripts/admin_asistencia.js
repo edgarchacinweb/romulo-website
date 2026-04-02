@@ -27,6 +27,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const reportCard = document.getElementById("reportCard");
     const reportTitle = document.getElementById("reportTitle");
     const reportSubtitle = document.getElementById("reportSubtitle");
+
+    // Elementos del Dashboard Global
+    const globalTotalVal = document.getElementById("globalTotal");
+    const globalPresentVal = document.getElementById("globalPresent");
+    const globalAbsentVal = document.getElementById("globalAbsent");
+
+    // Elementos del Dashboard de Sección
+    const sectionDashboard = document.getElementById("sectionDashboard");
+    const sectionTotalVal = document.getElementById("sectionTotal");
+    const sectionPresentVal = document.getElementById("sectionPresent");
+    const sectionAbsentVal = document.getElementById("sectionAbsent");
     
     // Tablas
     const diarioTable = document.getElementById("diarioTable");
@@ -110,6 +121,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             docenteSelect.appendChild(opt);
         });
     }
+
+    // 0. CARGAR DASHBOARD GLOBAL AL INICIAR
+    async function loadGlobalDashboard() {
+        try {
+            const res = await fetch(`${apiUrl}/assistance/admin/dashboard_hoy`, { 
+                headers: { "Authorization": `Bearer ${token}` } 
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (globalTotalVal) globalTotalVal.textContent = data.total_evaluados;
+                if (globalPresentVal) globalPresentVal.textContent = data.presentes;
+                if (globalAbsentVal) globalAbsentVal.textContent = data.ausentes;
+            }
+        } catch (error) {
+            console.error("Error cargando dashboard global:", error);
+        }
+    }
+
+    loadGlobalDashboard();
 
     // 1. CARGAR SELECTS DE FILTROS AL INICIAR
     async function loadFilters() {
@@ -285,7 +315,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (currentAttendanceData.length === 0) {
                         alert("No hay asistencias cargadas para esta fecha y sección.");
                         reportCard.style.display = "none";
+                        if (sectionDashboard) sectionDashboard.style.display = "none";
                     } else {
+                        // Actualizar Dashboard de Sección
+                        const total = currentAttendanceData.length;
+                        const present = currentAttendanceData.filter(a => a.Activo).length;
+                        const absent = total - present;
+
+                        if (sectionTotalVal) sectionTotalVal.textContent = total;
+                        if (sectionPresentVal) sectionPresentVal.textContent = present;
+                        if (sectionAbsentVal) sectionAbsentVal.textContent = absent;
+                        if (sectionDashboard) sectionDashboard.style.display = "grid";
+
                         renderTableDiario(data);
                     }
                 } else {
@@ -314,7 +355,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (currentLapsoData.length === 0) {
                         alert("No hay asistencias registradas en este curso durante el año escolar.");
                         reportCard.style.display = "none";
+                        if (sectionDashboard) sectionDashboard.style.display = "none";
                     } else {
+                        if (sectionDashboard) sectionDashboard.style.display = "none"; // No aplica tabla general en lapsos
                         renderTableLapsos(currentLapsoData);
                     }
                 } else {
@@ -415,10 +458,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <span class="badge present" style="padding: 4px 8px;">${mData["3"].A}</span> / 
                         <span class="badge absent" style="padding: 4px 8px;">${mData["3"].I}</span>
                     </td>
-                    <td style="text-align: center; font-weight: bold; color: #991b1b; background-color: #fef2f2;">
+                    <td style="text-align: center; font-weight: bold; color: ${totalFaltas >= 10 ? '#ffffff' : '#991b1b'}; background-color: ${totalFaltas >= 10 ? '#ef4444' : '#fef2f2'};">
                         ${totalFaltas}
                     </td>
                 `;
+                
+                // Si tiene 10 o más faltas, resaltamos toda la fila
+                if (totalFaltas >= 10) {
+                    tr.style.backgroundColor = "#fee2e2";
+                    tr.title = "⚠️ Alerta: Riesgo Académico por inasistencias";
+                }
+
                 lapsoTableBody.appendChild(tr);
             });
         });

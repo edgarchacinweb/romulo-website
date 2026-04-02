@@ -28,6 +28,27 @@ const calcMinutesDifferences = (time1, time2) => {
   return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
 };
 
+const highlightCurrentClass = () => {
+  const now = new Date();
+  const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const currentDay = days[now.getDay()];
+  const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+  if (now.getDay() === 0 || now.getDay() === 6) return; // Fin de semana
+
+  scheduleBlocks.forEach((block) => {
+    if (currentTime >= block.HoraInicio && currentTime <= block.HoraFin) {
+      const dayIndex = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].indexOf(currentDay);
+      if (dayIndex === -1) return;
+
+      const cells = document.querySelectorAll(`[data-row="${block.BloqueHorarioId}"]`);
+      if (cells[dayIndex]) {
+        cells[dayIndex].classList.add("current-class-highlight");
+      }
+    }
+  });
+};
+
 const updateSections = (sectionData) => {
   const sectionField = document.getElementById("sectionField");
   sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
@@ -283,6 +304,7 @@ const filter = async (grade, section) => {
         </footer>
     `;
     scheduleContainer.appendChild(scheduleCard);
+    highlightCurrentClass();
 
     document
       .getElementById("btn-pdf")

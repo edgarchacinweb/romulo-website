@@ -65,6 +65,56 @@ const loadSchedules = async (term, period) => {
   }
 };
 
+const loadAdminStatus = async () => {
+  const alertPanel = document.getElementById("alert-panel");
+  if (!alertPanel) return;
+
+  try {
+    const response = await fetch(`${window.APP_CONFIG.api_url}/schedule/admin/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const statusData = await response.json();
+    if (!response.ok) throw new Error(statusData.message);
+
+    // Filtrar secciones que necesitan atención (15+ alumnos e Incompleto/Vacio)
+    const pendingSections = statusData.filter(
+      (s) => s.Alumnos >= 15 && (s.Estatus === "Vacio" || s.Estatus === "Incompleto")
+    );
+
+    if (pendingSections.length === 0) {
+      alertPanel.style.display = "none";
+      return;
+    }
+
+    alertPanel.style.display = "flex";
+    alertPanel.innerHTML = `
+      <div class="alert-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="alert-content">
+        <p><strong>Atención Administrativa:</strong> Las siguientes secciones ya cumplen el mínimo de alumnos pero tienen horarios pendientes:</p>
+        <div class="alert-chips">
+          ${pendingSections
+        .map(
+          (s) => `
+            <div class="alert-chip ${s.Estatus.toLowerCase()}" onclick="document.getElementById('gradeField').value='${s.CursoId}'; document.getElementById('gradeField').dispatchEvent(new Event('change')); setTimeout(()=>{document.getElementById('sectionField').value='${s.Seccion}'; document.getElementById('sectionField').dispatchEvent(new Event('change'))}, 500)">
+              ${s.Grado}° Año "${s.SeccionLetra}" - ${s.Estatus} (${s.Alumnos} alumnos)
+            </div>
+          `
+        )
+        .join("")}
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error al cargar estatus administrativo:", err);
+  }
+};
+
 const renderTeacherSelector = (assignedSubjects) => {
   const disabledValue =
     selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
@@ -199,6 +249,37 @@ const filter = async (grade, section) => {
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
+
+  // Verificar cantidad de estudiantes antes de cargar la grilla
+  try {
+    const statusResponse = await fetch(`${window.APP_CONFIG.api_url}/schedule/admin/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const statusData = await statusResponse.json();
+    const currentSection = statusData.find(s => s.CursoId === grade && s.Seccion == section);
+
+    if (currentSection && currentSection.Alumnos < 15) {
+      emptyState.style.display = "flex";
+      emptyState.innerHTML = `
+        <div class="warning-banner">
+          <div class="warning-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            </svg>
+          </div>
+          <h3>Sección con cupos insuficientes</h3>
+          <p>Esta sección cuenta actualmente con <strong>${currentSection.Alumnos}</strong> estudiantes inscritos. Se requiere un mínimo de <strong>15</strong> para proceder con la asignación de horarios.</p>
+          <p class="small"></p>
+        </div>
+      `;
+      if (document.getElementById("results-container")) {
+        document.getElementById("results-container").innerHTML = "";
+      }
+      return;
+    }
+  } catch (err) {
+    console.error("Error validando estudiantes:", err);
+  }
 
   try {
     const disabledValue =
@@ -760,6 +841,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!gradesPromise.ok) throw new Error(gradesResponse.message);
 
     courses = [...gradesResponse];
+
+    // Cargar estatus administrativo
+    await loadAdminStatus();
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");

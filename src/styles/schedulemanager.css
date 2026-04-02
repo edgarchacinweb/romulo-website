@@ -505,3 +505,123 @@ select:disabled {
     margin-bottom: 15px;
   }
 }
+
+/* --- Nuevas Mejoras de UI --- */
+.alert-panel {
+  display: none;
+  background-color: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  gap: 1.5rem;
+  align-items: flex-start;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.alert-icon {
+  color: #854d0e;
+  padding-top: 2px;
+}
+
+.alert-content p {
+  color: #854d0e;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.alert-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.alert-chip {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid transparent;
+}
+
+.alert-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.alert-chip.vacio {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.alert-chip.incompleto {
+  background-color: #ffedd5;
+  color: #9a3412;
+  border-color: #fed7aa;
+}
+
+.warning-banner {
+  width: 100%;
+  padding: 3rem;
+  background-color: #fffbeb;
+  border: 2px dashed #fcd34d;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.warning-icon {
+  margin-bottom: 1rem;
+}
+
+.warning-banner h3 {
+  color: #92400e;
+  font-size: 1.25rem;
+}
+
+.warning-banner p {
+  color: #b45309;
+  max-width: 600px;
+}
+
+.warning-banner .small {
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  opacity: 0.8;
+}
+
+/* Resaltado de Clase Actual */
+.current-class-highlight {
+  position: relative !important;
+  background-color: #eff6ff !important;
+  border: 2px solid #3b82f6 !important;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+  z-index: 10;
+  animation: pulseHighlight 2s infinite;
+}
+
+.current-class-highlight::after {
+  content: "AHORA";
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: #3b82f6;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulseHighlight {
+  0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+}
