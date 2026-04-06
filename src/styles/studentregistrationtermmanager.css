@@ -240,6 +240,72 @@ body {
   font-size: 13px;
 }
 
+/* --- BOTONES DE ACCIÓN EN TABLA --- */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-table {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+}
+
+.btn-edit {
+  background-color: var(--primary-blue);
+}
+
+.btn-edit:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-close-term {
+  background-color: #dc3545;
+}
+
+.btn-close-term:hover {
+  background-color: #bb2d3b;
+}
+
+.btn-save {
+  background-color: #198754;
+}
+
+.btn-save:hover {
+  background-color: #157347;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+}
+
+.btn-cancel:hover {
+  background-color: #5c636a;
+}
+
+/* --- INPUT INLINE --- */
+.inline-date-input {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  width: auto;
+}
+
+.inline-date-input:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(21, 92, 176, 0.1);
+}
+
 /* Responsividad para móviles */
 @media (max-width: 900px) {
   .main-container {

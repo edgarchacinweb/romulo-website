@@ -124,23 +124,120 @@ document.addEventListener("DOMContentLoaded", async () => {
       const schoolTermYear = new Date(
         e["PeriodoEscolar"]["FechaInicio"],
       ).getFullYear();
+
       item.innerHTML = `
         <td class="font-medium">${schoolTermYear} - ${schoolTermYear + 1}</td>
         <td>${e["Inicio"]}</td>
-        <td>${e["Fin"]}</td>
-        <td class="text-muted">${e["FechaCreacion"]}</td>
       `;
 
+      const tdEnd = document.createElement("td");
+      tdEnd.textContent = e["Fin"];
+      item.appendChild(tdEnd);
+
+      const tdFechaCreacion = document.createElement("td");
+      tdFechaCreacion.className = "text-muted";
+      tdFechaCreacion.textContent = e["FechaCreacion"];
+      item.appendChild(tdFechaCreacion);
+
       const tdAccion = document.createElement("td");
+      const actionContainer = document.createElement("div");
+      actionContainer.className = "action-buttons";
+
       if (e["Activo"]) {
+        // --- BOTÓN EDITAR ---
+        const btnEdit = document.createElement("button");
+        btnEdit.textContent = "Editar";
+        btnEdit.className = "btn-table btn-edit";
+        
+        btnEdit.addEventListener("click", () => {
+          // Guardar valor original por si cancela
+          const originalDate = tdEnd.textContent;
+          
+          // Limpiar celda y poner input
+          tdEnd.innerHTML = "";
+          const inputDate = document.createElement("input");
+          inputDate.type = "date";
+          inputDate.className = "inline-date-input";
+          inputDate.value = originalDate;
+          
+          // Aplicar las mismas restricciones globales
+          const hoy = new Date();
+          const yyyy = hoy.getFullYear();
+          const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+          const dd = String(hoy.getDate()).padStart(2, '0');
+          inputDate.min = `${yyyy}-${mm}-${dd}`;
+          inputDate.max = schoolTermMaxDateStr;
+
+          tdEnd.appendChild(inputDate);
+
+          // Cambiar botones: "Guardar" y "Cancelar"
+          actionContainer.innerHTML = "";
+          
+          const btnSave = document.createElement("button");
+          btnSave.textContent = "Guardar";
+          btnSave.className = "btn-table btn-save";
+          
+          const btnCancel = document.createElement("button");
+          btnCancel.textContent = "Cancelar";
+          btnCancel.className = "btn-table btn-cancel";
+
+          btnCancel.addEventListener("click", () => {
+            tdEnd.textContent = originalDate;
+            restoreActionButtons();
+          });
+
+          btnSave.addEventListener("click", async () => {
+             const newDate = inputDate.value;
+             if (!newDate) {
+                 alert("Por favor seleccione una fecha");
+                 return;
+             }
+
+             // Validar contra el inicio (e["Inicio"])
+             if (newDate < e["Inicio"]) {
+                 alert("La fecha de fin no puede ser anterior a la de inicio.");
+                 return;
+             }
+
+             try {
+                const patchRes = await fetch(`${window.APP_CONFIG.api_url}/registration/update`, {
+                    method: "PATCH",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({
+                        PeriodoInscripcionId: e["InscripcionId"],
+                        FechaFin: newDate
+                    })
+                });
+
+                if (patchRes.ok) {
+                    tdEnd.textContent = newDate;
+                    e["Fin"] = newDate; // Actualizar en el objeto local
+                    const successNotif = document.createElement("notification-component");
+                    successNotif.setAttribute("type", "success");
+                    successNotif.setAttribute("text", "Fecha de fin actualizada correctamente");
+                    loadNotificationContainer.appendChild(successNotif);
+                    restoreActionButtons();
+                } else {
+                    const errData = await patchRes.json();
+                    alert("Error al actualizar: " + (errData.message || "Error desconocido"));
+                }
+             } catch (err) {
+                alert("Error de conexión al guardar.");
+             }
+          });
+
+          actionContainer.appendChild(btnSave);
+          actionContainer.appendChild(btnCancel);
+        });
+
+        // --- BOTÓN CERRAR ---
         const btnCerrar = document.createElement("button");
         btnCerrar.textContent = "Cerrar";
-        btnCerrar.style.backgroundColor = "#dc3545";
-        btnCerrar.style.color = "white";
-        btnCerrar.style.border = "none";
-        btnCerrar.style.padding = "5px 10px";
-        btnCerrar.style.borderRadius = "4px";
-        btnCerrar.style.cursor = "pointer";
+        btnCerrar.className = "btn-table btn-close-term";
+        
         btnCerrar.addEventListener("click", async () => {
           if (confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) {
             try {
@@ -158,12 +255,19 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           }
         });
-        tdAccion.appendChild(btnCerrar);
+
+        const restoreActionButtons = () => {
+            actionContainer.innerHTML = "";
+            actionContainer.appendChild(btnEdit);
+            actionContainer.appendChild(btnCerrar);
+        };
+
+        restoreActionButtons();
+        tdAccion.appendChild(actionContainer);
       } else {
         tdAccion.innerHTML = '<span style="color:gray; font-weight:bold;">Inactivo/Cerrado</span>';
       }
       item.appendChild(tdAccion);
-
       tableBody.appendChild(item);
     });
   } catch (error) {
@@ -269,14 +373,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
 
       const tdAccion = document.createElement("td");
+      tdAccion.className = "action-buttons";
+
+      const btnEdit = document.createElement("button");
+      btnEdit.textContent = "Editar";
+      btnEdit.className = "btn-table btn-edit";
+      btnEdit.addEventListener("click", () => {
+          window.location.reload();
+      });
+
       const btnCerrar = document.createElement("button");
       btnCerrar.textContent = "Cerrar";
-      btnCerrar.style.backgroundColor = "#dc3545";
-      btnCerrar.style.color = "white";
-      btnCerrar.style.border = "none";
-      btnCerrar.style.padding = "5px 10px";
-      btnCerrar.style.borderRadius = "4px";
-      btnCerrar.style.cursor = "pointer";
+      btnCerrar.className = "btn-table btn-close-term";
       btnCerrar.addEventListener("click", async () => {
         if (confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) {
           try {
@@ -294,6 +402,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         }
       });
+      
+      tdAccion.appendChild(btnEdit);
       tdAccion.appendChild(btnCerrar);
       registrationElement.appendChild(tdAccion);
 
