@@ -8,6 +8,10 @@ let teachers = [];
 let currentSearchQuery = ""; // Control de búsqueda actual de texto
 let currentSubjectFilter = ""; // Control del filtro de materia
 
+let currentPage = 1;
+const pageSize = 6;
+let isPaginating = true;
+
 const teacherForm = document.getElementById("teacher-form");
 const firstNameField = document.getElementById("nombre");
 const lastNameField = document.getElementById("apellido");
@@ -419,9 +423,39 @@ const applyFilterAndRender = () => {
     });
   }
 
-  renderTeachers(filtered);
-};
+  // Paginación
+  const totalFiltered = filtered.length;
+  const totalPages = Math.ceil(totalFiltered / pageSize);
 
+  const paginationText = document.getElementById("pagination-text");
+  const btnPrev = document.getElementById("prev-page");
+  const btnNext = document.getElementById("next-page");
+  const btnViewAll = document.getElementById("btn-view-all");
+
+  if (isPaginating) {
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    
+    // Update UI text
+    const rangeStart = totalFiltered === 0 ? 0 : start + 1;
+    const rangeEnd = Math.min(end, totalFiltered);
+    if (paginationText) paginationText.textContent = `${rangeStart}-${rangeEnd} de ${totalFiltered.toLocaleString()}`;
+    
+    // Controls state
+    if (btnPrev) btnPrev.disabled = currentPage <= 1;
+    if (btnNext) btnNext.disabled = currentPage >= totalPages;
+    if (btnViewAll) btnViewAll.textContent = "Ver todo";
+    
+    renderTeachers(filtered.slice(start, end));
+  } else {
+    if (paginationText) paginationText.textContent = `Mostrando todos (${totalFiltered.toLocaleString()})`;
+    if (btnPrev) btnPrev.disabled = true;
+    if (btnNext) btnNext.disabled = true;
+    if (btnViewAll) btnViewAll.textContent = "Paginar";
+    
+    renderTeachers(filtered);
+  }
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   const notificationContainer = document.getElementById("notifications");
@@ -437,6 +471,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       currentSearchQuery = e.target.value.trim();
+      currentPage = 1;
       applyFilterAndRender();
     });
   }
@@ -444,6 +479,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (subjectFilterSelect) {
     subjectFilterSelect.addEventListener("change", (e) => {
       currentSubjectFilter = e.target.value;
+      currentPage = 1;
+      applyFilterAndRender();
+    });
+  }
+
+  // Eventos de Paginación
+  const btnPrev = document.getElementById("prev-page");
+  const btnNext = document.getElementById("next-page");
+  const btnViewAll = document.getElementById("btn-view-all");
+
+  if (btnPrev) {
+    btnPrev.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        applyFilterAndRender();
+      }
+    });
+  }
+
+  if (btnNext) {
+    btnNext.addEventListener("click", () => {
+      currentPage++;
+      applyFilterAndRender();
+    });
+  }
+
+  if (btnViewAll) {
+    btnViewAll.addEventListener("click", () => {
+      isPaginating = !isPaginating;
+      currentPage = 1;
       applyFilterAndRender();
     });
   }

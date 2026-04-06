@@ -340,6 +340,26 @@
                 <!-- Lista de Docentes -->
                 <div id="teacher-list">
                 </div>
+
+                <!-- Paginación -->
+                <div class="pagination-container" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                  <div class="pagination-info" style="display: flex; align-items: center; gap: 1rem; color: #6b7280; font-size: 0.9rem;">
+                    <span id="pagination-text">1-6 de ...</span>
+                    <button class="btn-link" id="btn-view-all" style="background:none; border:none; color:var(--primary-color, #2563eb); cursor:pointer; text-decoration:underline; font-size:0.9rem;">Ver todo</button>
+                  </div>
+                  <div class="pagination-buttons" style="display: flex; gap: 0.5rem;">
+                    <button class="btn-pagination" id="prev-page" title="Anterior" style="background:#fff; border:1px solid #d1d5db; border-radius:4px; cursor:pointer; padding:4px;">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"></path>
+                      </svg>
+                    </button>
+                    <button class="btn-pagination" id="next-page" title="Siguiente" style="background:#fff; border:1px solid #d1d5db; border-radius:4px; cursor:pointer; padding:4px;">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
