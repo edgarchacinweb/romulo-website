@@ -800,6 +800,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const gradeField = document.getElementById("gradeField");
   const sectionField = document.getElementById("sectionField");
   const termField = document.getElementById("termField");
+  const termNameDisplay = document.getElementById("termNameDisplay");
 
   const loader = document.createElement("loader-spinner");
   const notificationsContainer = document.getElementById("notifications");
@@ -810,28 +811,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateGrades();
 
     const termResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/school_term/list`,
+      `${window.APP_CONFIG.api_url}/school_term/get`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       },
     );
 
-    const terms = await termResponse.json();
-    if (!termResponse.ok) throw new Error(terms.message);
-    termList = [...terms];
+    const term = await termResponse.json();
+    if (!termResponse.ok) throw new Error(term.message);
+    
+    // El sistema ahora solo maneja el período activo
+    termList = [term];
+    const termId = term["PeriodoEscolarId"] || term["id"];
+    const termName = `${new Date(term["FechaInicio"]).getFullYear()} - ${new Date(term["FechaFin"]).getFullYear()}`;
+    
+    termField.value = termId;
+    if (termNameDisplay) {
+      termNameDisplay.value = termName;
+    }
 
-    termField.querySelectorAll("option").forEach((o) => o.remove());
-    terms.forEach((t) => {
-      const newOption = document.createElement("option");
-      newOption.setAttribute("value", t["PeriodoEscolarId"]);
-      newOption.textContent = `${new Date(t["FechaInicio"]).getFullYear()} - ${new Date(t["FechaFin"]).getFullYear()}`;
-      termField.appendChild(newOption);
-    });
-
-    selectedTerm = termField.value;
+    selectedTerm = termId;
     const scheduleBlocksResponse = await fetch(
       `${window.APP_CONFIG.api_url}/schedule/blocks`,
       {
@@ -900,20 +903,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadSchedules(
     termField.value,
-    termField.options[termField.selectedIndex].textContent,
+    termNameDisplay ? termNameDisplay.value : "Actual",
   );
-  termField.addEventListener("change", async () => {
-    selectedTerm = termField.value;
-    if (document.getElementById("results-container")) {
-      document.getElementById("results-container").remove();
-      emptyState.style.display = "flex";
-    }
-    await updateGrades(termField.value);
-    await loadSchedules(
-      termField.value,
-      termField.options[termField.selectedIndex].textContent,
-    );
-  });
 });
 
 document.getElementById("btn-back").addEventListener("click", (e) => {
