@@ -82,25 +82,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     totalRows.textContent = filteredRecords.length;
+    // Calculate today's actions properly by checking YYYY-MM-DD prefix.
+    const todayStr = new Date().toISOString().split("T")[0];
     todayActions.textContent = records.filter(
-      (r) => new Date(r["Fecha"]) == new Date(),
+      (r) => r["Fecha"] && String(r["Fecha"]).startsWith(todayStr)
     ).length;
     adminActions.textContent = records.filter(
-      (r) => r["Usuario"]["Rol"] === "administrador",
+      (r) => r["Usuario"] && r["Usuario"]["Rol"] === "administrador",
     ).length;
 
     auditoriesTable.innerHTML = "";
     reportTable.innerHTML = "";
+    reportDate.textContent = dateFormat.format(new Date());
+    reportsCount.textContent = filteredRecords.length;
+
     filteredRecords.forEach((record) => {
+      // Parse ISO Date and Format for presentation
+      let formattedDate = record["Fecha"];
+      try {
+        const d = new Date(record["Fecha"]);
+        if (!isNaN(d.getTime())) formattedDate = dateFormat.format(d);
+      } catch (e) {}
+
       const row = document.createElement("tr");
       row.innerHTML = `
 			<td>${record["Usuario"]["Email"]}</td>
-			<td><span class="pill ${roleTags[record["Usuario"]["Rol"]]}">${record["Usuario"]["Rol"]}</span></td>
+			<td><span class="pill ${roleTags[record["Usuario"]["Rol"]] || 'role-admin'}">${record["Usuario"]["Rol"]}</span></td>
 			<td>${record["Descripcion"]}</td>
 			<td>
-				<span class="pill ${actionTags[record["Accion"]]}">${record["Accion"]}</span>
+				<span class="pill ${actionTags[record["Accion"]] || 'act-config'}">${record["Accion"]}</span>
 			</td>
-			<td>${record["Fecha"]}</td>         
+			<td>${formattedDate}</td>         
 			`;
 
       auditoriesTable.appendChild(row);
@@ -111,13 +123,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 			<td>${record["Usuario"]["Rol"]}</td>
 			<td>${record["Descripcion"]}</td>
 			<td>${record["Accion"]}</td>
-			<td>${record["Fecha"]}</td>
+			<td>${formattedDate}</td>
 			`;
 
       reportTable.appendChild(report);
-
-      reportDate.textContent = dateFormat.format(new Date());
-      reportsCount.textContent = filteredRecords.length;
     });
   };
 
@@ -171,18 +180,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnSalir = document.getElementById("btn-salir");
   const appWrapper = document.getElementById("app-wrapper");
 
-  btnSalir.addEventListener("click", (e) => {
-    e.preventDefault(); // Prevenir comportamiento por defecto
+  if (btnSalir && appWrapper) {
+    btnSalir.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevenir comportamiento por defecto
 
-    // Reemplazar clase de entrada por clase de salida
-    appWrapper.classList.remove("fade-in-up");
-    appWrapper.classList.add("fade-out-down");
+      // Reemplazar clase de entrada por clase de salida
+      appWrapper.classList.remove("fade-in-up");
+      appWrapper.classList.add("fade-out-down");
 
-    // Esperar a que termine la animación (500ms definidos en CSS) para redirigir
-    setTimeout(() => {
-      window.location.href = "/app/admin/dashboard/";
-    }, 500);
-  });
+      // Esperar a que termine la animación (500ms definidos en CSS) para redirigir
+      setTimeout(() => {
+        window.location.href = "/app/admin/dashboard/";
+      }, 500);
+    });
+  }
 
   // Obteniendo registros
   loader.setAttribute("title", "Cargando Auditorías...");
@@ -254,5 +265,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     filter();
   });
 
-  btnPdf.addEventListener("click", () => window.print());
+  btnPdf.addEventListener("click", () => {
+    window.print();
+  });
 });

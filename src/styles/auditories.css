@@ -606,12 +606,13 @@ td:first-child {
    CONTENEDOR PRINCIPAL (Simulación de Hoja)
 ========================================= */
   .report-container {
+    display: block !important;
     background-color: var(--bg-page);
     width: 100%;
     max-width: 1400px;
     /* Ancho amplio para que la tabla respire */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border-radius: 4px;
+    box-shadow: none;
+    border-radius: 0;
   }
 
   /* =========================================
