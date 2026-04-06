@@ -250,113 +250,30 @@
                   </tr>
                 </thead>
                 <tbody id="auditoriesTable">
-                  <!-- <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Acceso al panel de administración</td>
-                    <td>
-                      <span class="pill act-login">Inicio de sesión</span>
-                    </td>
-                    <td>02 mar 2024 09:15</td>
-                  </tr>
-                  <tr>
-                    <td>docente@institucion.edu</td>
-                    <td><span class="pill role-docente">Docente</span></td>
-                    <td>Creó nuevo grupo de estudiantes 10°A</td>
-                    <td><span class="pill act-register">Registro</span></td>
-                    <td>02 mar 2024 10:30</td>
-                  </tr>
-                  <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Respaldo automático de base de datos completado</td>
-                    <td><span class="pill act-backup">Respaldo DB</span></td>
-                    <td>02 mar 2024 11:00</td>
-                  </tr>
-                  <tr>
-                    <td>secretaria@institucion.edu</td>
-                    <td>
-                      <span class="pill role-secretario">Secretario</span>
-                    </td>
-                    <td>Actualizó información de estudiante Juan Pérez</td>
-                    <td><span class="pill act-update">Actualización</span></td>
-                    <td>02 mar 2024 12:45</td>
-                  </tr>
-                  <tr>
-                    <td>estudiante@institucion.edu</td>
-                    <td>
-                      <span class="pill role-estudiante">Estudiante</span>
-                    </td>
-                    <td>Inició sesión en el portal estudiantil</td>
-                    <td>
-                      <span class="pill act-login">Inicio de sesión</span>
-                    </td>
-                    <td>02 mar 2024 13:20</td>
-                  </tr>
-                  <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Cambió permisos del usuario docente Maria Garcia</td>
-                    <td>
-                      <span class="pill act-permissions">Cambio permisos</span>
-                    </td>
-                    <td>02 mar 2024 14:10</td>
-                  </tr>
-                  <tr>
-                    <td>docente2@institucion.edu</td>
-                    <td><span class="pill role-docente">Docente</span></td>
-                    <td>Exportó calificaciones del trimestre</td>
-                    <td><span class="pill act-export">Exportación</span></td>
-                    <td>02 mar 2024 15:30</td>
-                  </tr>
-                  <tr>
-                    <td>secretaria@institucion.edu</td>
-                    <td>
-                      <span class="pill role-secretario">Secretario</span>
-                    </td>
-                    <td>Eliminó registro de estudiante inactivo</td>
-                    <td><span class="pill act-delete">Eliminación</span></td>
-                    <td>02 mar 2024 16:15</td>
-                  </tr>
-                  <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Configuró nuevo logo institucional</td>
-                    <td><span class="pill act-config">Configuración</span></td>
-                    <td>02 mar 2024 17:00</td>
-                  </tr>
-                  <tr>
-                    <td>docente@institucion.edu</td>
-                    <td><span class="pill role-docente">Docente</span></td>
-                    <td>Cambió contraseña</td>
-                    <td>
-                      <span class="pill act-password">Cambio contraseña</span>
-                    </td>
-                    <td>02 mar 2024 17:45</td>
-                  </tr>
-                  <tr>
-                    <td>estudiante2@institucion.edu</td>
-                    <td>
-                      <span class="pill role-estudiante">Estudiante</span>
-                    </td>
-                    <td>Consultó horario académico</td>
-                    <td>
-                      <span class="pill act-login">Inicio de sesión</span>
-                    </td>
-                    <td>01 mar 2024 08:30</td>
-                  </tr>
-                  <tr>
-                    <td>secretaria@institucion.edu</td>
-                    <td>
-                      <span class="pill role-secretario">Secretario</span>
-                    </td>
-                    <td>Importó nuevos datos de estudiantes</td>
-                    <td><span class="pill act-export">Importación</span></td>
-                    <td>01 mar 2024 09:00</td>
-                  </tr> -->
                 </tbody>
               </table>
             </div>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                <span id="pagination-text">1-50 de ...</span>
+                <button class="btn-link" id="btn-view-all">Ver todo</button>
+              </div>
+              <div class="pagination-buttons">
+                <button class="btn-pagination" id="prev-page" title="Anterior">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6"></path>
+                  </svg>
+                </button>
+                <button class="btn-pagination" id="next-page" title="Siguiente">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </section>
           </section>
         </main>
 

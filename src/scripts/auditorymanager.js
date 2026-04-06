@@ -31,8 +31,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let records = [];
   let usersCount = 0;
+  let currentPage = 1;
+  const pageSize = 50;
+  let isPaginating = true;
+
   const loader = document.createElement("loader-spinner");
   const notifications = document.getElementById("notifications");
+
+  const paginationText = document.getElementById("pagination-text");
+  const btnPrev = document.getElementById("prev-page");
+  const btnNext = document.getElementById("next-page");
+  const btnViewAll = document.getElementById("btn-view-all");
 
   const roleTags = {
     administrador: "role-admin",
@@ -81,8 +90,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     }
 
-    totalRows.textContent = filteredRecords.length;
-    // Calculate today's actions properly by checking YYYY-MM-DD prefix.
+    // Paginación
+    const totalFiltered = filteredRecords.length;
+    
+    // Stats Update (Restore)
+    totalRows.textContent = totalFiltered;
     const todayStr = new Date().toISOString().split("T")[0];
     todayActions.textContent = records.filter(
       (r) => r["Fecha"] && String(r["Fecha"]).startsWith(todayStr)
@@ -91,10 +103,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       (r) => r["Usuario"] && r["Usuario"]["Rol"] === "administrador",
     ).length;
 
+    const totalPages = Math.ceil(totalFiltered / pageSize);
+
+    if (isPaginating) {
+      const start = (currentPage - 1) * pageSize;
+      const end = start + pageSize;
+      
+      // Update UI text
+      const rangeStart = totalFiltered === 0 ? 0 : start + 1;
+      const rangeEnd = Math.min(end, totalFiltered);
+      paginationText.textContent = `${rangeStart}-${rangeEnd} de ${totalFiltered.toLocaleString()}`;
+      
+      // Controls state
+      btnPrev.disabled = currentPage <= 1;
+      btnNext.disabled = currentPage >= totalPages;
+      btnViewAll.textContent = "Ver todo";
+      
+      filteredRecords = filteredRecords.slice(start, end);
+    } else {
+      paginationText.textContent = `Mostrando todos (${totalFiltered.toLocaleString()})`;
+      btnPrev.disabled = true;
+      btnNext.disabled = true;
+      btnViewAll.textContent = "Paginar";
+    }
+
     auditoriesTable.innerHTML = "";
     reportTable.innerHTML = "";
     reportDate.textContent = dateFormat.format(new Date());
-    reportsCount.textContent = filteredRecords.length;
+    reportsCount.textContent = totalFiltered; // El reporte impreso siempre muestra el total filtrado
 
     filteredRecords.forEach((record) => {
       // Parse ISO Date and Format for presentation
@@ -262,6 +298,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     dateFromInput.value = "";
     dateToInput.value = "";
 
+    currentPage = 1;
+    filter();
+  });
+
+  // Eventos de Paginación
+  btnPrev.addEventListener("click", () => {
+    if (currentPage > 1) {
+      currentPage--;
+      filter();
+    }
+  });
+
+  btnNext.addEventListener("click", () => {
+    currentPage++;
+    filter();
+  });
+
+  btnViewAll.addEventListener("click", () => {
+    isPaginating = !isPaginating;
+    currentPage = 1;
     filter();
   });
 
