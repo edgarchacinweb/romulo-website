@@ -550,6 +550,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (subjectFilterSelect) {
         const filterOption = document.createElement("option");
         filterOption.setAttribute("value", s["MateriaId"]);
+        filterOption.textContent = s["Nombre"];
         subjectFilterSelect.appendChild(filterOption);
       }
     });
@@ -660,13 +661,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-document.getElementById("BtnBack").addEventListener("click", (event) => {
-  event.preventDefault();
-  document.body.style.animation = "goodByePage 0.8s forwards";
-  console.log(event);
+const btnBack = document.getElementById("BtnBack");
+if (btnBack) {
+  btnBack.addEventListener("click", (event) => {
+    event.preventDefault();
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    console.log(event);
 
-  setTimeout(() => (window.location.href = event.target.href), 1000);
-});
+    setTimeout(() => (window.location.href = event.target.href), 1000);
+  });
+}
 
 document
   .getElementById("export-btn")
