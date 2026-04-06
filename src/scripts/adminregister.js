@@ -255,12 +255,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (sameAddressCheckbox) {
       sameAddressCheckbox.addEventListener("change", (e) => {
         if (e.target.checked) {
-          if (parentData && parentData["Direccion"]) {
+          if (!parentData) {
+              alert("Seleccione un representante primero");
+              e.target.checked = false;
+          } else if (!parentData["Direccion"]) {
+              alert("El representante no tiene dirección");
+              e.target.checked = false;
+          } else {
               addressField.value = parentData["Direccion"];
               addressField.readOnly = true;
-          } else {
-              alert("Seleccione un representante primero o el representante no tiene dirección.");
-              e.target.checked = false;
           }
         } else {
           addressField.value = "";
