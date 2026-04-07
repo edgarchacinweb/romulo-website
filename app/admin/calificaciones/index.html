@@ -12,39 +12,18 @@
   <script type="module" src="/src/components/loader.component.js"></script>
   <script type="module" src="/src/components/notification.component.js"></script>
   <script type="module" src="/src/components/notifications-container.component.js"></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
 </head>
 
 <body>
   <div class="app" id="app">
     <notifications-container id="notifications"></notifications-container>
-    <header class="header">
-      <div class="header__brand">
-        <div class="header__logo">
-          <img src="/src/assets/images/romulo.webp" class="header__logo-img" alt="Logo" width="50px">
-        </div>
-        <div class="header__titles">
-          <h1 class="header__title">Liceo Nacional "Don Rómulo Gallegos"</h1>
-          <h2 class="header__subtitle">Gestión de Calificaciones</h2>
-        </div>
-      </div>
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
 
-      <div class="header__user-section">
-        <div class="header__user-info">
-          <span class="header__role">Docente</span>
-          <span class="header__email">admin@liceodongallegos.edu.ve</span>
-        </div>
-        <button class="header__logout" id="btnLogout">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M17 7L15.59 8.41L18.17 11H8V13H18.17L15.59 15.58L17 17L22 12L17 7ZM4 5H12V3H4C2.9 3 2 3.9 2 5V19C2 20.1 2.9 21 4 21H12V19H4V5Z"
-              fill="#333" />
-          </svg>
-          Salir
-        </button>
-      </div>
-    </header>
-
-    <main class="main">
+    <main class="content-wrapper main">
 
       <section class="filters">
         <div class="filters__header">
@@ -183,6 +162,8 @@
 
   <script src="/src/scripts/config.js"></script>
   <script src="/src/scripts/calificationsmanager.js" type="module"></script>
+    </div>
+  </div>
 </body>
 
 </html>

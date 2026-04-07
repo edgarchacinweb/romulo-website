@@ -18,34 +18,19 @@
       src="/src/components/notification.component.js"
       type="module"
     ></script>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+    <script src="/src/scripts/layout.js" defer></script>
   </head>
   <body>
     <notifications-container id="notifications"></notifications-container>
-    <header class="main-header fade-in">
-      <a href="/app/representante/inicio/" class="back-button">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-      </a>
-      <div class="header-title">
-        <h1>Editar Perfil</h1>
-        <p>Gestione su información personal</p>
-      </div>
-    </header>
+    <header id="navbar-container" class="navbar-wrapper"></header>
 
-    <main class="container fade-in-up">
-      <div class="info-banner">
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+
+      <main class="content-wrapper main-content">
+        <div class="container fade-in-up">
+          <div class="info-banner">
         <div class="info-icon">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -451,8 +436,10 @@
           </button>
           <button type="button" class="btn btn-outline">Cancelar</button>
         </div>
-      </form>
-    </main>
+        </form>
+        </div>
+      </main>
+    </div>
 
     <script src="/src/scripts/config.js" type="module" defer></script>
     <script

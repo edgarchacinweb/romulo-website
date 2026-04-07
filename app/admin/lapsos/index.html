@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Configuración de Lapsos | Liceo Nacional</title>
     <link rel="stylesheet" href="/src/styles/global.css" />
-    <!-- Tailwind CSS para estilos rápidos y modernos -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CSS Nativo Puro para este módulo -->
+    <link rel="stylesheet" href="/src/styles/lapsos.css" />
     <!-- Iconos de Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -15,195 +15,97 @@
         animation: startPage 0.8s;
       }
     </style>
-  </head>
-  <body class="bg-gray-50 min-h-screen font-sans text-gray-800">
-    <!-- Header / Barra Superior -->
-    <header class="bg-blue-600 text-white shadow-md">
-      <div
-        class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center"
-      >
-        <div class="flex items-center gap-3">
-          <i data-lucide="calendar-days" class="w-8 h-8"></i>
-          <div>
-            <h1 class="text-xl font-bold">
-              Liceo Nacional "Don Rómulo Gallegos"
-            </h1>
-            <p class="text-sm text-blue-200">
-              Configuración del Calendario Escolar
-            </p>
-          </div>
-        </div>
-        <!-- Botón para volver al Panel -->
-        <button
-          class="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg transition"
-          id="btnBack"
-        >
-          <i data-lucide="arrow-left" class="w-4 h-4"></i>
-          Volver
-        </button>
-      </div>
-    </header>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
+  <body>
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
 
-    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <main class="lapsos-main">
       <!-- Tarjeta Principal de Configuración -->
-      <div
-        class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-      >
-        <div
-          class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center gap-3"
-        >
-          <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
-            <i data-lucide="settings" class="w-5 h-5"></i>
+      <div class="config-card">
+        <div class="config-card__header">
+          <div class="config-card__icon-box">
+            <i data-lucide="settings" class="config-card__icon"></i>
           </div>
           <div>
-            <h2 class="text-lg font-bold text-gray-800">
+            <h2 class="config-card__title">
               Definir Fechas de los Lapsos Académicos
             </h2>
-            <p class="text-sm text-gray-500">
+            <p class="config-card__description">
               Establece cuándo inicia y termina cada lapso. Esto afectará el
               registro de asistencias y notas.
             </p>
           </div>
         </div>
 
-        <form id="lapsosForm" class="p-6">
+        <form id="lapsosForm" class="config-card__body">
           <!-- 1er Lapso -->
-          <div
-            class="flex flex-col md:flex-row items-center gap-4 py-4 border-b border-gray-100"
-          >
-            <div
-              class="w-full md:w-1/4 font-semibold text-gray-700 flex items-center gap-2"
-            >
-              <span
-                class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs"
-                >1</span
-              >
+          <div class="form-row form-row--bordered">
+            <div class="form-row__label-group">
+              <span class="form-row__badge">1</span>
               Primer Lapso
             </div>
-            <div class="w-full md:w-3/8">
-              <label class="block text-xs text-gray-500 mb-1"
-                >Fecha de Inicio</label
-              >
-              <input
-                type="date"
-                id="inicio1"
-                required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              />
+            <div class="form-group">
+              <label class="form-group__label">Fecha de Inicio</label>
+              <input type="date" id="inicio1" required class="form-group__input" />
             </div>
-            <div class="w-full md:w-3/8">
-              <label class="block text-xs text-gray-500 mb-1"
-                >Fecha de Cierre</label
-              >
-              <input
-                type="date"
-                id="fin1"
-                required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              />
+            <div class="form-group">
+              <label class="form-group__label">Fecha de Cierre</label>
+              <input type="date" id="fin1" required class="form-group__input" />
             </div>
           </div>
 
           <!-- 2do Lapso -->
-          <div
-            class="flex flex-col md:flex-row items-center gap-4 py-4 border-b border-gray-100"
-          >
-            <div
-              class="w-full md:w-1/4 font-semibold text-gray-700 flex items-center gap-2"
-            >
-              <span
-                class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs"
-                >2</span
-              >
+          <div class="form-row form-row--bordered">
+            <div class="form-row__label-group">
+              <span class="form-row__badge">2</span>
               Segundo Lapso
             </div>
-            <div class="w-full md:w-3/8">
-              <label class="block text-xs text-gray-500 mb-1"
-                >Fecha de Inicio</label
-              >
-              <input
-                type="date"
-                id="inicio2"
-                required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              />
+            <div class="form-group">
+              <label class="form-group__label">Fecha de Inicio</label>
+              <input type="date" id="inicio2" required class="form-group__input" />
             </div>
-            <div class="w-full md:w-3/8">
-              <label class="block text-xs text-gray-500 mb-1"
-                >Fecha de Cierre</label
-              >
-              <input
-                type="date"
-                id="fin2"
-                required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              />
+            <div class="form-group">
+              <label class="form-group__label">Fecha de Cierre</label>
+              <input type="date" id="fin2" required class="form-group__input" />
             </div>
           </div>
 
           <!-- 3er Lapso -->
-          <div class="flex flex-col md:flex-row items-center gap-4 py-4">
-            <div
-              class="w-full md:w-1/4 font-semibold text-gray-700 flex items-center gap-2"
-            >
-              <span
-                class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs"
-                >3</span
-              >
+          <div class="form-row">
+            <div class="form-row__label-group">
+              <span class="form-row__badge">3</span>
               Tercer Lapso
             </div>
-            <div class="w-full md:w-3/8">
-              <label class="block text-xs text-gray-500 mb-1"
-                >Fecha de Inicio</label
-              >
-              <input
-                type="date"
-                id="inicio3"
-                required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              />
+            <div class="form-group">
+              <label class="form-group__label">Fecha de Inicio</label>
+              <input type="date" id="inicio3" required class="form-group__input" />
             </div>
-            <div class="w-full md:w-3/8">
-              <label class="block text-xs text-gray-500 mb-1"
-                >Fecha de Cierre</label
-              >
-              <input
-                type="date"
-                id="fin3"
-                required
-                class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 p-2 border disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-              />
+            <div class="form-group">
+              <label class="form-group__label">Fecha de Cierre</label>
+              <input type="date" id="fin3" required class="form-group__input" />
             </div>
           </div>
 
           <!-- Alerta de Error (Oculta por defecto) -->
-          <div
-            id="errorAlert"
-            class="hidden mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2"
-          >
-            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+          <div id="errorAlert" class="alert alert--error hidden">
+            <i data-lucide="alert-circle" class="alert__icon"></i>
             <span id="errorMessage"></span>
           </div>
 
           <!-- Alerta de Éxito (Oculta por defecto) -->
-          <div
-            id="successAlert"
-            class="hidden mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center gap-2"
-          >
-            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-            <span
-              >¡Fechas de los lapsos guardadas exitosamente en la base de
-              datos!</span
-            >
+          <div id="successAlert" class="alert alert--success hidden">
+            <i data-lucide="check-circle-2" class="alert__icon"></i>
+            <span>¡Fechas de los lapsos guardadas exitosamente en la base de datos!</span>
           </div>
 
           <!-- Botón Guardar / Editar -->
-          <div class="mt-8 flex justify-end">
-            <button
-              type="submit"
-              id="btnAction"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-medium shadow-sm transition flex items-center gap-2"
-            >
+          <div class="form-actions">
+            <button type="submit" id="btnAction" class="btn btn--submit">
               <!-- El contenido será rellenado dinámicamente con JS -->
             </button>
           </div>
@@ -212,21 +114,17 @@
     </main>
 
     <!-- Modal de Carga (Oculto) -->
-    <div
-      id="loadingModal"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
-    >
-      <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-        <i
-          data-lucide="loader-2"
-          class="w-10 h-10 text-blue-600 animate-spin mb-4"
-        ></i>
-        <p class="font-medium text-gray-800">
+    <div id="loadingModal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <i data-lucide="loader-2" class="modal-content__spinner"></i>
+        <p class="modal-content__text">
           Sincronizando con el servidor...
         </p>
       </div>
     </div>
 
+      </main>
+    </div>
     <!-- Importamos la configuración global para tener la URL del API (igual que en subjectsmanager) -->
     <script src="/src/scripts/config.js"></script>
     <script>
@@ -251,11 +149,11 @@
         inputs.forEach(input => input.disabled = !enable);
 
         if (enable) {
-          btnAction.innerHTML = '<i data-lucide="save" class="w-5 h-5"></i> Guardar Configuración';
-          btnAction.className = "bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg font-medium shadow-sm transition flex items-center gap-2";
+          btnAction.innerHTML = '<i data-lucide="save" class="btn__icon"></i> Guardar Configuración';
+          btnAction.className = "btn btn--submit btn--submit-save";
         } else {
-          btnAction.innerHTML = '<i data-lucide="edit" class="w-5 h-5"></i> Editar fechas de lapsos';
-          btnAction.className = "bg-amber-500 hover:bg-amber-600 text-white px-8 py-2.5 rounded-lg font-medium shadow-sm transition flex items-center gap-2";
+          btnAction.innerHTML = '<i data-lucide="edit" class="btn__icon"></i> Editar fechas de lapsos';
+          btnAction.className = "btn btn--submit btn--submit-edit";
         }
         
         // Renderizar los nuevos iconos inyectados
@@ -415,5 +313,6 @@
         );
       });
     </script>
-  </body>
+    </div>
+</body>
 </html>

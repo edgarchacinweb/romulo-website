@@ -1,5 +1,5 @@
 import authorize from "./auth.js";
-import numberToLetter from "./utils.js";
+import { numberToLetter, formatCedula } from "./utils.js";
 
 authorize("administrador");
 
@@ -48,24 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // -----------------------------------------------------------------
 
   // --- FUNCIÓN HELPER PARA FORMATEAR CÉDULA ---
-  const formatCedula = (cedula) => {
-      let str = String(cedula).toUpperCase().trim();
-      let limpia = str.replace(/-/g, ""); // Quitamos guiones para contar bien
-      
-      // Si es Cédula Escolar (más de 9 dígitos puros)
-      if (limpia.length > 9) {
-          if (str.startsWith("E-") || str.startsWith("V-")) return str;
-          if (str.startsWith("E") || str.startsWith("V")) return str.charAt(0) + "-" + str.substring(1);
-          return "V-" + str;
-      }
 
-      // Si es Cédula Regular
-      if (str.startsWith("V-") || str.startsWith("E-")) return str;
-      if (str.startsWith("V")) return "V-" + str.substring(1);
-      if (str.startsWith("E")) return "E-" + str.substring(1);
-      
-      return `V-${str}`;
-  };
 
   // --- Lógica del Modal de Edición (Estado) ---
   if(cancelEditBtn) {
@@ -291,7 +274,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               />
               <div>
                 <h3>${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}</h3>
-                <span class="badge">${student["Curso"]["Grado"]}° Año • Sección ${numberToLetter(student["Curso"]["Seccion"])}</span>
+                <span class="badge">
+                    ${student["Curso"]["Grado"]}° Año • 
+                    ${student["Curso"]["Seccion"] === "Por asignar" || student["Curso"]["Seccion"] == 0 
+                        ? "Por asignar" 
+                        : `Sección ${typeof student["Curso"]["Seccion"] === "string" ? student["Curso"]["Seccion"] : numberToLetter(student["Curso"]["Seccion"])}`
+                    }
+                </span>
               </div>
             </div>
             

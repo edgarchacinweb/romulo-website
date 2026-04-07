@@ -21,10 +21,7 @@
       }
 
       .main {
-        margin-left: 0 !important;
         padding: 30px 4% !important;
-        width: 100% !important;
-        max-width: 100% !important;
         box-sizing: border-box;
         min-height: 100vh;
       }
@@ -130,11 +127,17 @@
       .modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
       .btn-cancel { background: white; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
     </style>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <section class="notifications" id="notifications"></section>
+    
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
 
-    <main class="main">
+      <main class="content-wrapper main">
       <header class="page-header">
         <div class="header-brand">
           <img src="/src/assets/images/romulo.png" alt="Logo Liceo Romulo Gallegos" width="50" height="50" onerror="this.style.display='none'" style="border-radius: 8px;" />
@@ -142,6 +145,25 @@
         </div>
         <a href="/app/admin/dashboard/index.html" class="btn-back-header">Volver al Menú</a>
       </header>
+
+      <!-- DASHBOARD GLOBAL (INICIAL) -->
+      <section class="dashboard-global-grid" id="globalDashboard" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+        <div class="card" style="padding: 20px; border-radius: 12px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-left: 5px solid #3b82f6;">
+          <p style="margin: 0; color: #64748b; font-size: 0.9rem; font-weight: 600;">Total Alumnos Evaluados Hoy</p>
+          <h2 style="margin: 10px 0 0 0; color: #1e293b; font-size: 2rem;" id="globalTotal">-</h2>
+          <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #94a3b8;">Toda la institución</p>
+        </div>
+        <div class="card" style="padding: 20px; border-radius: 12px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-left: 5px solid #10b981;">
+          <p style="margin: 0; color: #64748b; font-size: 0.9rem; font-weight: 600;">Total Presentes Hoy</p>
+          <h2 style="margin: 10px 0 0 0; color: #1e293b; font-size: 2rem;" id="globalPresent">-</h2>
+          <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #94a3b8;">Asistencia confirmada</p>
+        </div>
+        <div class="card" style="padding: 20px; border-radius: 12px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border-left: 5px solid #ef4444;">
+          <p style="margin: 0; color: #64748b; font-size: 0.9rem; font-weight: 600;">Total Ausentes Hoy</p>
+          <h2 style="margin: 10px 0 0 0; color: #1e293b; font-size: 2rem;" id="globalAbsent">-</h2>
+          <p style="margin: 5px 0 0 0; font-size: 0.8rem; color: #94a3b8;">Inasistencias registradas</p>
+        </div>
+      </section>
 
       <section class="filters-container">
         <!-- TABS DE NAVEGACIÓN -->
@@ -177,6 +199,22 @@
           </div>
         </div>
         <button id="btnBuscar" class="btn-blue">Buscar Registro</button>
+      </section>
+
+      <!-- DASHBOARD DE SECCIÓN (FLOTANTE AL BUSCAR) -->
+      <section class="section-dashboard-grid" id="sectionDashboard" style="display: none; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
+        <div class="card" style="padding: 15px; border-radius: 10px; background: #f0f9ff; border: 1px solid #bae6fd; text-align: center;">
+          <p style="margin: 0; color: #0369a1; font-size: 0.85rem; font-weight: 700;">Evaluados en sección</p>
+          <h3 style="margin: 5px 0 0 0; color: #0c4a6e; font-size: 1.5rem;" id="sectionTotal">0</h3>
+        </div>
+        <div class="card" style="padding: 15px; border-radius: 10px; background: #f0fdf4; border: 1px solid #bbf7d0; text-align: center;">
+          <p style="margin: 0; color: #15803d; font-size: 0.85rem; font-weight: 700;">Presentes</p>
+          <h3 style="margin: 5px 0 0 0; color: #064e3b; font-size: 1.5rem;" id="sectionPresent">0</h3>
+        </div>
+        <div class="card" style="padding: 15px; border-radius: 10px; background: #fff1f2; border: 1px solid #fecaca; text-align: center;">
+          <p style="margin: 0; color: #be123c; font-size: 0.85rem; font-weight: 700;">Ausentes</p>
+          <h3 style="margin: 5px 0 0 0; color: #881337; font-size: 1.5rem;" id="sectionAbsent">0</h3>
+        </div>
       </section>
 
       <section class="report-card" id="reportCard">
@@ -257,5 +295,7 @@
 
     <script src="/src/scripts/config.js"></script>
     <script src="/src/scripts/admin_asistencia.js" type="module"></script>
-  </body>
+      </main>
+    </div>
+</body>
 </html>

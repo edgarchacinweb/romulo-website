@@ -85,34 +85,16 @@
       type="module"
       defer
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <notifications-container id="notifications"></notifications-container>
     <div class="app-container">
-      <header class="main-header">
-        <div>
-          <h1>Gestión de Representantes</h1>
-          <p>Administra los representantes de la institución educativa</p>
-        </div>
-        <a href="/app/admin/dashboard/" class="btn-outline" id="BtnBack">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-            <polyline points="16 17 21 12 16 7"></polyline>
-            <line x1="21" y1="12" x2="9" y2="12"></line>
-          </svg>
-          Salir
-        </a>
-      </header>
-
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
       <div class="dashboard-layout">
         <aside class="form-panel">
           <div class="card">
@@ -153,6 +135,9 @@
                     type="text"
                     id="cedula"
                     placeholder="Ej: 12345678"
+                    maxlength="9"
+                    minlength="7"
+                    pattern="\d{7,9}"
                     required
                   />
                 </div>
@@ -218,7 +203,10 @@
         </main>
       </div>
     </div>
+      </main>
+    </div>
 
     <script src="/src/scripts/parentsmanager.js" type="module"></script>
-  </body>
+    </div>
+</body>
 </html>

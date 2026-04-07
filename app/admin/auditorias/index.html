@@ -17,43 +17,17 @@
       type="module"
       src="/src/components/notifications-container.component.js"
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <notifications-container id="notifications"></notifications-container>
     <div id="page">
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
       <div id="app-wrapper" class="app-wrapper fade-in-up">
-        <header class="top-header">
-          <div class="header-left">
-            <div class="logo-icon">
-              <img
-                src="/src/assets/images/romulo.webp"
-                alt="Logo institucional"
-                width="70px"
-              />
-            </div>
-            <div class="header-titles">
-              <h1>Liceo Nacional "Don Rómulo Gallegos"</h1>
-              <p>Auditorías del Sistema</p>
-            </div>
-          </div>
-          <button id="btn-salir" class="btn-outline btn-salir">
-            <svg
-              viewBox="0 0 24 24"
-              width="16"
-              height="16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M16 17l5-5-5-5M21 12H9M9 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5"
-              ></path>
-            </svg>
-            Salir
-          </button>
-        </header>
 
         <main class="main-content">
           <section class="page-header">
@@ -276,113 +250,30 @@
                   </tr>
                 </thead>
                 <tbody id="auditoriesTable">
-                  <!-- <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Acceso al panel de administración</td>
-                    <td>
-                      <span class="pill act-login">Inicio de sesión</span>
-                    </td>
-                    <td>02 mar 2024 09:15</td>
-                  </tr>
-                  <tr>
-                    <td>docente@institucion.edu</td>
-                    <td><span class="pill role-docente">Docente</span></td>
-                    <td>Creó nuevo grupo de estudiantes 10°A</td>
-                    <td><span class="pill act-register">Registro</span></td>
-                    <td>02 mar 2024 10:30</td>
-                  </tr>
-                  <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Respaldo automático de base de datos completado</td>
-                    <td><span class="pill act-backup">Respaldo DB</span></td>
-                    <td>02 mar 2024 11:00</td>
-                  </tr>
-                  <tr>
-                    <td>secretaria@institucion.edu</td>
-                    <td>
-                      <span class="pill role-secretario">Secretario</span>
-                    </td>
-                    <td>Actualizó información de estudiante Juan Pérez</td>
-                    <td><span class="pill act-update">Actualización</span></td>
-                    <td>02 mar 2024 12:45</td>
-                  </tr>
-                  <tr>
-                    <td>estudiante@institucion.edu</td>
-                    <td>
-                      <span class="pill role-estudiante">Estudiante</span>
-                    </td>
-                    <td>Inició sesión en el portal estudiantil</td>
-                    <td>
-                      <span class="pill act-login">Inicio de sesión</span>
-                    </td>
-                    <td>02 mar 2024 13:20</td>
-                  </tr>
-                  <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Cambió permisos del usuario docente Maria Garcia</td>
-                    <td>
-                      <span class="pill act-permissions">Cambio permisos</span>
-                    </td>
-                    <td>02 mar 2024 14:10</td>
-                  </tr>
-                  <tr>
-                    <td>docente2@institucion.edu</td>
-                    <td><span class="pill role-docente">Docente</span></td>
-                    <td>Exportó calificaciones del trimestre</td>
-                    <td><span class="pill act-export">Exportación</span></td>
-                    <td>02 mar 2024 15:30</td>
-                  </tr>
-                  <tr>
-                    <td>secretaria@institucion.edu</td>
-                    <td>
-                      <span class="pill role-secretario">Secretario</span>
-                    </td>
-                    <td>Eliminó registro de estudiante inactivo</td>
-                    <td><span class="pill act-delete">Eliminación</span></td>
-                    <td>02 mar 2024 16:15</td>
-                  </tr>
-                  <tr>
-                    <td>admin@institucion.edu</td>
-                    <td><span class="pill role-admin">Administrador</span></td>
-                    <td>Configuró nuevo logo institucional</td>
-                    <td><span class="pill act-config">Configuración</span></td>
-                    <td>02 mar 2024 17:00</td>
-                  </tr>
-                  <tr>
-                    <td>docente@institucion.edu</td>
-                    <td><span class="pill role-docente">Docente</span></td>
-                    <td>Cambió contraseña</td>
-                    <td>
-                      <span class="pill act-password">Cambio contraseña</span>
-                    </td>
-                    <td>02 mar 2024 17:45</td>
-                  </tr>
-                  <tr>
-                    <td>estudiante2@institucion.edu</td>
-                    <td>
-                      <span class="pill role-estudiante">Estudiante</span>
-                    </td>
-                    <td>Consultó horario académico</td>
-                    <td>
-                      <span class="pill act-login">Inicio de sesión</span>
-                    </td>
-                    <td>01 mar 2024 08:30</td>
-                  </tr>
-                  <tr>
-                    <td>secretaria@institucion.edu</td>
-                    <td>
-                      <span class="pill role-secretario">Secretario</span>
-                    </td>
-                    <td>Importó nuevos datos de estudiantes</td>
-                    <td><span class="pill act-export">Importación</span></td>
-                    <td>01 mar 2024 09:00</td>
-                  </tr> -->
                 </tbody>
               </table>
             </div>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+              <div class="pagination-info">
+                <span id="pagination-text">1-50 de ...</span>
+                <button class="btn-link" id="btn-view-all">Ver todo</button>
+              </div>
+              <div class="pagination-buttons">
+                <button class="btn-pagination" id="prev-page" title="Anterior">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6"></path>
+                  </svg>
+                </button>
+                <button class="btn-pagination" id="next-page" title="Siguiente">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </section>
           </section>
         </main>
 
@@ -458,6 +349,10 @@
         </footer>
       </div>
     </div>
+    <script src="/src/scripts/config.js" type="module"></script>
+    <script type="module" src="/src/scripts/auditorymanager.js"></script>
+    </div>
+
     <div class="report-container" id="print">
       <header class="institution-header">
         <img
@@ -513,7 +408,5 @@
         <p>Documento confidencial - Solo para uso interno de la institución</p>
       </footer>
     </div>
-    <script src="/src/scripts/config.js" type="module"></script>
-    <script type="module" src="/src/scripts/auditorymanager.js"></script>
-  </body>
+</body>
 </html>

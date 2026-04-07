@@ -40,6 +40,14 @@ let lapsosData = [];
 let currentFilter = 'all';
 let isAttendanceSaved = false;
 
+// === PREVENCIÓN DE PÉRDIDA DE DATOS ===
+window.addEventListener('beforeunload', (event) => {
+  if (currentStudents.length > 0 && !isAttendanceSaved) {
+    event.preventDefault();
+    event.returnValue = 'Tienes cambios sin guardar en la lista de asistencia. ¿Estás seguro de que deseas salir?';
+  }
+});
+
 // === CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
 document.addEventListener("DOMContentLoaded", async () => {
   try {
@@ -74,7 +82,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (!response.ok) throw new Error("No se pudieron cargar las materias");
 
-    const subjects = await response.json();
+    let subjects = await response.json();
+
+    // Blindaje: Garantizar opciones únicas eliminando duplicados por MateriaId
+    const seenSubjectIds = new Set();
+    subjects = subjects.filter(subject => {
+      if (seenSubjectIds.has(subject.MateriaId)) {
+        return false;
+      }
+      seenSubjectIds.add(subject.MateriaId);
+      return true;
+    });
 
     subjectSelect.innerHTML = '<option value="" disabled selected>Elige materia</option>';
 
@@ -300,7 +318,11 @@ function renderStudents() {
     if (student.present === true) {
       statusBadge = `<span class="student-status-badge" style="background:#dcfce7; color:#166534;">Presente</span>`;
     } else if (student.present === false) {
-      statusBadge = `<span class="student-status-badge" style="background:#fee2e2; color:#991b1b;">Ausente</span>`;
+      if (student.justification && student.justification.trim() !== "") {
+        statusBadge = `<span class="student-status-badge" style="background:#fef3c7; color:#92400e;">Justificado</span>`;
+      } else {
+        statusBadge = `<span class="student-status-badge" style="background:#fee2e2; color:#991b1b;">Ausente</span>`;
+      }
     }
 
     const disabledStyle = isAttendanceSaved ? 'opacity: 0.6; cursor: not-allowed;' : '';
@@ -319,11 +341,17 @@ function renderStudents() {
                         style="${disabledStyle}">
                     ✔️ Presente
                 </button>
-                <button class="btn-mark absent ${student.present === false ? 'active' : ''}" 
+                <button class="btn-mark absent ${student.present === false && (!student.justification) ? 'active' : ''}" 
                         onclick="markStudent(${student.originalIndex}, false)" 
                         ${isAttendanceSaved ? 'disabled' : ''} 
                         style="${disabledStyle}">
                     ❌ Ausente
+                </button>
+                <button class="btn-mark" 
+                        onclick="markJustified(${student.originalIndex})"
+                        ${isAttendanceSaved ? 'disabled' : ''} 
+                        style="${disabledStyle}; ${student.present === false && student.justification ? 'background: #fef3c7; border-color: #f59e0b; color: #92400e;' : ''}">
+                    📄 Justificar
                 </button>
             </div>
         </div>
@@ -352,8 +380,23 @@ window.markStudent = (index, status) => {
   currentStudents[index].present = status;
   if (status === true) {
     currentStudents[index].justification = "";
+  } else {
+    // Si marcamos ausente a secas, limpiamos justificación previa si la hubiera
+    currentStudents[index].justification = "";
   }
   renderStudents();
+};
+
+window.markJustified = (index) => {
+  if (isAttendanceSaved) return;
+
+  currentStudents[index].present = false;
+  // Pedimos justificación rápida o dejamos texto por defecto
+  const reason = prompt("Ingrese el motivo del justificativo:", currentStudents[index].justification || "");
+  if (reason !== null) {
+    currentStudents[index].justification = reason.trim() || "Justificado por Docente";
+    renderStudents();
+  }
 };
 
 window.updateJustification = (index, value) => {

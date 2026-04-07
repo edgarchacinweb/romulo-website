@@ -89,6 +89,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // Guardando el token de autenticación y el rol del usuario
           localStorage.setItem("auth", token);
           localStorage.setItem("role", role);
+          localStorage.setItem("email", username);
 
           // Redirigiendo a la ventana correspondiente
           let url = "";

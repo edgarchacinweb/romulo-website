@@ -28,6 +28,27 @@ const calcMinutesDifferences = (time1, time2) => {
   return Math.floor(Math.abs(completeDate2 - completeDate1) / (1000 * 60));
 };
 
+const highlightCurrentClass = () => {
+  const now = new Date();
+  const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const currentDay = days[now.getDay()];
+  const currentTime = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+  if (now.getDay() === 0 || now.getDay() === 6) return; // Fin de semana
+
+  scheduleBlocks.forEach((block) => {
+    if (currentTime >= block.HoraInicio && currentTime <= block.HoraFin) {
+      const dayIndex = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].indexOf(currentDay);
+      if (dayIndex === -1) return;
+
+      const cells = document.querySelectorAll(`[data-row="${block.BloqueHorarioId}"]`);
+      if (cells[dayIndex]) {
+        cells[dayIndex].classList.add("current-class-highlight");
+      }
+    }
+  });
+};
+
 const updateSections = (sectionData) => {
   const sectionField = document.getElementById("sectionField");
   sectionField.innerHTML = '<option value="">Selecciona la sección</option>';
@@ -71,9 +92,15 @@ const updateGrades = async (term) => {
     newGradeOption.setAttribute("value", s["CursoId"]);
     newGradeOption.textContent = s["Grado"];
     gradeField.appendChild(newGradeOption);
-
-    gradeField.addEventListener("change", () => updateSections(s));
   });
+
+  gradeField.onchange = () => {
+    const selectedCourseId = gradeField.value;
+    const selectedCourseData = sections.find(
+      (s) => s["CursoId"] === selectedCourseId,
+    );
+    if (selectedCourseData) updateSections(selectedCourseData);
+  };
 
   if (error && error.message) {
     const notification = document.createElement("notification-component");
@@ -81,12 +108,11 @@ const updateGrades = async (term) => {
     notification.setAttribute("text", error.message);
     document.getElementById("notifications").appendChild(notification);
     if (document.getElementById("results-container"))
-      document.getElementById("results-container").remove();
+      document.getElementById("results-container").innerHTML = "";
     document.getElementById("empty-state").style.display = "flex";
     gradeField.setAttribute("disabled", "");
     sectionField.setAttribute("disabled", "");
     throw error;
-  } else {
   }
 
   if (gradeField.getAttribute("disabled") !== null) {
@@ -94,10 +120,13 @@ const updateGrades = async (term) => {
   }
 };
 
-const filter = async (grade, section) => {
+const filter = async (courseId, section) => {
   // Configurando reporte
+  const currentCourse = courses.find((c) => c["CursoId"] === courseId);
+  const gradeNumber = currentCourse ? currentCourse["Grado"] : "N/A";
+
   document.querySelector(".print__grade").textContent =
-    `${grade}° Año - Sección ${section}`;
+    `${gradeNumber}° Año - Sección ${section}`;
 
   const scheduleReport = document.querySelector(".print__schedule-data");
   scheduleReport.innerHTML = "";
@@ -106,14 +135,31 @@ const filter = async (grade, section) => {
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
 
-  const courseId = courses.find((c) => c["Grado"] === parseInt(grade))[
-    "CursoId"
-  ];
   const numberSection = ["A", "B", "C", "D", "E", "F"].indexOf(section) + 1;
 
   const selectedSchedule = schedule.filter(
     (s) => s["Seccion"] === numberSection && s["CursoId"] === courseId,
   );
+
+  if (selectedSchedule.length === 0) {
+    scheduleCard.innerHTML = "";
+    if (document.getElementById("results-container")) {
+      document.getElementById("results-container").innerHTML = "";
+    }
+    emptyState.style.display = "flex";
+    emptyState.innerHTML = `
+        <div class="warning-banner">
+            <div class="warning-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                    <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                </svg>
+            </div>
+            <h3>Sin Horas Asignadas</h3>
+            <p>Usted no tiene horas académicas asignadas para esta sección en este período.</p>
+        </div>
+      `;
+    return;
+  }
 
   try {
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
@@ -223,7 +269,7 @@ const filter = async (grade, section) => {
       );
     }, "");
 
-    emptyState.remove();
+    emptyState.style.display = "none";
     scheduleCard.innerHTML = `
     <div class="card-header border-bottom">
             <div class="icon-title">
@@ -283,6 +329,7 @@ const filter = async (grade, section) => {
         </footer>
     `;
     scheduleContainer.appendChild(scheduleCard);
+    highlightCurrentClass();
 
     document
       .getElementById("btn-pdf")
@@ -391,7 +438,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateGrades(schoolTermResponse.id);
     sectionField.addEventListener("change", () => {
       filter(
-        gradeField.options[gradeField.selectedIndex].textContent,
+        gradeField.value,
         sectionField.options[sectionField.selectedIndex].textContent,
       );
     });

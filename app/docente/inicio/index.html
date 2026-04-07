@@ -11,6 +11,9 @@
     
     <!-- FontAwesome para los íconos y CSS específico del Dashboard Resumen -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+    <script src="/src/scripts/layout.js" defer></script>
     <style>
       .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
       .kpi-card { background: white; border-radius: 0.75rem; border: 1px solid #e2e8f0; padding: 1.25rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
@@ -41,38 +44,18 @@
     </style>
   </head>
   <body>
-    <!-- Barra lateral -->
-    <aside class="sidebar">
-      <div>
-        <div class="logo">
-          <img src="/src/assets/images/romulo.png" alt="Logo" onerror="this.style.display='none'" />
-          <h2>Liceo Romulo Gallegos</h2>
-        </div>
-        <ul>
-          <li><a href="/app/docente/horarios/">📅 Visualizar Horario</a></li>
-          <li><a href="/app/docente/calificaciones/">📝 Calificaciones</a></li>
-          <li><a href="../asistencia/index.html">✅ Asistencias</a></li>
-          <li style="margin-top: 15px;">
-            <a href="#" id="sidebar-logout">➜] Salir</a>
-          </li>
-        </ul>
-      </div>
-      <div class="user">
-        <div class="user-info">
-          <strong id="sidebar-user-name">Cargando...</strong>
-          <span>Panel de Gestión</span>
-        </div>
-      </div>
-    </aside>
+    <header id="navbar-container" class="navbar-wrapper"></header>
 
-    <!-- Contenido Principal -->
-    <main class="main">
-      <header style="display: flex; justify-content: space-between; align-items: center;">
-        <h1>Sistema de Gestión Docente</h1>
-        <div style="color: #64748b; font-size: 0.9rem; font-weight: 500;">
-          <i class="fa-regular fa-clock" style="margin-right: 5px;"></i> <span id="current-date">Cargando fecha...</span>
-        </div>
-      </header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+
+      <main class="content-wrapper main-content">
+        <header style="display: flex; justify-content: space-between; align-items: center;">
+          <h1>Sistema de Gestión Docente</h1>
+          <div style="color: #64748b; font-size: 0.9rem; font-weight: 500;">
+            <i class="fa-regular fa-clock" style="margin-right: 5px;"></i> <span id="current-date">Cargando fecha...</span>
+          </div>
+        </header>
 
       <section class="welcome" style="display: flex; align-items: center; gap: 20px; margin-bottom: 30px;">
         <div class="welcome-icon" style="background-color: #3b82f6; padding: 15px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5); width: 60px; height: 60px;">
@@ -127,8 +110,10 @@
           </div>
         </div>
 
-      </div>
-    </main>
+        </div>
+
+      </main>
+    </div>
 
     <script src="/src/scripts/config.js" type="module"></script>
     <script src="/src/scripts/teacherdashboard.js" type="module"></script>

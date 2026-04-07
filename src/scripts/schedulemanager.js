@@ -14,6 +14,24 @@ let schedule = [];
 let courses = [];
 let termList = [];
 let selectedTerm = undefined;
+let isEditingMode = true;
+
+const toggleEditMode = (enable) => {
+  isEditingMode = enable;
+  const selectPills = document.querySelectorAll(".select-subject");
+  const teacherSelectors = document.querySelectorAll(".teacher-selector");
+  const btnSubmit = document.getElementById("btn-submit");
+  const btnEdit = document.getElementById("btn-edit-schedule");
+
+  const btnCancel = document.getElementById("btn-cancel");
+
+  selectPills.forEach((s) => (s.disabled = !enable));
+  teacherSelectors.forEach((s) => (s.disabled = !enable));
+
+  if (btnSubmit) btnSubmit.style.display = enable ? "flex" : "none";
+  if (btnCancel) btnCancel.style.display = enable ? "flex" : "none";
+  if (btnEdit) btnEdit.style.display = enable ? "none" : "flex";
+};
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -65,16 +83,67 @@ const loadSchedules = async (term, period) => {
   }
 };
 
+const loadAdminStatus = async () => {
+  const alertPanel = document.getElementById("alert-panel");
+  if (!alertPanel) return;
+
+  try {
+    const response = await fetch(`${window.APP_CONFIG.api_url}/schedule/admin/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const statusData = await response.json();
+    if (!response.ok) throw new Error(statusData.message);
+
+    // Filtrar secciones que necesitan atención (15+ alumnos e Incompleto/Vacio)
+    const pendingSections = statusData.filter(
+      (s) => s.Alumnos >= 15 && (s.Estatus === "Vacio" || s.Estatus === "Incompleto")
+    );
+
+    if (pendingSections.length === 0) {
+      alertPanel.style.display = "none";
+      return;
+    }
+
+    alertPanel.style.display = "flex";
+    alertPanel.innerHTML = `
+      <div class="alert-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="alert-content">
+        <p><strong>Atención Administrativa:</strong> Las siguientes secciones ya cumplen el mínimo de alumnos pero tienen horarios pendientes:</p>
+        <div class="alert-chips">
+          ${pendingSections
+        .map(
+          (s) => `
+            <div class="alert-chip ${s.Estatus.toLowerCase()}" onclick="document.getElementById('gradeField').value='${s.CursoId}'; document.getElementById('gradeField').dispatchEvent(new Event('change')); setTimeout(()=>{document.getElementById('sectionField').value='${s.Seccion}'; document.getElementById('sectionField').dispatchEvent(new Event('change'))}, 500)">
+              ${s.Grado}° Año "${s.SeccionLetra}" - ${s.Estatus} (${s.Alumnos} alumnos)
+            </div>
+          `
+        )
+        .join("")}
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    console.error("Error al cargar estatus administrativo:", err);
+  }
+};
+
 const renderTeacherSelector = (assignedSubjects) => {
-  const disabledValue =
-    selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
+  const termId = termList[0] ? (termList[0]["PeriodoEscolarId"] || termList[0]["id"]) : undefined;
+  const canEdit = selectedTerm === termId;
+  const disabledValue = (canEdit && isEditingMode) ? "" : " disabled";
+
   const tableList = document.getElementById("table-list");
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
 
   assignedSubjects.forEach((subject) => {
-    const subjectName = subjects.find((s) => s["MateriaId"] === subject)[
-      "Nombre"
-    ];
+    const foundSubject = subjects.find((s) => s["MateriaId"] === subject);
+    const subjectName = foundSubject ? foundSubject["Nombre"] : "Materia Desactivada";
     const tableItem = document.createElement("div");
     tableItem.classList.add("table-row");
     const teachersList = teachers.filter((t) =>
@@ -200,20 +269,53 @@ const filter = async (grade, section) => {
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
 
+  // Verificar cantidad de estudiantes antes de cargar la grilla
   try {
-    const disabledValue =
-      selectedTerm === termList[0]["PeriodoEscolarId"] ? "" : " disabled";
-    const level =
-      courses.find((c) => c["CursoId"] === grade)["Grado"] < 4
-        ? "Secundaria"
-        : "Bachillerato";
+    const statusResponse = await fetch(`${window.APP_CONFIG.api_url}/schedule/admin/status`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const statusData = await statusResponse.json();
+    const currentSection = statusData.find(s => s.CursoId === grade && s.Seccion == section);
+
+    if (currentSection && currentSection.Alumnos < 15) {
+      emptyState.style.display = "flex";
+      emptyState.innerHTML = `
+        <div class="warning-banner">
+          <div class="warning-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            </svg>
+          </div>
+          <h3>Sección con cupos insuficientes</h3>
+          <p>Esta sección cuenta actualmente con <strong>${currentSection.Alumnos}</strong> estudiantes inscritos. Se requiere un mínimo de <strong>15</strong> para proceder con la asignación de horarios.</p>
+          <p class="small"></p>
+        </div>
+      `;
+      if (document.getElementById("results-container")) {
+        document.getElementById("results-container").innerHTML = "";
+      }
+      return;
+    }
+  } catch (err) {
+    console.error("Error validando estudiantes:", err);
+  }
+
+  try {
+    const termId = termList[0] ? (termList[0]["PeriodoEscolarId"] || termList[0]["id"]) : undefined;
+    const canEdit = selectedTerm === termId;
+    const disabledValue = (canEdit && isEditingMode) ? "" : " disabled";
+    const courseGrade = courses.find((c) => c["CursoId"] === grade)?.["Grado"];
+    
     const options = subjects
-      .filter((s) => s["Nivel"] === level)
+      .filter((s) => {
+        const hsInfo = s.HorasPorCurso?.find(hc => hc.Grado === courseGrade);
+        return hsInfo && parseInt(hsInfo.HorasAcademicas || 0) > 0;
+      })
       .reduce((prev, element) => {
         return (
           prev +
           `
-        <option value="${element["MateriaId"]}">${element["Nombre"]}</option>"
+        <option value="${element["MateriaId"]}">${element["Nombre"]}</option>
       `
         );
       }, '<option value="">Sin asignar</option>');
@@ -379,9 +481,9 @@ const filter = async (grade, section) => {
               </svg>
               Exportar PDF
             </button>
-            ${disabledValue.length === 0
+            ${canEdit
         ? `
-              <button class="btn btn-primary" id="btn-submit">
+              <button class="btn btn-primary" id="btn-submit" style="display: ${isEditingMode ? 'flex' : 'none'};">
               <svg
                 width="18"
                 height="18"
@@ -398,7 +500,25 @@ const filter = async (grade, section) => {
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
               </svg>
-              Guardar Cambios
+              Guardar Horario
+            </button>
+            <button class="btn btn-secondary" id="btn-cancel" style="display: ${isEditingMode ? 'flex' : 'none'};">
+              Cancelar
+            </button>
+            <button class="btn btn-secondary" id="btn-edit-schedule" style="display: ${isEditingMode ? 'none' : 'flex'};">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Editar Horario
             </button>
               `
         : ""
@@ -426,9 +546,12 @@ const filter = async (grade, section) => {
 
         if (data) {
           const select = r.querySelector(`.${days[index]}`);
-          select
-            .querySelector(`[value="${data["MateriaId"]}"`)
-            .setAttribute("selected", "");
+          if (select) {
+            const option = select.querySelector(`[value="${data["MateriaId"]}"]`);
+            if (option) {
+              option.setAttribute("selected", "selected");
+            }
+          }
         }
       });
     });
@@ -479,11 +602,23 @@ const filter = async (grade, section) => {
 
           const updatedSchedule = [];
           document.querySelectorAll(".select-subject").forEach((s) => {
-            if (s.value === "") return;
             const scheduleBlockId = s.parentElement.getAttribute("data-row");
-            const teacher = document.querySelector(
-              `[data-subject="${s.value}"]`,
-            ).value;
+            
+            if (s.value === "") {
+              updatedSchedule.push({
+                CursoId: grade,
+                BloqueHorarioId: scheduleBlockId,
+                DocenteId: "sin_asignar",
+                MateriaId: "sin_asignar",
+                Seccion: section,
+                Dia: s.classList[2],
+              });
+              return;
+            }
+
+            const teacherNode = document.querySelector(`[data-subject="${s.value}"]`);
+            const teacher = teacherNode ? teacherNode.value : null;
+
             updatedSchedule.push({
               CursoId: grade,
               BloqueHorarioId: scheduleBlockId,
@@ -497,7 +632,20 @@ const filter = async (grade, section) => {
           const notification = document.createElement("notification-component");
 
           try {
+            if (updatedSchedule.length === 0) {
+              throw new Error("No puedes guardar un horario completamente vacío.");
+            }
+
+            const currentSectionSchedule = updatedSchedule;
+            const otherSectionsSchedule = schedule.filter(s => s["CursoId"] !== grade || s["Seccion"] !== parseInt(section));
+
             updatedSchedule.forEach((us) => {
+              if (us["MateriaId"] === "sin_asignar") return;
+
+              if (!us["DocenteId"] || us["DocenteId"] === "") {
+                const subjectName = subjects.find(s => s["MateriaId"] === us["MateriaId"])?.Nombre || "Materia desconocida";
+                throw new Error(`Debe asignar un docente para la materia ${subjectName}`);
+              }
               const repeatedElement = schedule.find(
                 (s) =>
                   s["BloqueHorarioId"] === us["BloqueHorarioId"] &&
@@ -518,7 +666,7 @@ const filter = async (grade, section) => {
                     repeatedElement["BloqueHorarioId"],
                 );
                 throw new Error(
-                  `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
+                  `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} en otro horario.`,
                 );
               }
 
@@ -526,7 +674,7 @@ const filter = async (grade, section) => {
                 (t) => t["DocenteId"] === us["DocenteId"],
               )["HorasAcademicas"];
 
-              const teacherHours = [...schedule, ...updatedSchedule].filter(
+              const teacherHours = [...otherSectionsSchedule, ...currentSectionSchedule].filter(
                 (t) => t["DocenteId"] === us["DocenteId"],
               ).length;
 
@@ -536,13 +684,14 @@ const filter = async (grade, section) => {
                 );
               }
 
-              const scheduleHours = schedule.filter(
-                (s) => s["MateriaId"] === us["MateriaId"] && s["CursoId"] === us["CursoId"] && s["Seccion"] === us["Seccion"],
-              );
+              const subjectHoursInThisSection = currentSectionSchedule.filter(
+                (s) => s["MateriaId"] === us["MateriaId"]
+              ).length;
 
-              if (scheduleHours.length > 4) {
+              if (subjectHoursInThisSection > 4) {
+                const subjectName = subjects.find(s => s["MateriaId"] === us["MateriaId"])?.Nombre || "Materia";
                 throw new Error(
-                  `La materia ${us["MateriaId"]} superó su límite de horas semanales`,
+                  `La materia ${subjectName} no puede exceder los 4 bloques semanales.`,
                 );
               }
             });
@@ -576,6 +725,7 @@ const filter = async (grade, section) => {
               "¡Horario Guardado Correctamente!",
             );
             notifications.appendChild(notification);
+            toggleEditMode(false);
           } catch (Error) {
             console.error(Error.stack);
             notification.setAttribute("type", "error");
@@ -587,9 +737,28 @@ const filter = async (grade, section) => {
         });
     }
 
+    if (document.getElementById("btn-cancel")) {
+      document.getElementById("btn-cancel").addEventListener("click", () => {
+        isEditingMode = false;
+        filter(grade, section);
+      });
+    }
+
     document
       .getElementById("btn-pdf")
       .addEventListener("click", () => exportToPdf(grade, section));
+
+    if (selectedSchedule.length > 0) {
+      toggleEditMode(false);
+    } else {
+      toggleEditMode(true);
+    }
+
+    if (document.getElementById("btn-edit-schedule")) {
+      document.getElementById("btn-edit-schedule").addEventListener("click", () => {
+        toggleEditMode(true);
+      });
+    }
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notifications");
@@ -680,6 +849,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const gradeField = document.getElementById("gradeField");
   const sectionField = document.getElementById("sectionField");
   const termField = document.getElementById("termField");
+  const termNameDisplay = document.getElementById("termNameDisplay");
 
   const loader = document.createElement("loader-spinner");
   const notificationsContainer = document.getElementById("notifications");
@@ -690,28 +860,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     await updateGrades();
 
     const termResponse = await fetch(
-      `${window.APP_CONFIG.api_url}/school_term/list`,
+      `${window.APP_CONFIG.api_url}/school_term/get`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
       },
     );
 
-    const terms = await termResponse.json();
-    if (!termResponse.ok) throw new Error(terms.message);
-    termList = [...terms];
+    const term = await termResponse.json();
+    if (!termResponse.ok) throw new Error(term.message);
+    
+    // El sistema ahora solo maneja el período activo
+    termList = [term];
+    const termId = term["PeriodoEscolarId"] || term["id"];
+    const termName = `${new Date(term["FechaInicio"]).getFullYear()} - ${new Date(term["FechaFin"]).getFullYear()}`;
+    
+    termField.value = termId;
+    if (termNameDisplay) {
+      termNameDisplay.value = termName;
+    }
 
-    termField.querySelectorAll("option").forEach((o) => o.remove());
-    terms.forEach((t) => {
-      const newOption = document.createElement("option");
-      newOption.setAttribute("value", t["PeriodoEscolarId"]);
-      newOption.textContent = `${new Date(t["FechaInicio"]).getFullYear()} - ${new Date(t["FechaFin"]).getFullYear()}`;
-      termField.appendChild(newOption);
-    });
-
-    selectedTerm = termField.value;
+    selectedTerm = termId;
     const scheduleBlocksResponse = await fetch(
       `${window.APP_CONFIG.api_url}/schedule/blocks`,
       {
@@ -760,6 +932,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!gradesPromise.ok) throw new Error(gradesResponse.message);
 
     courses = [...gradesResponse];
+
+    // Cargar estatus administrativo
+    await loadAdminStatus();
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -777,25 +952,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadSchedules(
     termField.value,
-    termField.options[termField.selectedIndex].textContent,
+    termNameDisplay ? termNameDisplay.value : "Actual",
   );
-  termField.addEventListener("change", async () => {
-    selectedTerm = termField.value;
-    if (document.getElementById("results-container")) {
-      document.getElementById("results-container").remove();
-      emptyState.style.display = "flex";
-    }
-    await updateGrades(termField.value);
-    await loadSchedules(
-      termField.value,
-      termField.options[termField.selectedIndex].textContent,
-    );
-  });
 });
 
-document.getElementById("btn-back").addEventListener("click", (e) => {
-  e.preventDefault();
-  const url = e.target.href;
-  document.body.style.animation = "goodByePage 0.8s forwards";
-  setTimeout(() => (window.location.href = url), 1000);
-});
+const btnBack = document.getElementById("btn-back");
+if (btnBack) {
+  btnBack.addEventListener("click", (e) => {
+    e.preventDefault();
+    const url = e.target.href;
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    setTimeout(() => (window.location.href = url), 1000);
+  });
+}

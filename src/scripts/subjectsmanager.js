@@ -39,47 +39,48 @@ document.addEventListener("DOMContentLoaded", async () => {
       emptyState.classList.remove("hidden");
     }
     dynamicList.innerHTML = "";
-    ["Secundaria", "Bachillerato"].forEach((level) => {
 
-      const groupSection = document.createElement("div");
-      groupSection.classList.add("level-group");
-      groupSection.innerHTML = `
-                  <div class="subjects-grid">
-                    ${subjects.reduce((accum, subject) => {
-        return (
-          accum +
-          `
-                          <div class="subject-card">
-                            <div class="card-info">
-                              <h4>${subject["Nombre"].toUpperCase()}</h4>
-                              <span>${getCurrentDate(subject["Fecha"])}</span>
+    const groupSection = document.createElement("div");
+    groupSection.classList.add("level-group");
+    groupSection.innerHTML = `
+                <div class="subjects-grid">
+                  ${subjects.reduce((accum, subject) => {
+      return (
+        accum +
+        `
+                        <div class="subject-card">
+                          <div class="card-info">
+                            <h4>${subject["Nombre"].toUpperCase()}</h4>
+                            <span>${getCurrentDate(subject["Fecha"])}</span>
+                            <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
+                              ${subject["HorasPorCurso"] ? subject["HorasPorCurso"].map(h => `<span style="background-color: #e0f2fe; color: #0284c7; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600;">${h.Grado}º Año: ${h.HorasAcademicas}h</span>`).join('') : ''}
                             </div>
-                            <button class="btn-delete" title="Eliminar materia" data-id=${subject["MateriaId"]}>
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                              >
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path
-                                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                                ></path>
-                              </svg>
-                            </button>
                           </div>
-                        `
-        );
-      }, "")}
-                  </div>
-              `;
+                          <button class="btn-delete" title="Eliminar materia" data-id=${subject["MateriaId"]}>
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path
+                                d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                              ></path>
+                            </svg>
+                          </button>
+                        </div>
+                      `
+      );
+    }, "")}
+                </div>
+            `;
 
-      dynamicList.appendChild(groupSection);
-    });
+    dynamicList.appendChild(groupSection);
 
     document.querySelectorAll(".btn-delete").forEach((btn) =>
       btn.addEventListener("click", async () => {
@@ -179,8 +180,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   nameInput.addEventListener("change", enableBtn);
   nameInput.addEventListener("keyup", enableBtn);
-  hoursInput.forEach((h) => h.addEventListener("change", enableBtn));
-  hoursInput.forEach((h) => h.addEventListener("keyup", enableBtn));
+  hoursInput.forEach((h) => {
+    h.addEventListener("input", (e) => {
+      let val = parseInt(e.target.value);
+      if (val > 4) {
+        e.target.value = 4;
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "warning");
+        notification.setAttribute("text", "El máximo permitido es 4 horas semanales por año");
+        notifications.appendChild(notification);
+      } else if (val < 0) {
+        e.target.value = 0;
+      }
+    });
+    h.addEventListener("change", enableBtn);
+    h.addEventListener("keyup", enableBtn);
+  });
 
   // Manejador del envío del formulario
   addSubjectBtn.addEventListener("click", async () => {
@@ -230,10 +245,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      const newSubject = {
+      const payloadSubject = {
         Nombre: name.toUpperCase(),
-        HorasAcademicas: hoursInput.reduce((accum, h) => [...accum, parseInt(h.value ?? "0")], []),
-        Fecha: "",
+        HorasAcademicas: hoursInput.reduce((accum, h) => [...accum, h.value ? parseInt(h.value) : 0], []),
       };
 
       // Crear nueva materia
@@ -245,7 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(newSubject),
+          body: JSON.stringify(payloadSubject),
         },
       );
 
@@ -253,8 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (registerSubjectResponse.status !== 201)
         throw new Error(registerSubjectAnswer.message);
 
-      newSubject["MateriaId"] = registerSubjectAnswer["MateriaId"];
-      subjects.push(newSubject);
+      subjects.push(registerSubjectAnswer);
 
       // Mostrar notificación
       alertMessage.textContent = `Agregada la materia ${name.toUpperCase()}`;

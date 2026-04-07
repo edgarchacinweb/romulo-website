@@ -19,35 +19,16 @@
       type="module"
       defer
     ></script>
-  </head>
+    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
+</head>
   <body>
     <notifications-container id="notifications"></notifications-container>
-    <header class="main-header">
-      <div class="header-content">
-        <div class="brand">
-          <img src="/src/assets/images/romulo.webp" class="brand__image" />
-          <div>
-            <h1 class="brand__title">Liceo Nacional "Don Rómulo Gallegos"</h1>
-            <span class="brand__subtitle">Solicitudes de Inscripción</span>
-          </div>
-        </div>
-      </div>
-      <button class="btn-text" id="BtnBack">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-        </svg>
-        Atrás
-      </button>
-    </header>
-
-    <main class="container">
+    <header id="navbar-container" class="navbar-wrapper"></header>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+      <main class="content-wrapper main">
+        <main class="container">
       <section class="filters-section">
         <h2>Filtrar Solicitudes</h2>
         <div class="filters-grid">
@@ -85,6 +66,9 @@
             <option value="graduado">Graduado</option>
             <option value="rechazado">Rechazados</option>
           </select>
+          <a href="/app/admin/inscripciones/nueva/" class="btn" style="background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; padding: 0 20px; display: flex; align-items: center; justify-content: center;">
+            + Nueva Inscripción
+          </a>
         </div>
         <p class="results-count">
           <span id="StudentsCounter">...</span> solicitudes encontradas
@@ -212,5 +196,8 @@
     <script src="/src/scripts/config.js"></script>
     <script src="/src/scripts/auth.js" type="module"></script>
     <script src="/src/scripts/studentsmanager.js" type="module"></script>
-  </body>
+        </main>
+      </main>
+    </div>
+</body>
 </html>

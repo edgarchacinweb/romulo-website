@@ -1,4 +1,5 @@
 import authorize from "./auth.js";
+import { formatCedula } from "./utils.js";
 
 authorize("administrador");
 
@@ -6,6 +7,10 @@ const token = localStorage.getItem("auth");
 let teachers = [];
 let currentSearchQuery = ""; // Control de búsqueda actual de texto
 let currentSubjectFilter = ""; // Control del filtro de materia
+
+let currentPage = 1;
+const pageSize = 6;
+let isPaginating = true;
 
 const teacherForm = document.getElementById("teacher-form");
 const firstNameField = document.getElementById("nombre");
@@ -22,6 +27,7 @@ const emailField = document.getElementById("correo");
 const locationField = document.getElementById("direccion");
 const addSubjectBtn = document.getElementById("agregar-materia");
 const submitBtn = document.getElementById("submit-btn");
+const cancelBtn = document.getElementById("cancel-btn");
 const exportBtn = document.getElementById("export-btn");
 const stateField = document.getElementById("estado");
 let selectedTeacherId = "";
@@ -141,14 +147,22 @@ const addTeacherCard = (teacher) => {
   card.classList.add("teacher-card");
   if (!teacher["Activo"]) card.classList.add("inactive");
   card.innerHTML = `
-    <div class="card-header">
-    <div class="avatar-box">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div class="avatar-box">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </div>
+      <h2>${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h2>
     </div>
-    <h2>${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h2>
+    <button class="btn-edit-teacher" type="button" style="background: none; border: none; cursor: pointer; color: var(--primary-color, #2563eb); padding: 4px;" title="Editar Docente">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+      </svg>
+    </button>
   </div>
 
   <div class="card-body">
@@ -166,7 +180,7 @@ const addTeacherCard = (teacher) => {
         </div>
         <div class="text-box">
           <span class="label">Cédula de Identidad</span>
-          <span class="value">V-${teacher["DatosPersona"]["Cedula"]}</span>
+          <span class="value">${formatCedula(teacher["DatosPersona"]["Cedula"])}</span>
         </div>
       </li>
 
@@ -261,15 +275,19 @@ const addTeacherCard = (teacher) => {
   `;
   teachersCardContainer.appendChild(card);
 
-  card.addEventListener("click", () => {
-    firstNameField.focus();
-    selectedTeacherId = teacher["DocenteId"];
-    document.querySelectorAll(".materia").forEach((m) => m.remove());
-    subjectField.innerHTML = subjectsSelectHtml;
-    const phone = teacher["DatosPersona"]["Telefono"].split("-");
-    submitBtn.textContent = "Actualizar docente";
-    submitBtn.setAttribute("data-update", "");
-    document.querySelector(".hidden").classList.remove("hidden");
+  const editBtn = card.querySelector(".btn-edit-teacher");
+  if (editBtn) {
+    editBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      firstNameField.focus();
+      selectedTeacherId = teacher["DocenteId"];
+      document.querySelectorAll(".materia").forEach((m) => m.remove());
+      subjectField.innerHTML = subjectsSelectHtml;
+      const phone = teacher["DatosPersona"]["Telefono"].split("-");
+      submitBtn.textContent = "Actualizar docente";
+      submitBtn.setAttribute("data-update", "");
+      if (cancelBtn) cancelBtn.classList.remove("hidden");
+      document.querySelector(".hidden").classList.remove("hidden");
 
     firstNameField.value = teacher["DatosPersona"]["Nombre"];
     lastNameField.value = teacher["DatosPersona"]["Apellido"];
@@ -300,7 +318,8 @@ const addTeacherCard = (teacher) => {
       if (teacher["Materias"].find((m) => m["MateriaId"] === s.value))
         s.remove();
     });
-  });
+    });
+  }
 
   // Agregando reporte (la actualización del contador se maneja centralizadamente)
   if (!teacher["Activo"]) return;
@@ -311,7 +330,7 @@ const addTeacherCard = (teacher) => {
     <div class="header-left">
         <div class="name-id-row">
             <h3 class="teacher-name">${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]}</h3>
-            <span class="badge id-badge">Cédula: V-${teacher["DatosPersona"]["Cedula"]}</span>
+            <span class="badge id-badge">Cédula: ${formatCedula(teacher["DatosPersona"]["Cedula"])}</span>
         </div>
         <p class="teacher-status">Docente Activo | ${teacher["DatosPersona"]["Cedula"]}</p>
     </div>
@@ -418,9 +437,39 @@ const applyFilterAndRender = () => {
     });
   }
 
-  renderTeachers(filtered);
-};
+  // Paginación
+  const totalFiltered = filtered.length;
+  const totalPages = Math.ceil(totalFiltered / pageSize);
 
+  const paginationText = document.getElementById("pagination-text");
+  const btnPrev = document.getElementById("prev-page");
+  const btnNext = document.getElementById("next-page");
+  const btnViewAll = document.getElementById("btn-view-all");
+
+  if (isPaginating) {
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    
+    // Update UI text
+    const rangeStart = totalFiltered === 0 ? 0 : start + 1;
+    const rangeEnd = Math.min(end, totalFiltered);
+    if (paginationText) paginationText.textContent = `${rangeStart}-${rangeEnd} de ${totalFiltered.toLocaleString()}`;
+    
+    // Controls state
+    if (btnPrev) btnPrev.disabled = currentPage <= 1;
+    if (btnNext) btnNext.disabled = currentPage >= totalPages;
+    if (btnViewAll) btnViewAll.textContent = "Ver todo";
+    
+    renderTeachers(filtered.slice(start, end));
+  } else {
+    if (paginationText) paginationText.textContent = `Mostrando todos (${totalFiltered.toLocaleString()})`;
+    if (btnPrev) btnPrev.disabled = true;
+    if (btnNext) btnNext.disabled = true;
+    if (btnViewAll) btnViewAll.textContent = "Paginar";
+    
+    renderTeachers(filtered);
+  }
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   const notificationContainer = document.getElementById("notifications");
@@ -436,6 +485,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       currentSearchQuery = e.target.value.trim();
+      currentPage = 1;
       applyFilterAndRender();
     });
   }
@@ -443,6 +493,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (subjectFilterSelect) {
     subjectFilterSelect.addEventListener("change", (e) => {
       currentSubjectFilter = e.target.value;
+      currentPage = 1;
+      applyFilterAndRender();
+    });
+  }
+
+  // Eventos de Paginación
+  const btnPrev = document.getElementById("prev-page");
+  const btnNext = document.getElementById("next-page");
+  const btnViewAll = document.getElementById("btn-view-all");
+
+  if (btnPrev) {
+    btnPrev.addEventListener("click", () => {
+      if (currentPage > 1) {
+        currentPage--;
+        applyFilterAndRender();
+      }
+    });
+  }
+
+  if (btnNext) {
+    btnNext.addEventListener("click", () => {
+      currentPage++;
+      applyFilterAndRender();
+    });
+  }
+
+  if (btnViewAll) {
+    btnViewAll.addEventListener("click", () => {
+      isPaginating = !isPaginating;
+      currentPage = 1;
       applyFilterAndRender();
     });
   }
@@ -474,6 +554,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       subjects.find((s) => s["MateriaId"] === id),
     );
   });
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      // 1. Limpiar completamente todos los campos
+      teacherForm.reset();
+      // 2. Limpiar variable de ID y volver formulario a modo creación
+      selectedTeacherId = "";
+      submitBtn.removeAttribute("data-update");
+      submitBtn.textContent = "Registrar Docente";
+      // 3. Ocultar botón cancelar
+      cancelBtn.classList.add("hidden");
+      document.getElementById("estado").closest('.form-group').classList.add("hidden");
+      
+      // Limpiar materias seleccionadas
+      subjectsContainer.querySelectorAll("p").forEach((p) => p.remove());
+      selectedSubjects.forEach((s) => {
+        const subjectOption = document.createElement("option");
+        subjectOption.setAttribute("value", s["MateriaId"]);
+        subjectOption.textContent = s["Nombre"];
+        subjectField.appendChild(subjectOption);
+      });
+      selectedSubjects = [];
+    });
+  }
 
   // Cargando cantidad de docentes activos
   loader.setAttribute("title", "Cargando docentes...");
@@ -549,6 +653,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (subjectFilterSelect) {
         const filterOption = document.createElement("option");
         filterOption.setAttribute("value", s["MateriaId"]);
+        filterOption.textContent = s["Nombre"];
         subjectFilterSelect.appendChild(filterOption);
       }
     });
@@ -659,13 +764,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-document.getElementById("BtnBack").addEventListener("click", (event) => {
-  event.preventDefault();
-  document.body.style.animation = "goodByePage 0.8s forwards";
-  console.log(event);
+const btnBack = document.getElementById("BtnBack");
+if (btnBack) {
+  btnBack.addEventListener("click", (event) => {
+    event.preventDefault();
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    console.log(event);
 
-  setTimeout(() => (window.location.href = event.target.href), 1000);
-});
+    setTimeout(() => (window.location.href = event.target.href), 1000);
+  });
+}
 
 document
   .getElementById("export-btn")
