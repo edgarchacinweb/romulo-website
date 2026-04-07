@@ -230,9 +230,8 @@ const filter = async (grade, section) => {
               <strong>Bloque ${index + 1}</strong>
               <span>${item["HoraInicio"]} - ${item["HoraFin"]}</span>
             </div>
-            ${
-              minutes > 15
-                ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
+            ${minutes > 15
+          ? `<div class="grid-cell" data-row="${item["BloqueHorarioId"]}">
               <select class="select-pill select-subject Lunes"${disabledValue}>
                 ${options}
               </select>
@@ -257,7 +256,7 @@ const filter = async (grade, section) => {
                 ${options}
               </select>
             </div>`
-                : `<div class="grid-cell">
+          : `<div class="grid-cell">
               <select class="select-pill" disabled>
                 <option value="">Receso</option>
               </select>
@@ -282,7 +281,7 @@ const filter = async (grade, section) => {
                 <option value="">Receso</option>
               </select>
             </div>`
-            }
+        }
       `
       );
     }, "");
@@ -380,9 +379,8 @@ const filter = async (grade, section) => {
               </svg>
               Exportar PDF
             </button>
-            ${
-              disabledValue.length === 0
-                ? `
+            ${disabledValue.length === 0
+        ? `
               <button class="btn btn-primary" id="btn-submit">
               <svg
                 width="18"
@@ -403,8 +401,8 @@ const filter = async (grade, section) => {
               Guardar Cambios
             </button>
               `
-                : ""
-            }
+        : ""
+      }
           </div>
         </footer>
     `;
