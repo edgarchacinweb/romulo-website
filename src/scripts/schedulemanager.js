@@ -23,10 +23,13 @@ const toggleEditMode = (enable) => {
   const btnSubmit = document.getElementById("btn-submit");
   const btnEdit = document.getElementById("btn-edit-schedule");
 
+  const btnCancel = document.getElementById("btn-cancel");
+
   selectPills.forEach((s) => (s.disabled = !enable));
   teacherSelectors.forEach((s) => (s.disabled = !enable));
 
   if (btnSubmit) btnSubmit.style.display = enable ? "flex" : "none";
+  if (btnCancel) btnCancel.style.display = enable ? "flex" : "none";
   if (btnEdit) btnEdit.style.display = enable ? "none" : "flex";
 };
 scheduleCard.classList.add("card");
@@ -131,15 +134,16 @@ const loadAdminStatus = async () => {
 };
 
 const renderTeacherSelector = (assignedSubjects) => {
-  const disabledValue =
-    selectedTerm === termList[0]["PeriodoEscolarId"] && isEditingMode ? "" : " disabled";
+  const termId = termList[0] ? (termList[0]["PeriodoEscolarId"] || termList[0]["id"]) : undefined;
+  const canEdit = selectedTerm === termId;
+  const disabledValue = (canEdit && isEditingMode) ? "" : " disabled";
+
   const tableList = document.getElementById("table-list");
   tableList.querySelectorAll(".table-row").forEach((r) => r.remove());
 
   assignedSubjects.forEach((subject) => {
-    const subjectName = subjects.find((s) => s["MateriaId"] === subject)[
-      "Nombre"
-    ];
+    const foundSubject = subjects.find((s) => s["MateriaId"] === subject);
+    const subjectName = foundSubject ? foundSubject["Nombre"] : "Materia Desactivada";
     const tableItem = document.createElement("div");
     tableItem.classList.add("table-row");
     const teachersList = teachers.filter((t) =>
@@ -297,10 +301,16 @@ const filter = async (grade, section) => {
   }
 
   try {
-    const disabledValue =
-      selectedTerm === termList[0]["PeriodoEscolarId"] && isEditingMode ? "" : " disabled";
+    const termId = termList[0] ? (termList[0]["PeriodoEscolarId"] || termList[0]["id"]) : undefined;
+    const canEdit = selectedTerm === termId;
+    const disabledValue = (canEdit && isEditingMode) ? "" : " disabled";
+    const courseGrade = courses.find((c) => c["CursoId"] === grade)?.["Grado"];
+    
     const options = subjects
-      .filter((s) => s.CursoId === grade && parseInt(s.HorasAcademicas || 0) > 0)
+      .filter((s) => {
+        const hsInfo = s.HorasPorCurso?.find(hc => hc.Grado === courseGrade);
+        return hsInfo && parseInt(hsInfo.HorasAcademicas || 0) > 0;
+      })
       .reduce((prev, element) => {
         return (
           prev +
@@ -471,9 +481,9 @@ const filter = async (grade, section) => {
               </svg>
               Exportar PDF
             </button>
-            ${disabledValue.length === 0
+            ${canEdit
         ? `
-              <button class="btn btn-primary" id="btn-submit">
+              <button class="btn btn-primary" id="btn-submit" style="display: ${isEditingMode ? 'flex' : 'none'};">
               <svg
                 width="18"
                 height="18"
@@ -490,9 +500,12 @@ const filter = async (grade, section) => {
                 <polyline points="17 21 17 13 7 13 7 21" />
                 <polyline points="7 3 7 8 15 8" />
               </svg>
-              Guardar Cambios
+              Guardar Horario
             </button>
-            <button class="btn btn-secondary" id="btn-edit-schedule" style="display: none;">
+            <button class="btn btn-secondary" id="btn-cancel" style="display: ${isEditingMode ? 'flex' : 'none'};">
+              Cancelar
+            </button>
+            <button class="btn btn-secondary" id="btn-edit-schedule" style="display: ${isEditingMode ? 'none' : 'flex'};">
               <svg
                 width="18"
                 height="18"
@@ -533,9 +546,12 @@ const filter = async (grade, section) => {
 
         if (data) {
           const select = r.querySelector(`.${days[index]}`);
-          select
-            .querySelector(`[value="${data["MateriaId"]}"`)
-            .setAttribute("selected", "");
+          if (select) {
+            const option = select.querySelector(`[value="${data["MateriaId"]}"]`);
+            if (option) {
+              option.setAttribute("selected", "selected");
+            }
+          }
         }
       });
     });
@@ -586,11 +602,23 @@ const filter = async (grade, section) => {
 
           const updatedSchedule = [];
           document.querySelectorAll(".select-subject").forEach((s) => {
-            if (s.value === "") return;
             const scheduleBlockId = s.parentElement.getAttribute("data-row");
-            const teacher = document.querySelector(
-              `[data-subject="${s.value}"]`,
-            ).value;
+            
+            if (s.value === "") {
+              updatedSchedule.push({
+                CursoId: grade,
+                BloqueHorarioId: scheduleBlockId,
+                DocenteId: "sin_asignar",
+                MateriaId: "sin_asignar",
+                Seccion: section,
+                Dia: s.classList[2],
+              });
+              return;
+            }
+
+            const teacherNode = document.querySelector(`[data-subject="${s.value}"]`);
+            const teacher = teacherNode ? teacherNode.value : null;
+
             updatedSchedule.push({
               CursoId: grade,
               BloqueHorarioId: scheduleBlockId,
@@ -604,7 +632,20 @@ const filter = async (grade, section) => {
           const notification = document.createElement("notification-component");
 
           try {
+            if (updatedSchedule.length === 0) {
+              throw new Error("No puedes guardar un horario completamente vacío.");
+            }
+
+            const currentSectionSchedule = updatedSchedule;
+            const otherSectionsSchedule = schedule.filter(s => s["CursoId"] !== grade || s["Seccion"] !== parseInt(section));
+
             updatedSchedule.forEach((us) => {
+              if (us["MateriaId"] === "sin_asignar") return;
+
+              if (!us["DocenteId"] || us["DocenteId"] === "") {
+                const subjectName = subjects.find(s => s["MateriaId"] === us["MateriaId"])?.Nombre || "Materia desconocida";
+                throw new Error(`Debe asignar un docente para la materia ${subjectName}`);
+              }
               const repeatedElement = schedule.find(
                 (s) =>
                   s["BloqueHorarioId"] === us["BloqueHorarioId"] &&
@@ -625,7 +666,7 @@ const filter = async (grade, section) => {
                     repeatedElement["BloqueHorarioId"],
                 );
                 throw new Error(
-                  `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} A.M en otro horario.`,
+                  `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} en otro horario.`,
                 );
               }
 
@@ -633,7 +674,7 @@ const filter = async (grade, section) => {
                 (t) => t["DocenteId"] === us["DocenteId"],
               )["HorasAcademicas"];
 
-              const teacherHours = [...schedule, ...updatedSchedule].filter(
+              const teacherHours = [...otherSectionsSchedule, ...currentSectionSchedule].filter(
                 (t) => t["DocenteId"] === us["DocenteId"],
               ).length;
 
@@ -643,13 +684,14 @@ const filter = async (grade, section) => {
                 );
               }
 
-              const scheduleHours = schedule.filter(
-                (s) => s["MateriaId"] === us["MateriaId"] && s["CursoId"] === us["CursoId"] && s["Seccion"] === us["Seccion"],
-              );
+              const subjectHoursInThisSection = currentSectionSchedule.filter(
+                (s) => s["MateriaId"] === us["MateriaId"]
+              ).length;
 
-              if (scheduleHours.length > 4) {
+              if (subjectHoursInThisSection > 4) {
+                const subjectName = subjects.find(s => s["MateriaId"] === us["MateriaId"])?.Nombre || "Materia";
                 throw new Error(
-                  `La materia ${us["MateriaId"]} superó su límite de horas semanales`,
+                  `La materia ${subjectName} no puede exceder los 4 bloques semanales.`,
                 );
               }
             });
@@ -693,6 +735,13 @@ const filter = async (grade, section) => {
             loader.remove();
           }
         });
+    }
+
+    if (document.getElementById("btn-cancel")) {
+      document.getElementById("btn-cancel").addEventListener("click", () => {
+        isEditingMode = false;
+        filter(grade, section);
+      });
     }
 
     document
@@ -907,9 +956,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   );
 });
 
-document.getElementById("btn-back").addEventListener("click", (e) => {
-  e.preventDefault();
-  const url = e.target.href;
-  document.body.style.animation = "goodByePage 0.8s forwards";
-  setTimeout(() => (window.location.href = url), 1000);
-});
+const btnBack = document.getElementById("btn-back");
+if (btnBack) {
+  btnBack.addEventListener("click", (e) => {
+    e.preventDefault();
+    const url = e.target.href;
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    setTimeout(() => (window.location.href = url), 1000);
+  });
+}
