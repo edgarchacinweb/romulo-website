@@ -245,10 +245,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      const newSubject = {
+      const payloadSubject = {
         Nombre: name.toUpperCase(),
-        HorasAcademicas: hoursInput.reduce((accum, h) => [...accum, parseInt(h.value ?? "0")], []),
-        Fecha: "",
+        HorasAcademicas: hoursInput.reduce((accum, h) => [...accum, h.value ? parseInt(h.value) : 0], []),
       };
 
       // Crear nueva materia
@@ -260,7 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(newSubject),
+          body: JSON.stringify(payloadSubject),
         },
       );
 
@@ -268,8 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (registerSubjectResponse.status !== 201)
         throw new Error(registerSubjectAnswer.message);
 
-      newSubject["MateriaId"] = registerSubjectAnswer["MateriaId"];
-      subjects.push(newSubject);
+      subjects.push(registerSubjectAnswer);
 
       // Mostrar notificación
       alertMessage.textContent = `Agregada la materia ${name.toUpperCase()}`;
