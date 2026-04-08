@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    
+
     async function loadComponent(componentPath, containerId) {
         try {
             const response = await fetch(componentPath);
             if (!response.ok) throw new Error(`Status HTTP: ${response.status}`);
-            
+
             const html = await response.text();
             const container = document.getElementById(containerId);
-            if(container) {
+            if (container) {
                 container.innerHTML = html;
             }
         } catch (error) {
@@ -31,11 +31,11 @@ function setTabName() {
     if (tabNameElement) {
         // Obtenemos el title del documento para usarlo como subtítulo.
         let title = document.title.split('-')[0].trim();
-        if(title.length === 0) title = "Sección";
-        
+        if (title.length === 0) title = "Sección";
+
         // Remueve "Gestión de " del inicio de la cadena si existe
         title = title.replace(/^Gestión de\s+/i, '');
-        
+
         tabNameElement.textContent = title;
     }
 }
@@ -62,12 +62,27 @@ function buildSidebarForRole(role) {
             <li><a href="/app/docente/asistencia/index.html" class="nav-item">✅ Asistencias</a></li>
         `;
     } else {
-        // Para Admin mantendremos los generados desde HTML
-        // Solo aseguramos que el enlace de Inicio apunte al dashboard de Admin
-        const inicioLink = navList.querySelector('a[href*="inicio"]');
-        if (inicioLink) {
-            inicioLink.href = "/app/admin/dashboard/index.html";
-        }
+        navList.innerHTML = `
+            <li><a href="/app/admin/periodo-escolar/" class="nav-item">🏫 Período escolar</a></li>
+            <li>
+                <a href="/app/admin/periodo-inscripcion/" class="nav-item">📋 Período de inscripción</a>
+            </li>
+            <li><a href="/app/admin/representantes/" class="nav-item">👨‍👩‍👧‍👦 Representantes</a></li>
+            <li><a href="/app/admin/estudiantes/" class="nav-item">🎓 Estudiantes</a></li>
+            <li>
+                <a href="/app/admin/asistencia/gestion.html" class="nav-item">✅ Asistencias</a>
+            </li>
+          <li><a href="/app/admin/calificaciones/" class="nav-item">📝 Calificaciones</a></li>
+          <li><a href="/app/admin/docentes/" class="nav-item">👨‍🏫 Docentes</a></li>
+          <li><a href="/app/admin/materias/" class="nav-item">📚 Materias</a></li>
+          <li><a href="/app/admin/horarios/" class="nav-item">📅 Horarios</a></li>
+          
+          <!-- NUEVO BOTÓN PARA LAPSOS AQUÍ -->
+          <li><a href="/app/admin/lapsos/index.html" class="nav-item">🗓️Lapsos</a></li>
+          
+          <li><a href="/app/admin/auditorias/" class="nav-item">🧾 Auditorías</a></li>
+          <li><a href="/app/admin/respaldo/" class="nav-item">💾 Respaldos</a></li>
+        `;
     }
 }
 
@@ -79,59 +94,59 @@ function initializeLayoutLogic() {
 
     const token = localStorage.getItem('auth');
     const userEmailElement = document.getElementById('userEmail');
-    
+
     if (userEmailElement) {
         let displayInfo = 'Cargando...';
-        
+
         // Si es Representante, mostrar Nombre y Apellido
         if (roleStr.toLowerCase() === 'representante') {
             displayInfo = localStorage.getItem('nombre_representante');
-            
-            if(!displayInfo && token) {
+
+            if (!displayInfo && token) {
                 displayInfo = 'Cargando...'; // Texto temporal
-                
+
                 // Extraer de forma asíncrona porque el JWT no parece contener el nombre
                 (async () => {
-                   try {
-                       const res = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
-                           headers: { "Authorization": `Bearer ${token}` }
-                       });
-                       if (res.ok) {
-                           const data = await res.json();
-                           if (data && data.Nombre) {
-                               const fullname = `${data.Nombre} ${data.Apellido}`;
-                               localStorage.setItem('nombre_representante', fullname);
-                               userEmailElement.textContent = fullname;
-                           }
-                       }
-                   } catch(e) {}
+                    try {
+                        const res = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.Nombre) {
+                                const fullname = `${data.Nombre} ${data.Apellido}`;
+                                localStorage.setItem('nombre_representante', fullname);
+                                userEmailElement.textContent = fullname;
+                            }
+                        }
+                    } catch (e) { }
                 })();
             }
-            if(!displayInfo) displayInfo = 'Representante';
+            if (!displayInfo) displayInfo = 'Representante';
         } else if (roleStr.toLowerCase() === 'docente') {
             displayInfo = localStorage.getItem('nombre_docente');
-            
-            if(!displayInfo && token) {
+
+            if (!displayInfo && token) {
                 displayInfo = 'Cargando...'; // Texto temporal
-                
+
                 // Extraer de forma asíncrona vía API
                 (async () => {
-                   try {
-                       const res = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
-                           headers: { "Authorization": `Bearer ${token}` }
-                       });
-                       if (res.ok) {
-                           const data = await res.json();
-                           if (data && data.Nombre) {
-                               const fullname = `${data.Nombre} ${data.Apellido}`;
-                               localStorage.setItem('nombre_docente', fullname);
-                               userEmailElement.textContent = fullname;
-                           }
-                       }
-                   } catch(e) {}
+                    try {
+                        const res = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.Nombre) {
+                                const fullname = `${data.Nombre} ${data.Apellido}`;
+                                localStorage.setItem('nombre_docente', fullname);
+                                userEmailElement.textContent = fullname;
+                            }
+                        }
+                    } catch (e) { }
                 })();
             }
-            if(!displayInfo) displayInfo = 'Docente';
+            if (!displayInfo) displayInfo = 'Docente';
         } else {
             // Lógica original para Administrador (mostrar email)
             const savedEmail = localStorage.getItem('email');
@@ -149,10 +164,10 @@ function initializeLayoutLogic() {
                             }
                         }
                     }
-                } catch (e) {}
+                } catch (e) { }
             }
         }
-        
+
         userEmailElement.textContent = displayInfo || 'Cierra sesión y entra de nuevo';
     }
 
@@ -191,11 +206,11 @@ function initializeLayoutLogic() {
 function highlightActiveLink() {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-item');
-    
+
     navLinks.forEach(link => {
         // Obtenemos el path del href, y chequeamos si coincide de alguna manera
         const hrefPath = new URL(link.href, window.location.origin).pathname;
-        
+
         // Comparamos el inicio del path actual (útil si hay subrutas bajo 'dashboard' u otros directorios)
         // Eliminamos "index.html" para comparar las carpetas
         const cleanHref = hrefPath.replace('/index.html', '').replace('/admin_asistencia.html', '');

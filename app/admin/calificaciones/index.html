@@ -4,166 +4,135 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Calificaciones</title>
-  <link rel="stylesheet" href="/src/styles/global.css">
+  <title>Gestión de Calificaciones - Liceo Nacional "Don Rómulo Gallegos"</title>
   <link rel="stylesheet" href="/src/styles/calificationsmanager.css">
 
   <!-- Componentes -->
   <script type="module" src="/src/components/loader.component.js"></script>
-  <script type="module" src="/src/components/notification.component.js"></script>
-  <script type="module" src="/src/components/notifications-container.component.js"></script>
-  <link rel="stylesheet" href="/src/styles/layout.css" />
-  <script src="/src/scripts/layout.js" defer></script>
 </head>
 
-<body>
-  <div class="app" id="app">
-    <notifications-container id="notifications"></notifications-container>
-    <header id="navbar-container" class="navbar-wrapper"></header>
-    <div class="layout-main">
-      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+<body class="fade-in">
 
-    <main class="content-wrapper main">
-
-      <section class="filters">
-        <div class="filters__header">
-          <h3 class="filters__title">Filtrar Estudiante</h3>
-          <p class="filters__description">Selecciona los criterios para cargar calificaciones</p>
-        </div>
-
-        <div class="filters__grid">
-          <div class="filters__group">
-            <label class="filters__label">PERÍODO ESCOLAR<span class="filters__required">*</span></label>
-            <select class="filters__select" id="selectPeriodo">
-              <option value="" disabled selected>Cargando...</option>
-            </select>
-          </div>
-          <div class="filters__group">
-            <label class="filters__label">GRADO <span class="filters__required">*</span></label>
-            <select class="filters__select" id="selectGrado">
-              <option value="" disabled selected>Cargando...</option>
-            </select>
-          </div>
-          <div class="filters__group">
-            <label class="filters__label">SECCIÓN <span class="filters__required">*</span></label>
-            <select class="filters__select" id="selectSeccion">
-              <option value="" disabled selected>Cargando...</option>
-            </select>
-          </div>
-          <div class="filters__group">
-            <label class="filters__label">ESTUDIANTE <span class="filters__required">*</span></label>
-            <select class="filters__select" id="selectEstudiante">
-              <option value="" disabled selected>Cargando...</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- <div class="filters__search-row">
-          <div class="filters__search-group">
-            <label class="filters__label">CÉDULA DE IDENTIDAD (OPCIONAL)</label>
-            <div class="filters__input-wrapper">
-              <svg class="filters__search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M15.5 14H14.71L14.43 13.73C15.41 12.59 16 11.11 16 9.5C16 5.91 13.09 3 9.5 3C5.91 3 3 5.91 3 9.5C3 13.09 5.91 16 9.5 16C11.11 16 12.59 15.41 13.73 14.43L14 14.71V15.5L19 20.49L20.49 19L15.5 14ZM9.5 14C7.01 14 5 11.99 5 9.5C5 7.01 7.01 5 9.5 5C11.99 5 14 7.01 14 9.5C14 11.99 11.99 14 9.5 14Z"
-                  fill="#A0AABF" />
-              </svg>
-              <input type="text" class="filters__input" placeholder="V-12345678" disabled>
-            </div>
-          </div>
-          <button class="filters__btn-clear" id="btnClear">Limpiar</button>
-        </div> -->
-
-        <div class="filters__alert hidden" id="studentAlert">
-          <span class="filters__alert-dot"></span>
-          Estudiante seleccionado: <strong id="studentNameAlert">Juan Pérez</strong>
-        </div>
-      </section>
-
-      <section class="empty-state" id="emptyState">
-        <div class="empty-state__icon">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
-              fill="#0D6EFD" />
-          </svg>
-        </div>
-        <h3 class="empty-state__title">Selecciona un estudiante para ver y cargar sus calificaciones</h3>
-        <p class="empty-state__text">Completa los filtros en la sección anterior</p>
-      </section>
-
-      <section class="grades hidden" id="gradesSection">
-        <div class="grades__header">
-          <h3 class="grades__title">Calificaciones - <span id="studentNameTitle">Juan Pérez</span></h3>
-          <p class="grades__description">Ingresa las calificaciones en el rango de 1 a 20</p>
-        </div>
-
-        <div class="grades__lapsos" id="gradesLapsos">
-          <!-- <div class="grades__lapso grades__lapso--active">
-            <span class="grades__lapso-dot"></span>
-            <div class="grades__lapso-info">
-              <span class="grades__lapso-name">Lapso 1</span>
-              <span class="grades__lapso-status">✓ Editable</span>
-            </div>
-          </div>
-          <div class="grades__lapso grades__lapso--active">
-            <span class="grades__lapso-dot"></span>
-            <div class="grades__lapso-info">
-              <span class="grades__lapso-name">Lapso 2</span>
-              <span class="grades__lapso-status">✓ Editable</span>
-            </div>
-          </div>
-          <div class="grades__lapso grades__lapso--locked">
-            <svg class="grades__lapso-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM9 6C9 4.34 10.34 3 12 3C13.66 3 15 4.34 15 6V8H9V6ZM18 20H6V10H18V20ZM12 17C13.1 17 14 16.1 14 15C14 13.9 13.1 13 12 13C10.9 13 10 13.9 10 15C10 16.1 10.9 17 12 17Z"
-                fill="#A0AABF" />
-            </svg>
-            <div class="grades__lapso-info">
-              <span class="grades__lapso-name">Lapso 3</span>
-              <span class="grades__lapso-status">🔒 Bloqueado</span>
-            </div>
-          </div> -->
-        </div>
-
-        <table class="grades__table">
-          <thead>
-            <tr>
-              <th>Materia</th>
-              <th>Lapso 1</th>
-              <th>Lapso 2</th>
-              <th>Lapso 3</th>
-              <th>Promedio</th>
-            </tr>
-          </thead>
-          <tbody id="gradesBody">
-          </tbody>
-        </table>
-      </section>
-
-    </main>
-
-    <footer class="actions">
-      <button class="actions__btn actions__btn--save" id="btnSave" disabled>
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <header class="header">
+    <div class="header__left">
+      <div class="logo">
+        <img src="/src/assets/images/romulo.png" alt="Logo" width="60" height="60">
+      </div>
+      <div class="header__text">
+        <h1 class="school-name">Liceo Nacional "Don Rómulo Gallegos"</h1>
+        <p class="section-name">Gestión de calificaciones</p>
+      </div>
+    </div>
+    <div class="header__right">
+      <span class="user-email">romulogallegosproyecto@gmail.com</span>
+      <span class="user-role">administrador</span>
+      <button class="btn-icon btn-logout" id="logoutBtn" title="Cerrar sesión">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path
-            d="M17 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V7L17 3ZM19 19H5V5H16.17L19 7.83V19ZM12 12C10.34 12 9 13.34 9 15C9 16.66 10.34 18 12 18C13.66 18 15 16.66 15 15C15 13.34 13.66 12 12 12ZM12 17C10.9 17 10 16.1 10 15C10 13.9 10.9 13 12 13C13.1 13 14 13.9 14 15C14 16.1 13.1 17 12 17ZM15 9H5V5H15V9Z"
-            fill="white" />
+            d="M17 16L21 12M21 12L17 8M21 12H9M13 16V17C13 18.6569 11.6569 20 10 20H5C3.34315 20 2 18.6569 2 17V7C2 5.34315 3.34315 4 5 4H10C11.6569 4 13 5.34315 13 7V8"
+            stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        Guardar Calificaciones
       </button>
-      <button class="actions__btn actions__btn--export" id="btnExport" disabled>
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M19 9H15V3H9V9H5L12 16L19 9ZM5 18V20H19V18H5Z" fill="#666" />
-        </svg>
-        Exportar PDF
-      </button>
-    </footer>
-  </div>
+    </div>
+  </header>
 
-  <script src="/src/scripts/config.js"></script>
-  <script src="/src/scripts/calificationsmanager.js" type="module"></script>
+  <main class="main-content">
+    <section class="filter-section card">
+      <h2 class="filter-section__title">Filtrar estudiantes</h2>
+      <div class="filter-controls">
+        <div class="form-group">
+          <label for="gradeSelect">Grado escolar</label>
+          <div class="select-wrapper">
+            <select id="gradeSelect" class="form-control">
+              <option value="">Seleccionar grado</option>
+              <option value="1er año">1er año</option>
+              <option value="2do año">2do año</option>
+              <option value="3er año">3er año</option>
+            </select>
+            <svg class="select-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="sectionSelect">Sección</label>
+          <div class="select-wrapper">
+            <select id="sectionSelect" class="form-control" disabled>
+              <option value="">Seleccionar sección</option>
+            </select>
+            <svg class="select-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 4.5L6 8L9.5 4.5" stroke="#6B7280" stroke-width="1.5" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="loadStudentsBtn">Cargar estudiantes</button>
+    </section>
+
+    <section class="students-list-section" id="studentsListSection">
+      <div class="welcome-message text-center" id="initialWelcome">
+        <div class="welcome-icon">👋</div>
+        <h3 class="welcome-title">Bienvenido a Gestión de Calificaciones</h3>
+        <p class="welcome-subtitle">Selecciona un grado y sección para comenzar</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="gradesModal">
+    <div class="modal-content card">
+      <div class="modal-header">
+        <h2 class="modal-title">Cargar Calificaciones - <span id="modalStudentName"></span></h2>
+        <button class="btn-icon modal-close" id="closeModalBtn" title="Cerrar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6L18 18" stroke="#1D4ED8" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body" id="modalBody">
+        <a href="#" class="back-link" id="modalBackLink">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 4L6 8L10 12" stroke="#1D4ED8" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          <span id="modalBackStudentName"></span>
+        </a>
+
+        <div class="grades-form" id="gradesForm">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelGradesBtn">Cancelar</button>
+        <button class="btn btn-primary" id="saveGradesBtn">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M2.5 3H12.5C13.0523 3 13.5 3.44772 13.5 4V13C13.5 13.5523 13.0523 14 12.5 14H2.5C1.94772 14 1.5 13.5523 1.5 13V4C1.5 3.44772 1.94772 3 2.5 3Z"
+              stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M10.5 3V6.5C10.5 6.77614 10.2761 7 10 7H4C3.72386 7 3.5 6.77614 3.5 6.5V3" stroke="white"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M4 14V10.5C4 10.2239 4.22386 10 4.5 10H9.5C9.77614 10 10 10.2239 10 10.5V14" stroke="white"
+              stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Guardar calificaciones
+        </button>
+      </div>
     </div>
   </div>
+
+  <div class="toast hidden" id="toastNotification">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" />
+    </svg>
+    <span id="toastMessage">Calificaciones de <strong id="toastStudentName"></strong> guardadas exitosamente</span>
+  </div>
+
+  <script type="module" src="/src/scripts/config.js"></script>
+  <script src="/src/scripts/calificationsmanager.js" type="module"></script>
 </body>
 
 </html>

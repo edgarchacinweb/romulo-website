@@ -1,485 +1,457 @@
-import authorize from "./auth.js";
+import authorize from "../scripts/auth.js";
 import numberToLetter from "./utils.js";
-
 authorize("administrador");
+
 const token = localStorage.getItem("auth");
 
-/* DOM Elements */
-const notifications = document.getElementById('notifications');
-const gradesLapsos = document.getElementById('gradesLapsos');
-const selectEstudiante = document.getElementById('selectEstudiante');
-const selectPeriodo = document.getElementById('selectPeriodo');
-const selectGrado = document.getElementById('selectGrado');
-const selectSeccion = document.getElementById('selectSeccion');
-const emptyState = document.getElementById('emptyState');
-const gradesSection = document.getElementById('gradesSection');
-const studentAlert = document.getElementById('studentAlert');
-const studentNameAlert = document.getElementById('studentNameAlert');
-const studentNameTitle = document.getElementById('studentNameTitle');
-const gradesBody = document.getElementById('gradesBody');
-const btnSave = document.getElementById('btnSave');
-const btnExport = document.getElementById('btnExport');
-const btnLogout = document.getElementById('btnLogout');
-const btnClear = document.getElementById('btnClear');
-const appContainer = document.getElementById('app');
-const loader = document.createElement('loader-spinner');
+document.addEventListener('DOMContentLoaded', async () => {
+    // === Variables y Estado ===
+    let courses = [];
+    const logoutBtn = document.getElementById('logoutBtn');
+    const gradeSelect = document.getElementById('gradeSelect');
+    const sectionSelect = document.getElementById('sectionSelect');
+    const loadStudentsBtn = document.getElementById('loadStudentsBtn');
+    const studentsListSection = document.getElementById('studentsListSection');
+    const initialWelcome = document.getElementById('initialWelcome');
+    const body = document.body;
 
-let terms = [];
-let grades = [];
-let students = [];
-let subjects = [];
-let lapses = {};
-let studentCalifications = [];
+    // Elementos del Modal
+    const gradesModal = document.getElementById('gradesModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const cancelGradesBtn = document.getElementById('cancelGradesBtn');
+    const saveGradesBtn = document.getElementById('saveGradesBtn');
+    const modalStudentName = document.getElementById('modalStudentName');
+    const modalBackStudentName = document.getElementById('modalBackStudentName');
+    const modalBackLink = document.getElementById('modalBackLink');
+    const gradesForm = document.getElementById('gradesForm');
 
-const emptyStateDissapear = () => {
-    emptyState.classList.remove('hidden');
-    gradesSection.classList.add('hidden');
-    studentAlert.classList.add('hidden');
+    // Elementos del Toast
+    const toastNotification = document.getElementById('toastNotification');
+    const toastStudentName = document.getElementById('toastStudentName');
 
-    btnSave.disabled = true;
-    btnExport.disabled = true;
-}
+    // Mocks de datos
+    const subjects = [
+        { id: 'math', name: 'Matemática' },
+        { id: 'lang', name: 'Lengua y Literatura' },
+        { id: 'sci', name: 'Ciencias Naturales' },
+        { id: 'eng', name: 'Inglés' }
+    ];
 
-const loadStudents = async () => {
-    const periodoEscolarId = selectPeriodo.value;
-    const cursoId = selectGrado.value;
-    const seccion = selectSeccion.value;
+    const studentData = {
+        ci_27987654: { id: 'ci_27987654', name: 'Luis Morales', avatar: 'LM', saved: false, grades: {} },
+        ci_30456789: { id: 'ci_30456789', name: 'Sofia Torres', avatar: 'ST', saved: false, grades: {} },
+        ci_12345678: { id: 'ci_12345678', name: 'No Students', saved: false, grades: {} } // Para vista de 'No estudiantes'
+    };
 
-    const studentsPromise = await fetch(`${window.APP_CONFIG.api_url}/students/filter`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-            PeriodoEscolarId: periodoEscolarId,
-            CursoId: cursoId,
-            Seccion: seccion,
-            Estado: "inscrito"
-        })
-    });
+    let currentStudentId = null;
 
-    const studentsResponse = await studentsPromise.json();
-    if (!studentsPromise.ok) {
-        throw new Error(studentsResponse.message);
+    // === Funciones Auxiliares ===
+
+    // Validación de nota: rango 0-20 y tipo numérico
+    const validateGrade = (grade) => {
+        const numGrade = parseFloat(grade);
+        // Verificación robusta: es número, está en rango, no es NaN (incluso si se cambió el input a texto maliciosamente)
+        if (isNaN(numGrade) || numGrade < 0 || numGrade > 20 || String(grade).trim() === "") {
+            return false;
+        }
+        return true;
+    };
+
+    const calculateAverage = (grades) => {
+        if (!grades || grades.length === 0) return 0;
+        const sum = grades.reduce((a, b) => a + b, 0);
+        return (sum / grades.length).toFixed(2);
+    };
+
+    const isInputModifiedManually = (input) => {
+        // Heurística simple para verificar si el tipo de input fue cambiado a texto maliciosamente
+        return input.type !== 'number';
     }
 
-    students = [...studentsResponse];
-    selectEstudiante.innerHTML = "<option value='' disabled selected>Seleccione un estudiante</option>";
-    students.forEach(student => {
-        const option = document.createElement('option');
-        option.value = student.EstudianteId;
-        option.textContent = `${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido} ${student.DatosPersona.Cedula}`;
-        selectEstudiante.appendChild(option);
-    });
-}
+    // === Lógica Principal ===
 
-const loadSections = async () => {
-    // Obteniendo ID del grado seleccionado
-    const cursoId = selectGrado.value;
-    selectSeccion.innerHTML = "";
-    const sections = grades.find(grade => grade.CursoId === cursoId);
-
-    for (let i = 1; i <= sections.Secciones; i++) {
-        const option = document.createElement('option');
-        option.value = i;
-        option.textContent = numberToLetter(i);
-        selectSeccion.appendChild(option);
-    }
-
-    await loadStudents();
-}
-
-const loadGrades = async () => {
-    // Obteniendo ID del periodo escolar seleccionado
-    const periodoEscolarId = selectPeriodo.value;
-
-    // Cargando secciones y grados
-    const sectionsPromise = await fetch(`${window.APP_CONFIG.api_url}/course/sections/${periodoEscolarId}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        }
-    });
-
-    const sectionsResponse = await sectionsPromise.json();
-    if (!sectionsPromise.ok) {
-        throw new Error(sectionsResponse.message);
-    }
-
-    grades = Array.from(new Set(sectionsResponse.map(section => ({ CursoId: section.CursoId, Grado: section.Grado, Secciones: section.Seccion })))).sort((a, b) => a.Grado - b.Grado);
-
-    // Mapeando Select de Grado
-    selectGrado.innerHTML = "";
-    grades.forEach(grade => {
-        const option = document.createElement('option');
-        option.value = grade.CursoId;
-        option.textContent = `${grade.Grado}° Año`;
-        selectGrado.appendChild(option);
-    });
-
-    loadSections();
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-    appContainer.appendChild(loader);
-
-    // Carga inicial de datos
-    try {
-        // Cargar datos del usuario
-        const userPromise = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const userResponse = await userPromise.json();
-        if (!userPromise.ok) {
-            throw new Error("Error al cargar los datos del usuario");
-        }
-
-        document.querySelector(".header__role").textContent = userResponse.Rol;
-        document.querySelector(".header__email").textContent = userResponse.Email;
-
-        // Cargar periodos escolares
-        const termsPromise = await fetch(`${window.APP_CONFIG.api_url}/school_term/list`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        // Carga de materias
-        const subjectsPromise = await fetch(`${window.APP_CONFIG.api_url}/subject/list`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        // Carga de lapsos
-        const lapsesPromise = await fetch(`${window.APP_CONFIG.api_url}/lapsos/current`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const lapsesResponse = await lapsesPromise.json();
-        if (!lapsesPromise.ok) {
-            throw new Error("Error al cargar los lapsos");
-        } else if (lapsesResponse.length === 0) {
-            throw new Error("No hay lapsos registrados");
-        }
-
-        lapses = { ...lapsesResponse };
-
-        const subjectsResponse = await subjectsPromise.json();
-        if (!subjectsPromise.ok) {
-            throw new Error("Error al cargar las materias");
-        } else if (subjectsResponse.length === 0) {
-            throw new Error("No hay materias registradas");
-        }
-
-        subjects = [...subjectsResponse];
-
-        // Carga de periodos escolares
-        const termsResponse = await termsPromise.json();
-        if (!termsPromise.ok) {
-            throw new Error("Error al cargar los periodos escolares");
-        } else if (termsResponse.length === 0) {
-            throw new Error("No hay periodos escolares registrados");
-        }
-
-        terms = [...termsResponse];
-        selectPeriodo.innerHTML = "";
-        terms.forEach(term => {
-            const option = document.createElement('option');
-            option.value = term.PeriodoEscolarId;
-            option.textContent = `${new Date(term.FechaInicio).getFullYear()} - ${new Date(term.FechaFin).getFullYear()}`;
-            selectPeriodo.appendChild(option);
-        });
-
-        await loadGrades();
-    } catch (error) {
-        console.error(error.stack);
-        const notification = document.createElement('notification-component');
-        notification.setAttribute('type', 'error');
-        notification.setAttribute('message', error.message);
-        notifications.appendChild(notification);
-        document.body.style.pointerEvents = "none";
+    // Manejo de Cierre de Sesión
+    logoutBtn.addEventListener('click', () => {
+        body.classList.remove('fade-in');
+        body.classList.add('fade-out');
         setTimeout(() => {
-            btnLogout.click();
-        }, 2000);
+            // Redirigir a la URL especificada después de la animación
+            window.location.href = '/app/admin/dashboard/';
+        }, 500); // coincide con la duración de la animación en CSS
+    });
+
+    // Cargando la lista de grados escolares y secciones
+    const loader = document.createElement("loader-spinner");
+    try {
+        document.body.appendChild(loader);
+        const response = await fetch(`${window.APP_CONFIG.api_url}/course/sections`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const data = await response.json();
+        if (response.ok) {
+            courses = [...data];
+            gradeSelect.innerHTML = '<option value="" disabled selected>Seleccionar grado</option>';
+            data.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.CursoId;
+                option.textContent = `${course.Grado}° Año`;
+                gradeSelect.appendChild(option);
+            })
+        }
+    } catch (error) {
+        console.error('Error al cargar los grados:', error);
+        alert(error.message);
     } finally {
         loader.remove();
     }
-});
 
-selectPeriodo.addEventListener('change', async () => {
-    emptyStateDissapear();
-    await loadGrades();
-});
+    // Lógica de Cargar Estudiantes
+    loadStudentsBtn.addEventListener('click', () => {
+        const grade = gradeSelect.value;
+        const section = sectionSelect.value;
 
-selectGrado.addEventListener('change', async () => {
-    emptyStateDissapear();
-    await loadSections();
-});
+        initialWelcome.style.display = 'none';
+        studentsListSection.innerHTML = ''; // Limpiar anterior
 
-selectSeccion.addEventListener('change', async () => {
-    emptyStateDissapear();
-    await loadStudents();
-});
+        if (grade === '2do año' && section === 'Sección A') {
+            const title = document.createElement('h2');
+            title.className = 'student-list-header';
+            title.textContent = `Estudiantes - ${grade}, ${section}`;
+            studentsListSection.appendChild(title);
 
-/* Render Table */
-function renderGradesTable() {
-    gradesBody.innerHTML = '';
-    gradesLapsos.innerHTML = '';
-    let flags = [];
+            // Renderizar estudiantes del mock data
+            renderStudentCard(studentData['ci_27987654'], 'blue');
+            renderStudentCard(studentData['ci_30456789']);
 
-    lapses.lapsos.forEach((lapso, index) => {
-        const calificationsTerm = new Date(lapso.fecha_fin);
-        calificationsTerm.setDate(calificationsTerm.getDate() - 7);
-        const currentDate = new Date();
-        const flag = calificationsTerm <= currentDate ? "active" : "locked";
-        flags.push(flag);
-        const lapsoDiv = document.createElement('div');
-        lapsoDiv.classList.add('grades__lapso');
-        lapsoDiv.classList.add(`grades__lapso--${flag}`);
-        lapsoDiv.innerHTML = `
-            ${flag === "locked" ? `
-            <svg class="grades__lapso-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M18 8H17V6C17 3.24 14.76 1 12 1C9.24 1 7 3.24 7 6V8H6C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM9 6C9 4.34 10.34 3 12 3C13.66 3 15 4.34 15 6V8H9V6ZM18 20H6V10H18V20ZM12 17C13.1 17 14 16.1 14 15C14 13.9 13.1 13 12 13C10.9 13 10 13.9 10 15C10 16.1 10.9 17 12 17Z"
-                    fill="#A0AABF" />
+        } else if (grade === '2do año' && section === 'Sección B') {
+            const title = document.createElement('h2');
+            title.className = 'student-list-header';
+            title.textContent = `Estudiantes - ${grade}, ${section}`;
+            studentsListSection.appendChild(title);
+
+            studentsListSection.innerHTML += `
+                <div class="no-students-message text-center card fade-in">
+                    <div class="no-students-icon">📚</div>
+                    <h3 class="no-students-title">No hay estudiantes registrados</h3>
+                    <p class="no-students-subtitle">Selecciona otro grado y sección</p>
+                </div>
+            `;
+        } else if (grade && section) {
+            studentsListSection.innerHTML += `
+                <div class="text-center fade-in" style="padding: 2rem;">No hay datos para esta selección</div>
+            `;
+        } else {
+            initialWelcome.style.display = 'block';
+            alert('Por favor selecciona grado y sección');
+        }
+    });
+
+    function renderStudentCard(student, avatarColor = '') {
+        const savedClass = student.saved ? 'saved' : '';
+        const savedIcon = student.saved ? `
+            <svg class="status-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            ` : `<span class="grades__lapso-dot"></span>`}
-            <div class="grades__lapso-info">
-                <span class="grades__lapso-name">Lapso ${lapso.lapso}</span>
-                <span class="grades__lapso-status">${flag === "active" ? "✓ Editable" : "🔒 Bloqueado"}</span>
+        ` : `
+            <svg class="status-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 12V8M8 4.005H8.005M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8Z" stroke="#F97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        `;
+
+        const cardHtml = `
+            <div class="student-card ${savedClass} fade-in" data-student-id="${student.id}">
+                <div class="student-card__info">
+                    <div class="student-card__avatar ${avatarColor}">${student.avatar}</div>
+                    <div class="student-card__name-wrapper">
+                        <p class="student-card__name">${student.name}</p>
+                        <p class="student-card__ci">C.I: ${student.id.split('_')[1]} • Masculino</p>
+                    </div>
+                    ${savedIcon}
+                </div>
+                <svg class="action-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="#D1D5DB" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
             </div>
         `;
-        gradesLapsos.appendChild(lapsoDiv);
-    });
+        studentsListSection.insertAdjacentHTML('beforeend', cardHtml);
 
-    const student = students.find(student => student.EstudianteId === selectEstudiante.value);
-    const level = student.Curso.Grado < 4 ? "Secundaria" : "Bachillerato";
-    const selectedSubjects = subjects.filter(subject => subject.Nivel === level);
-
-    selectedSubjects.forEach((materia, index) => {
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-            <td>${materia.Nombre}</td>
-        `
-        flags.forEach((flag, index) => {
-            const td = document.createElement('td');
-            const lapse_id = lapses.lapsos.find(l => l.lapso === index + 1).lapso_id;
-            const calification = studentCalifications.find(c => c.LapsoId === lapse_id && c.MateriaId === materia.MateriaId)?.Ponderacion ?? "";
-            if (flag === "active") {
-                td.innerHTML = `
-                <input
-                    type="number"
-                    class="grades__input js-grade"
-                    data-lapso="${lapse_id}"
-                    data-id="${materia.MateriaId}"
-                    data-materia="${index}"
-                    min="0"
-                    max="20"
-                    value="${calification}"
-                    placeholder="-"
-                >
-                `;
-            } else {
-                td.innerHTML = `<input type="text" class="grades__input grades__input--locked" value="-" readonly>`;
-            }
-            tr.appendChild(td);
-        });
-        tr.innerHTML += `<td class="grades__promedio js-promedio" data-materia="${index}">-</td>`;
-        gradesBody.appendChild(tr);
-    });
-
-    const inputs = document.querySelectorAll('.js-grade');
-    inputs.forEach(input => {
-        input.addEventListener('input', handleGradeInput);
-    });
-
-    calculateAverages();
-}
-
-/* Validations and Calculations */
-function handleGradeInput(e) {
-    let val = parseInt(e.target.value);
-
-    if (val < 0) e.target.value = 0;
-    if (val > 20) e.target.value = 20;
-    if (isNaN(val) && e.target.value !== '') {
-        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        // Añadir listener de clic a la tarjeta
+        const newCard = studentsListSection.lastElementChild;
+        newCard.addEventListener('click', () => openGradesModal(student));
     }
 
-    calculateAverages();
-    checkFormCompletion();
-}
+    // Lógica del Modal
+    function openGradesModal(student) {
+        currentStudentId = student.id;
+        modalStudentName.textContent = student.name;
+        modalBackStudentName.textContent = student.name;
+        gradesForm.innerHTML = ''; // Limpiar anterior
 
-function calculateAverages() {
-    const promedios = document.querySelectorAll('.js-promedio');
+        subjects.forEach(subject => {
+            const subjectCard = createSubjectCard(subject, student.grades[subject.id]);
+            gradesForm.appendChild(subjectCard);
+        });
 
-    promedios.forEach((promedioCell, index) => {
-        const rowInputs = document.querySelectorAll(`.js-grade[data-materia="${index}"]`);
-        if (rowInputs.length < 3) return;
-        const calculate = Array.from(rowInputs).every(input => input.value !== '');
-        if (!calculate) {
-            promedioCell.textContent = '-';
-            promedioCell.classList.remove('grades__promedio--blue', 'grades__promedio--red');
-            return;
+        modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
+        gradesModal.classList.add('open');
+    }
+
+    function createSubjectCard(subject, existingGrades = {}) {
+        const card = document.createElement('div');
+        card.className = 'subject-card';
+        card.id = `subject-${subject.id}`;
+
+        const lapsosData = [
+            { id: 1, label: '1ER LAPSO' },
+            { id: 2, label: '2DO LAPSO' },
+            { id: 3, label: '3ER LAPSO' }
+        ];
+
+        let inputsHtml = '<div class="lapsos-container">';
+        let summariesHtml = '<div class="summary-row">';
+        let initialGradesValid = true;
+
+        lapsosData.forEach(lapso => {
+            const gradeKey = `lapso${lapso.id}`;
+            const existingGrade = existingGrades[gradeKey] ?? '';
+            if (existingGrade !== '' && !validateGrade(existingGrade)) {
+                initialGradesValid = false;
+            }
+
+            inputsHtml += `
+                <div class="lapso-input-wrapper">
+                    <label for="${subject.id}_lapso${lapso.id}">${lapso.label}</label>
+                    <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="0.1">
+                </div>
+            `;
+
+            summariesHtml += `
+                <div class="summary-block empty" id="${subject.id}_summary_lapso${lapso.id}">
+                    <span>${lapso.label}</span>
+                    <span class="value">-</span>
+                </div>
+            `;
+        });
+        inputsHtml += '</div>';
+        summariesHtml += '</div>';
+
+        card.innerHTML = `
+            <h3 class="subject-card__title">${subject.name}</h3>
+            ${inputsHtml}
+            ${summariesHtml}
+            <div class="final-summary-row hidden" id="${subject.id}_final_summary">
+                <div class="final-summary-item">
+                    <span class="label-title">PROMEDIO</span>
+                    <span class="value-text" id="${subject.id}_average">-</span>
+                </div>
+                <div class="final-summary-item state-wrapper">
+                    <span class="label-title">ESTADO</span>
+                    <span id="${subject.id}_status_icon" class="hidden">
+                        <svg class="check-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                         <svg class="x-icon hidden" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 4L4 12M4 4L12 12" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span class="value-text" id="${subject.id}_status_text">Reprobado</span>
+                </div>
+            </div>
+        `;
+
+        // Añadir event listeners a los inputs
+        card.querySelectorAll('.grade-input').forEach(input => {
+            input.addEventListener('input', () => updateSubjectSummary(subject.id));
+        });
+
+        // Si existen notas válidas, hacer actualización inicial
+        if (initialGradesValid) {
+            setTimeout(() => updateSubjectSummary(subject.id), 0); // dejar que el DOM se actualice primero
         }
 
-        let sum = 0;
-        let count = 0;
+        return card;
+    }
 
-        rowInputs.forEach(input => {
-            if (input.value !== '') {
-                sum += parseInt(input.value);
-                count++;
+    function updateSubjectSummary(subjectId) {
+        const card = document.getElementById(`subject-${subjectId}`);
+        const inputs = card.querySelectorAll('.grade-input');
+        const finalSummary = document.getElementById(`${subjectId}_final_summary`);
+        const averageSpan = document.getElementById(`${subjectId}_average`);
+        const statusSpan = document.getElementById(`${subjectId}_status_text`);
+        const statusIconWrapper = document.getElementById(`${subjectId}_status_icon`);
+        const checkIcon = statusIconWrapper.querySelector('.check-icon');
+        const xIcon = statusIconWrapper.querySelector('.x-icon');
+
+        let grades = [];
+        let allInputsFilledValid = true;
+
+        inputs.forEach((input, index) => {
+            const lapsoId = index + 1;
+            const summaryBlock = document.getElementById(`${subjectId}_summary_lapso${lapsoId}`);
+            const summaryValue = summaryBlock.querySelector('.value');
+            let inputValue;
+
+            // Verificación maliciosa para validación solo de JS
+            if (isInputModifiedManually(input)) {
+                inputValue = input.value; // Texto ahora
+            } else {
+                inputValue = input.valueAsNumber;
+            }
+
+            summaryBlock.classList.remove('approved', 'failed');
+            summaryBlock.classList.add('empty');
+            summaryValue.textContent = '-';
+            summaryValue.innerHTML = ''; // resetear innerHTML para iconos
+
+            input.classList.remove('is-invalid'); // estado is-invalid personalizado
+
+            if (inputValue !== '' && inputValue !== null && !isNaN(inputValue)) {
+                if (validateGrade(inputValue)) {
+                    const grade = parseFloat(inputValue);
+                    grades.push(grade);
+                    summaryValue.textContent = grade.toFixed(1);
+                    summaryBlock.classList.remove('empty');
+                    if (grade >= 10) {
+                        summaryBlock.classList.add('approved');
+                        summaryValue.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 3L4.5 8.5L2 6" stroke="#059669" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ${grade.toFixed(1)}`;
+                    } else {
+                        summaryBlock.classList.add('failed');
+                        summaryValue.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 3L3 9M3 3L9 9" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ${grade.toFixed(1)}`;
+                    }
+                } else {
+                    allInputsFilledValid = false;
+                    // Marcar visualmente inválido, podría usar estilo personalizado
+                    input.classList.add('is-invalid');
+                }
+            } else if (inputValue === '' || isNaN(inputValue)) {
+                allInputsFilledValid = false;
             }
         });
 
+        // Actualizar promedio general del sujeto y estado si las 3 notas están presentes y son válidas
+        if (grades.length === 3 && allInputsFilledValid) {
+            const average = calculateAverage(grades);
+            averageSpan.textContent = average;
+            finalSummary.classList.remove('hidden');
 
-        if (count > 0) {
-            const avg = (sum / count).toFixed(2);
-            promedioCell.textContent = avg;
-
-            promedioCell.classList.remove('grades__promedio--blue', 'grades__promedio--red');
-            if (avg >= 12) {
-                promedioCell.classList.add('grades__promedio--blue');
+            if (parseFloat(average) >= 9.5) { // Umbral de aprobado
+                finalSummary.classList.remove('failed');
+                finalSummary.classList.add('approved'); // no explícitamente fallando, usar fondo verde
+                statusSpan.textContent = 'Aprobado';
+                statusIconWrapper.classList.remove('hidden');
+                checkIcon.classList.remove('hidden');
+                xIcon.classList.add('hidden');
             } else {
-                promedioCell.classList.add('grades__promedio--red');
+                finalSummary.classList.remove('approved');
+                finalSummary.classList.add('failed');
+                statusSpan.textContent = 'Reprobado';
+                statusIconWrapper.classList.remove('hidden');
+                checkIcon.classList.add('hidden');
+                xIcon.classList.remove('hidden');
             }
         } else {
-            promedioCell.textContent = '-';
-            promedioCell.classList.remove('grades__promedio--blue', 'grades__promedio--red');
+            finalSummary.classList.add('hidden');
+            averageSpan.textContent = '-';
+            statusSpan.textContent = '-';
+            statusIconWrapper.classList.add('hidden');
         }
-    });
-}
-
-function checkFormCompletion() {
-    const allInputs = document.querySelectorAll('.js-grade');
-    let isComplete = true;
-
-    allInputs.forEach(input => {
-        if (input.value === '') {
-            isComplete = false;
-        }
-    });
-
-    if (isComplete) {
-        btnSave.disabled = false;
-        btnExport.disabled = false;
-    } else {
-        btnSave.disabled = true;
-        btnExport.disabled = true;
     }
-}
 
-/* View Toggles */
-selectEstudiante.addEventListener('change', async (e) => {
-    if (e.target.value) {
-        emptyState.classList.add('hidden');
-        gradesSection.classList.remove('hidden');
-        studentAlert.classList.remove('hidden');
+    function closeModal() {
+        gradesModal.classList.remove('open');
+        currentStudentId = null;
+    }
 
-        const student = students.find(student => student.EstudianteId === selectEstudiante.value);
-        const name = `${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}`;
-        studentNameAlert.textContent = name;
-        studentNameTitle.textContent = name;
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelGradesBtn.addEventListener('click', closeModal);
 
-        // Cargando calificaciones del estudiante
-        const studentCalificationsPromise = await fetch(`${window.APP_CONFIG.api_url}/calification/student/${student.EstudianteId}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        })
+    // Lógica de Guardar Calificaciones
+    saveGradesBtn.addEventListener('click', () => {
+        if (!currentStudentId) return;
 
-        const studentCalificationsResponse = await studentCalificationsPromise.json();
-        if (!studentCalificationsPromise.ok) {
-            console.error(studentCalificationsResponse);
-            const notification = document.createElement('notification-component');
-            notification.setAttribute('type', 'error');
-            notification.setAttribute('message', "Error al cargar las calificaciones del estudiante");
-            notifications.appendChild(notification);
-            studentCalifications = [];
+        const allCardsValid = Array.from(gradesForm.querySelectorAll('.subject-card')).every(card => {
+            const finalSummary = card.querySelector('.final-summary-row');
+            const averageText = card.querySelector('.final-summary-item .value-text').textContent;
+            return !finalSummary.classList.contains('hidden') && averageText !== '-';
+        });
+
+        if (!allCardsValid) {
+            alert('Por favor carga todas las calificaciones válidas para todas las materias.');
             return;
-        };
-        studentCalifications = [...studentCalificationsResponse];
-
-        renderGradesTable();
-        checkFormCompletion();
-    }
-});
-
-/* Outro Animation */
-btnLogout.addEventListener('click', () => {
-    appContainer.classList.add('app--exit');
-
-    setTimeout(() => {
-        window.location.href = '/app/admin/dashboard/';
-    }, 500);
-});
-
-btnSave.addEventListener('click', async () => {
-    const loader = document.createElement('loader-component');
-    document.body.appendChild(loader);
-    document.body.style.pointerEvents = "none";
-    try {
-        const gradesInputs = document.querySelectorAll('.js-grade');
-        const grades = [];
-        gradesInputs.forEach(input => {
-            grades.push({
-                MateriaId: input.getAttribute('data-id'),
-                Ponderacion: input.value,
-                EstudianteId: selectEstudiante.value,
-                LapsoId: input.getAttribute('data-lapso')
-            });
-        });
-
-        const saveGradesPromise = await fetch(`${window.APP_CONFIG.api_url}/calification/create`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(grades)
-        });
-
-        if (!saveGradesPromise.ok) {
-            const saveGradesResponse = await saveGradesPromise.json();
-            throw new Error(saveGradesResponse.message);
         }
 
-        const notification = document.createElement('notification-component');
-        notification.setAttribute('type', 'success');
-        notification.setAttribute('text', "Calificaciones guardadas correctamente");
-        notifications.appendChild(notification);
-        studentCalifications = [...grades];
-        btnSave.disabled = true;
-        btnExport.disabled = false;
-    } catch (error) {
-        console.error(error.stack);
-        const notification = document.createElement('notification-component');
-        notification.setAttribute('type', 'error');
-        notification.setAttribute('message', error.message);
-        notifications.appendChild(notification);
-        notification.focus();
-    } finally {
-        loader.remove();
-        document.body.style.pointerEvents = "auto";
+        // Recopilar notas y actualizar datos del estudiante
+        studentData[currentStudentId].grades = {};
+        subjects.forEach(subject => {
+            const card = document.getElementById(`subject-${subject.id}`);
+            const inputs = card.querySelectorAll('.grade-input');
+            studentData[currentStudentId].grades[subject.id] = {
+                lapso1: inputs[0].value,
+                lapso2: inputs[1].value,
+                lapso3: inputs[2].value,
+                average: parseFloat(card.querySelector(`#${subject.id}_average`).textContent)
+            };
+        });
+
+        // Establecer estado saved basado en materias llenas
+        if (Object.keys(studentData[currentStudentId].grades).length === subjects.length) {
+            studentData[currentStudentId].saved = true;
+        }
+
+        // Cerrar modal
+        closeModal();
+
+        // Mostrar toast
+        showToast(studentData[currentStudentId].name);
+
+        // Actualizar la tarjeta del estudiante en la lista principal
+        const updatedCard = studentsListSection.querySelector(`[data-student-id="${currentStudentId}"]`);
+        if (updatedCard) {
+            updatedCard.classList.add('saved');
+            const statusIcon = updatedCard.querySelector('.status-icon');
+            statusIcon.innerHTML = `
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            `;
+        }
+    });
+
+    // Lógica del Toast
+    function showToast(studentName) {
+        toastStudentName.textContent = studentName;
+        toastNotification.classList.remove('hidden');
+        toastNotification.classList.add('show');
+
+        setTimeout(() => {
+            toastNotification.classList.remove('show');
+            setTimeout(() => {
+                toastNotification.classList.add('hidden');
+            }, 300); // coincide con la transición de salida en CSS
+        }, 3000); // 3 segundos de visibilidad
     }
+
+    // Cerrar modal al hacer clic en el fondo
+    window.addEventListener('click', (event) => {
+        if (event.target === gradesModal) {
+            closeModal();
+        }
+    });
+
+    gradeSelect.addEventListener("change", () => {
+        const courseId = gradeSelect.value;
+        const course = courses.find(c => c.CursoId === courseId);
+        sectionSelect.innerHTML = "";
+        sectionSelect.disabled = false;
+        for (let i = 0; i < course.Seccion; i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = numberToLetter(i + 1);
+            sectionSelect.appendChild(option);
+        }
+    });
+
 });
