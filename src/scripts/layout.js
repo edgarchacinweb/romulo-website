@@ -70,7 +70,7 @@ function buildSidebarForRole(role) {
             <li><a href="/app/admin/representantes/" class="nav-item">👨‍👩‍👧‍👦 Representantes</a></li>
             <li><a href="/app/admin/estudiantes/" class="nav-item">🎓 Estudiantes</a></li>
             <li>
-                <a href="/app/admin/asistencia/gestion.html" class="nav-item">✅ Asistencias</a>
+                <a href="/app/admin/asistencia/admin_asistencia.html" class="nav-item">✅ Asistencias</a>
             </li>
           <li><a href="/app/admin/calificaciones/" class="nav-item">📝 Calificaciones</a></li>
           <li><a href="/app/admin/docentes/" class="nav-item">👨‍🏫 Docentes</a></li>
