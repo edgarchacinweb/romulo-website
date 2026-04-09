@@ -180,6 +180,12 @@
                         name="telefono"
                         placeholder="XXXXXXX"
                         class="form-input"
+                        minlength="7"
+                        maxlength="7"
+                        pattern="\d{7}"
+                        title="El número debe tener exactamente 7 dígitos"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '');"
+                        required
                       />
                     </div>
                   </div>
