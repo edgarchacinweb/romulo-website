@@ -148,11 +148,16 @@
                   <div class="form-group">
                     <label for="cedula">Cédula</label>
                     <input
-                      type="number"
+                      type="text"
                       id="cedula"
                       name="cedula"
                       placeholder="Ej: 12345678"
                       class="form-input"
+                      minlength="5"
+                      maxlength="8"
+                      pattern="\d{5,8}"
+                      title="Debe ingresar entre 5 y 8 dígitos numéricos"
+                      oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                     />
                   </div>
   
