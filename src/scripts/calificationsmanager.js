@@ -71,14 +71,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     // === Lógica Principal ===
 
     // Manejo de Cierre de Sesión
-    logoutBtn.addEventListener('click', () => {
-        body.classList.remove('fade-in');
-        body.classList.add('fade-out');
-        setTimeout(() => {
-            // Redirigir a la URL especificada después de la animación
-            window.location.href = '/app/admin/dashboard/';
-        }, 500); // coincide con la duración de la animación en CSS
-    });
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            body.classList.remove('fade-in');
+            body.classList.add('fade-out');
+            setTimeout(() => {
+                // Redirigir a la URL especificada después de la animación
+                window.location.href = '/app/admin/dashboard/';
+            }, 500); // coincide con la duración de la animación en CSS
+        });
+    }
 
     // Cargando la lista de grados escolares y secciones
     const loader = document.createElement("loader-spinner");

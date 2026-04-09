@@ -20,13 +20,14 @@
 
 <body>
   <notifications-container id="notifications"></notifications-container>
+  <div class="app-container">
   <header id="navbar-container" class="navbar-wrapper"></header>
 
   <div class="layout-main">
     <aside id="sidebar-container" class="sidebar-wrapper"></aside>
 
-    <main class="content-wrapper main-content">
-      <div id="app-container" class="page-enter">
+    <main class="content-wrapper main">
+      <div class="dashboard-layout page-enter">
         <section class="card params-card">
         <h2>Seleccione los Parámetros de Búsqueda</h2>
         <div class="params-grid">
@@ -81,6 +82,7 @@
       </section>
       </div>
     </main>
+  </div>
   </div>
 
   <script src="/src/scripts/config.js"></script>

@@ -5,38 +5,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Calificaciones - Liceo Nacional "Don Rómulo Gallegos"</title>
+  <link rel="stylesheet" href="/src/styles/global.css">
   <link rel="stylesheet" href="/src/styles/calificationsmanager.css">
 
   <!-- Componentes -->
   <script type="module" src="/src/components/loader.component.js"></script>
+  <script type="module" src="/src/components/notification.component.js"></script>
+  <script type="module" src="/src/components/notifications-container.component.js"></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/scripts/layout.js" defer></script>
 </head>
 
 <body class="fade-in">
+  <notifications-container id="notifications"></notifications-container>
 
-  <header class="header">
-    <div class="header__left">
-      <div class="logo">
-        <img src="/src/assets/images/romulo.png" alt="Logo" width="60" height="60">
-      </div>
-      <div class="header__text">
-        <h1 class="school-name">Liceo Nacional "Don Rómulo Gallegos"</h1>
-        <p class="section-name">Gestión de calificaciones</p>
-      </div>
-    </div>
-    <div class="header__right">
-      <span class="user-email">romulogallegosproyecto@gmail.com</span>
-      <span class="user-role">administrador</span>
-      <button class="btn-icon btn-logout" id="logoutBtn" title="Cerrar sesión">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M17 16L21 12M21 12L17 8M21 12H9M13 16V17C13 18.6569 11.6569 20 10 20H5C3.34315 20 2 18.6569 2 17V7C2 5.34315 3.34315 4 5 4H10C11.6569 4 13 5.34315 13 7V8"
-            stroke="#1D4ED8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      </button>
-    </div>
-  </header>
+  <div class="app-container">
+    <header id="navbar-container" class="navbar-wrapper"></header>
 
-  <main class="main-content">
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+
+      <main class="content-wrapper main">
+        <div class="dashboard-layout">
     <section class="filter-section card">
       <h2 class="filter-section__title">Filtrar estudiantes</h2>
       <div class="filter-controls">
@@ -80,7 +70,10 @@
         <p class="welcome-subtitle">Selecciona un grado y sección para comenzar</p>
       </div>
     </section>
-  </main>
+        </div>
+      </main>
+    </div>
+  </div>
 
   <div class="modal" id="gradesModal">
     <div class="modal-content card">
@@ -134,5 +127,7 @@
   <script type="module" src="/src/scripts/config.js"></script>
   <script src="/src/scripts/calificationsmanager.js" type="module"></script>
 </body>
+
+</html>
 
 </html>

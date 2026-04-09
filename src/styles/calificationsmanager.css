@@ -636,3 +636,13 @@ body {
 .toast.hidden {
     display: none;
 }
+
+.toast.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.toast.hidden {
+    display: none;
+}
