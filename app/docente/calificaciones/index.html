@@ -21,72 +21,72 @@
 <body>
   <notifications-container id="notifications"></notifications-container>
   <div class="app-container">
-  <header id="navbar-container" class="navbar-wrapper"></header>
+    <header id="navbar-container" class="navbar-wrapper"></header>
 
-  <div class="layout-main">
-    <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+    <div class="layout-main">
+      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
 
-    <main class="content-wrapper main">
-      <div class="dashboard-layout page-enter">
-        <section class="card params-card">
-        <h2>Seleccione los Parámetros de Búsqueda</h2>
-        <div class="params-grid">
-          <div class="form-group">
-            <label>Grado Académico</label>
-            <div class="select-wrapper">
-              <select id="gradeField" class="custom-select">
-                <option value="" disabled selected>
-                  Seleccionar grado...
-                </option>
-              </select>
+      <main class="content-wrapper main">
+        <div class="dashboard-layout page-enter">
+          <section class="card params-card">
+            <h2>Seleccione los Parámetros de Búsqueda</h2>
+            <div class="params-grid">
+              <div class="form-group">
+                <label>Grado Académico</label>
+                <div class="select-wrapper">
+                  <select id="gradeField" class="custom-select">
+                    <option value="" disabled selected>
+                      Seleccionar grado...
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Sección</label>
+                <div class="select-wrapper">
+                  <select id="sectionField" class="custom-select" disabled>
+                    <option value="" disabled selected>
+                      Seleccionar sección...
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Materia</label>
+                <div class="select-wrapper">
+                  <select id="subjectField" class="custom-select" disabled>
+                    <option value="" disabled selected>
+                      Seleccionar materia...
+                    </option>
+                  </select>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Sección</label>
-            <div class="select-wrapper">
-              <select id="sectionField" class="custom-select" disabled>
-                <option value="" disabled selected>
-                  Seleccionar sección...
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Materia</label>
-            <div class="select-wrapper">
-              <select id="subjectField" class="custom-select" disabled>
-                <option value="" disabled selected>
-                  Seleccionar materia...
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
+          </section>
 
-      <section id="dynamic-area" class="dynamic-area fade-transition">
-        <div id="state-initial" class="state-container active">
-          <div class="icon-circle">
-            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#64748b" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <polyline points="19 12 12 19 5 12"></polyline>
-            </svg>
-          </div>
-          <h3>Seleccione los parámetros de búsqueda</h3>
-          <p>
-            Escoja el grado, sección y materia para cargar la lista de
-            estudiantes
-          </p>
+          <section id="dynamic-area" class="dynamic-area fade-transition">
+            <div id="state-initial" class="state-container active">
+              <div class="icon-circle">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#64748b" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+              </div>
+              <h3>Seleccione los parámetros de búsqueda</h3>
+              <p>
+                Escoja el grado, sección y materia para cargar la lista de
+                estudiantes
+              </p>
+            </div>
         </div>
-        </div>
-      </section>
-      </div>
+        </section>
+    </div>
     </main>
   </div>
   </div>
 
-  <script src="/src/scripts/config.js"></script>
-  <script src="/src/scripts/teachercalificationmanager.js" type="module"></script>
+  <script src="/src/scripts/config.js?v=2"></script>
+  <script src="/src/scripts/teachercalificationmanager.js?v=2" type="module"></script>
 </body>
 
 </html>

@@ -14,15 +14,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- 1. Animación de Salida y Redirección ---
   const btnVolver = document.getElementById("btn-volver");
-  btnVolver.addEventListener("click", () => {
-    // Añadimos la clase para desencadenar la animación de salida
-    document.getElementById("app-container").classList.add("page-exit");
+  if (btnVolver) {
+    btnVolver.addEventListener("click", () => {
+      // Añadimos la clase para desencadenar la animación de salida
+      document.getElementById("app-container").classList.add("page-exit");
 
-    // Esperamos 400ms (lo que dura la animación CSS) y redirigimos
-    setTimeout(() => {
-      window.location.href = "/app/docente/inicio/";
-    }, 400);
-  });
+      // Esperamos 400ms (lo que dura la animación CSS) y redirigimos
+      setTimeout(() => {
+        window.location.href = "/app/docente/inicio/";
+      }, 400);
+    });
+  }
 
   // --- 2. Referencias al DOM para la Lógica de Búsqueda ---
   const selectGrado = document.getElementById("gradeField");
@@ -64,9 +66,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.body.appendChild(loader);
   try {
 
-    // Cargando lapso activo actual
-    const lapsoPromise = await fetch(
-      `${window.APP_CONFIG.api_url}/lapsos/get`,
+    // Verificando estado de carga de calificaciones
+    const statusCargaPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/lapsos/status_carga`,
       {
         method: "GET",
         headers: {
@@ -76,27 +78,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     );
 
-    if (lapsoPromise.status === 404) {
-      setTimeout(() => {
-        alert("No hay ningún lapso activo en este momento");
-        btnVolver.click();
-      }, 1000);
+    const statusCarga = await statusCargaPromise.json();
+    if (!statusCargaPromise.ok) throw new Error(statusCarga.message || "Error al verificar estado de carga");
+
+    if (statusCarga.status === "CLOSED") {
+      loader.remove(); // Removemos loader
+      document.querySelector(".params-card").style.display = "none";
+      document.getElementById("dynamic-area").innerHTML = `
+        <div class="state-container active" style="text-align: center; color: var(--text-color);">
+            <div class="icon-circle" style="background-color: #fee2e2; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <h3>Proceso de carga de calificaciones cerrado</h3>
+        </div>
+      `;
+      return;
     }
-
-    lapso = await lapsoPromise.json();
-    if (!lapsoPromise.ok) throw new Error(lapso.message);
-
-    const endLapseDate = new Date(lapso.FechaFin);
-    const startCalificationDate = new Date();
-    startCalificationDate.setDate(endLapseDate.getDate() - 7);
-    const currentDate = new Date();
-
-    if (currentDate < startCalificationDate || currentDate > endLapseDate) {
-      setTimeout(() => {
-        alert("No estamos en período de carga de calificaciones");
-        btnVolver.click();
-      }, 1000);
-    }
+    
+    lapso = statusCarga.lapso;
 
     // Cargando grados académicos y secciones con estudiantes inscritos
     const gradesPromise = await fetch(
