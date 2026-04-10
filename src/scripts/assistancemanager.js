@@ -55,6 +55,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const token = localStorage.getItem("auth");
     const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
 
+    // Bloqueo Visual: No permitir seleccionar fechas en el futuro
+    const now = new Date();
+    const todayStr = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    dateInput.max = todayStr;
+
     try {
       const lapsosResponse = await fetch(`${apiUrl}/lapsos/current`, {
         method: "GET",
@@ -160,6 +165,18 @@ function validarFechaPermitida(fechaStr, showAlert = true) {
   // Solo validamos si la fecha está completa (Formato YYYY-MM-DD = 10 caracteres)
   if (!fechaStr || fechaStr.length < 10) return true;
 
+  // Validación: No permitir fechas futuras
+  const todayVal = new Date();
+  todayVal.setHours(0, 0, 0, 0);
+  const selectedVal = new Date(fechaStr + "T00:00:00");
+
+  if (selectedVal > todayVal) {
+    if (showAlert) {
+      alert("Fecha inválida. No puedes adelantar asistencias ni registrar fechas futuras.");
+    }
+    return false;
+  }
+
   const selectedDate = new Date(fechaStr + "T12:00:00");
   
   // Si la fecha no es válida, no validamos aún
@@ -224,7 +241,7 @@ dateInput.addEventListener("change", function(e) {
     return;
   }
 
-  // Calculamos el lapso pero NO mostramos alertas de día prohibido aquí (solo validamos formato/fines de semana básico)
+  // Calculamos el lapso pero NO mostramos alertas aquí (regla de negocio: alertas solo al cargar)
   const selectedDate = new Date(this.value + "T12:00:00");
   if (!isNaN(selectedDate.getTime())) {
     calcularLapsoPorFecha(this.value);
