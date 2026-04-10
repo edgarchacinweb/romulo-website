@@ -138,14 +138,14 @@ body {
 
 .card__container {
   width: 100%;
-  display: flex;
-  gap: 0.7rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
   overflow-y: auto;
 }
 
 .card {
-  width: 400px;
+  width: 100%;
   background: var(--white);
   border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
