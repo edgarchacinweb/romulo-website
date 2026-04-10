@@ -32,9 +32,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const selectMateria = document.getElementById("subjectField");
   const dynamicArea = document.getElementById("dynamic-area");
 
+  // --- Asignaciones Reales del Docente ---
+  let teacherAssignments = [];
+
   // Habilitar selects en cascada
   selectGrado.addEventListener("change", () => {
     selectSeccion.disabled = false;
+    selectMateria.disabled = true; // Resetear materia select al cambiar de grado
+    selectMateria.innerHTML = `
+      <option value="" disabled selected>
+        Seleccionar materia...
+      </option>
+    `;
 
     selectSeccion.innerHTML = `
       <option value="" disabled selected>
@@ -42,16 +51,46 @@ document.addEventListener("DOMContentLoaded", async () => {
       </option>
     `;
 
-    const sections = grades.find((g) => g["CursoId"] === selectGrado.value);
-    for (let i = 0; i < sections["Seccion"]; i++) {
+    // Buscar las secciones únicas en las asignaciones para el grado seleccionado
+    const selectedCourseId = selectGrado.value;
+    const secciones = [...new Set(teacherAssignments.filter(a => a.CursoId === selectedCourseId).map(a => a.Seccion))];
+
+    secciones.sort((a,b) => a - b).forEach(seccion => {
       const option = document.createElement("option");
-      option.setAttribute("value", i + 1);
-      option.textContent = number_to_letter(i + 1);
+      option.setAttribute("value", seccion);
+      option.textContent = number_to_letter(seccion);
       selectSeccion.appendChild(option);
-    }
+    });
   });
+
   selectSeccion.addEventListener("change", () => {
     selectMateria.disabled = false;
+    selectMateria.innerHTML = `
+      <option value="" disabled selected>
+        Seleccionar materia...
+      </option>
+    `;
+
+    // Buscar las materias únicas en las asignaciones para el grado y sección seleccionados
+    const selectedCourseId = selectGrado.value;
+    const selectedSeccion = parseInt(selectSeccion.value);
+    
+    const materias = teacherAssignments.filter(a => a.CursoId === selectedCourseId && a.Seccion === selectedSeccion);
+
+    // Evitar materias duplicadas
+    const uniqueMaterias = [];
+    materias.forEach(m => {
+        if(!uniqueMaterias.some(um => um.MateriaId === m.MateriaId)) {
+            uniqueMaterias.push(m);
+        }
+    });
+
+    uniqueMaterias.forEach(m => {
+      const option = document.createElement("option");
+      option.setAttribute("value", m.MateriaId);
+      option.textContent = m.MateriaNombre;
+      selectMateria.appendChild(option);
+    });
   });
 
   // Cuando la materia se selecciona, simulamos la carga de datos
@@ -101,9 +140,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     lapso = statusCarga.lapso;
 
-    // Cargando grados académicos y secciones con estudiantes inscritos
-    const gradesPromise = await fetch(
-      `${window.APP_CONFIG.api_url}/course/sections`,
+    // Cargando asignaciones reales del docente
+    const assignmentsPromise = await fetch(
+      `${window.APP_CONFIG.api_url}/teacher/assignments`,
       {
         method: "GET",
         headers: {
@@ -113,30 +152,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       },
     );
 
-    const gradesReponse = await gradesPromise.json();
-    if (!gradesPromise.ok) throw new Error(gradesReponse.message);
-    grades = [...gradesReponse];
-
-    // Cargando materias impartidas por el docente
-    const subjectsPromise = await fetch(
-      `${window.APP_CONFIG.api_url}/teacher/subjects`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const subjectsResponse = await subjectsPromise.json();
-    if (!subjectsPromise.ok) throw new Error(subjectsResponse.message);
-    subjects = [...subjectsResponse];
-    const levels = Array.from(new Set(subjects.map((s) => s["Nivel"])));
-    grades = grades.filter((g) => {
-      if (g["Grado"] > 3 && levels.includes("Bachillerato")) return g;
-      else if (levels.includes("Secundaria")) return g;
-    });
+    const assignmentsResponse = await assignmentsPromise.json();
+    if (!assignmentsPromise.ok) throw new Error(assignmentsResponse.message);
+    teacherAssignments = [...assignmentsResponse];
 
     selectGrado.innerHTML = `
       <option value="" disabled selected>
@@ -144,19 +162,24 @@ document.addEventListener("DOMContentLoaded", async () => {
       </option>
     `;
 
-    grades.forEach((g) => {
+    // Extraer grados académicos únicos
+    const uniqueGrades = [];
+    teacherAssignments.forEach(a => {
+        if(!uniqueGrades.some(ug => ug.CursoId === a.CursoId)) {
+            uniqueGrades.push(a);
+        }
+    });
+
+    uniqueGrades.sort((a,b) => a.Grado - b.Grado).forEach((g) => {
       const option = document.createElement("option");
-      option.setAttribute("value", g["CursoId"]);
-      option.textContent = `${g["Grado"]}° Año`;
+      option.setAttribute("value", g.CursoId);
+      option.textContent = `${g.Grado}° Año`;
       selectGrado.appendChild(option);
     });
 
-    subjects.forEach((s) => {
-      const option = document.createElement("option");
-      option.setAttribute("value", s["MateriaId"]);
-      option.textContent = s["Nombre"];
-      selectMateria.appendChild(option);
-    });
+    // Para mantener consistencia con variables existentes
+    grades = uniqueGrades.map(g => ({CursoId: g.CursoId, Grado: g.Grado}));
+    subjects = teacherAssignments.map(a => ({MateriaId: a.MateriaId, Nombre: a.MateriaNombre}));
 
     // Cargando estudiantes inscritos
     const studentsPromise = await fetch(
