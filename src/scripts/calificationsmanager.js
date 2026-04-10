@@ -29,14 +29,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toastNotification = document.getElementById('toastNotification');
     const toastStudentName = document.getElementById('toastStudentName');
 
-    // Mocks de datos
-    const subjects = [
-        { id: 'math', name: 'Matemática' },
-        { id: 'lang', name: 'Lengua y Literatura' },
-        { id: 'sci', name: 'Ciencias Naturales' },
-        { id: 'eng', name: 'Inglés' }
-    ];
-
     const studentData = {
         ci_27987654: { id: 'ci_27987654', name: 'Luis Morales', avatar: 'LM', saved: false, grades: {} },
         ci_30456789: { id: 'ci_30456789', name: 'Sofia Torres', avatar: 'ST', saved: false, grades: {} },
@@ -44,6 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     let currentStudentId = null;
+    let currentStudentSubjects = [];
 
     // === Funciones Auxiliares ===
 
@@ -125,7 +118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         initialWelcome.style.display = 'none';
         const loaderIcon = document.createElement("loader-spinner");
-        studentsListSection.innerHTML = ''; 
+        studentsListSection.innerHTML = '';
         studentsListSection.appendChild(loaderIcon);
 
         try {
@@ -153,7 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             studentsListSection.appendChild(title);
 
             if (!response.ok || !Array.isArray(students) || students.length === 0) {
-                 studentsListSection.innerHTML += `
+                studentsListSection.innerHTML += `
                     <div class="no-students-message text-center card fade-in">
                         <div class="no-students-icon">📚</div>
                         <h3 class="no-students-title">No hay estudiantes registrados</h3>
@@ -174,7 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     renderStudentCard(stuData, student.DatosPersona.Sexo.toLowerCase() === 'masculino' ? 'blue' : 'pink');
                 });
             }
-        } catch(error) {
+        } catch (error) {
             console.error('Error al cargar estudiantes:', error);
             studentsListSection.innerHTML = `<div class="text-center fade-in" style="padding: 2rem; color:red;">${error.message || 'Error al cargar estudiantes'}</div>`;
         }
@@ -215,16 +208,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Lógica del Modal
-    function openGradesModal(student) {
+    async function openGradesModal(student) {
         currentStudentId = student.id;
         modalStudentName.textContent = student.name;
         modalBackStudentName.textContent = student.name;
         gradesForm.innerHTML = ''; // Limpiar anterior
 
-        subjects.forEach(subject => {
-            const subjectCard = createSubjectCard(subject, student.grades[subject.id]);
-            gradesForm.appendChild(subjectCard);
-        });
+        // Mostrar Loader
+        const loader = document.createElement("loader-spinner");
+        gradesForm.appendChild(loader);
+
+        try {
+            const response = await fetch(`${window.APP_CONFIG.api_url}/students/${student.id}/subjects`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const materias = await response.json();
+
+            gradesForm.innerHTML = ''; // Quitar loader
+
+            if (!response.ok || !Array.isArray(materias) || materias.length === 0) {
+                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">No se encontraron materias asignadas para la sección de este estudiante.</p>';
+                return;
+            }
+
+            currentStudentSubjects = materias;
+
+            materias.forEach(subject => {
+                const subjectCard = createSubjectCard(subject, student.grades[subject.id]);
+                gradesForm.appendChild(subjectCard);
+            });
+        } catch (error) {
+            console.error('Error al cargar materias:', error);
+            gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">Error al cargar las materias. Intente de nuevo.</p>';
+        }
 
         modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
         gradesModal.classList.add('open');
@@ -416,7 +432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Recopilar notas y actualizar datos del estudiante
         studentData[currentStudentId].grades = {};
-        subjects.forEach(subject => {
+        currentStudentSubjects.forEach(subject => {
             const card = document.getElementById(`subject-${subject.id}`);
             const inputs = card.querySelectorAll('.grade-input');
             studentData[currentStudentId].grades[subject.id] = {
@@ -428,7 +444,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // Establecer estado saved basado en materias llenas
-        if (Object.keys(studentData[currentStudentId].grades).length === subjects.length) {
+        if (Object.keys(studentData[currentStudentId].grades).length === currentStudentSubjects.length) {
             studentData[currentStudentId].saved = true;
         }
 
