@@ -219,14 +219,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         gradesForm.appendChild(loader);
 
         try {
-            const response = await fetch(`${window.APP_CONFIG.api_url}/students/${student.id}/subjects`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const materias = await response.json();
+            const [subjectsResponse, gradesResponse] = await Promise.all([
+                fetch(`${window.APP_CONFIG.api_url}/students/${student.id}/subjects`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                fetch(`${window.APP_CONFIG.api_url}/calification/student/${student.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
+            ]);
+            const materias = await subjectsResponse.json();
+            const gradesData = gradesResponse.ok ? await gradesResponse.json() : [];
+
+            // Mapeo dinamico de notas hacia lapsos
+            student.grades = {};
+            if (Array.isArray(materias)) {
+                materias.forEach(m => student.grades[m.id] = {});
+            }
+            if (Array.isArray(gradesData)) {
+                gradesData.forEach(g => {
+                    if (student.grades[g.MateriaId]) {
+                        student.grades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
+                    }
+                });
+            }
 
             gradesForm.innerHTML = ''; // Quitar loader
 
-            if (!response.ok || !Array.isArray(materias) || materias.length === 0) {
+            if (!subjectsResponse.ok || !Array.isArray(materias) || materias.length === 0) {
                 gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">No se encontraron materias asignadas para la sección de este estudiante.</p>';
                 return;
             }
