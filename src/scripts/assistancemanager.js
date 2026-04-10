@@ -37,6 +37,7 @@ dateInput.value = localDateStr;
 let currentStudents = [];
 let currentClassId = "";
 let lapsosData = [];
+let allowedDays = []; // Días permitidos según horario
 let currentFilter = 'all';
 let isAttendanceSaved = false;
 
@@ -110,6 +111,83 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// --- FUNCIÓN PARA OBTENER DÍAS PERMITIDOS ---
+async function fetchAllowedDays() {
+  const subjectOption = subjectSelect.options[subjectSelect.selectedIndex];
+  const subjectId = subjectOption ? subjectOption.dataset.id : null;
+  const year = yearSelect.value;
+  const section = sectionSelect.value;
+
+  if (!subjectId || !year || !section) return;
+
+  const sectionMap = { "A": 1, "B": 2, "C": 3, "D": 4, "E": 5 };
+  const sectionNum = sectionMap[section] || 1;
+
+  try {
+    const token = localStorage.getItem("auth");
+    const apiUrl = window.APP_CONFIG ? window.APP_CONFIG.api_url : 'http://127.0.0.1:5000';
+
+    const response = await fetch(`${apiUrl}/assistance/allowed_days?materiaId=${subjectId}&year=${year}&section=${sectionNum}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      allowedDays = data.allowed_days;
+      console.log("Días permitidos actualizados:", allowedDays);
+      
+      // Si ya hay una fecha seleccionada, intentamos validarla sin mostrar alertas automáticas
+      if (dateInput.value) {
+        validarFechaPermitida(dateInput.value, false);
+      }
+    }
+  } catch (error) {
+    console.error("Error obteniendo días permitidos:", error);
+  }
+}
+
+// Event Listeners para actualizar días permitidos
+subjectSelect.addEventListener("change", fetchAllowedDays);
+yearSelect.addEventListener("change", fetchAllowedDays);
+sectionSelect.addEventListener("change", fetchAllowedDays);
+
+// --- FUNCIÓN PARA VALIDAR SI LA FECHA ES PERMITIDA ---
+function validarFechaPermitida(fechaStr, showAlert = true) {
+  // Solo validamos si la fecha está completa (Formato YYYY-MM-DD = 10 caracteres)
+  if (!fechaStr || fechaStr.length < 10) return true;
+
+  const selectedDate = new Date(fechaStr + "T12:00:00");
+  
+  // Si la fecha no es válida, no validamos aún
+  if (isNaN(selectedDate.getTime())) return true;
+
+  const day = selectedDate.getDay();
+
+  // 0 = Domingo, 6 = Sábado
+  if (day === 0 || day === 6) {
+    if (showAlert) {
+      alert("🗓️ No se pueden registrar asistencias los fines de semana (Sábado y Domingo). Por favor, selecciona un día de Lunes a Viernes.");
+    }
+    return false;
+  }
+
+  // Validar contra horario del docente (si ya tenemos los días cargados)
+  if (allowedDays.length > 0 && !allowedDays.includes(day)) {
+    if (showAlert) {
+      const dayNames = { 1: "Lunes", 2: "Martes", 3: "Miércoles", 4: "Jueves", 5: "Viernes" };
+      const allowedNames = allowedDays.map(d => dayNames[d]).join(", ");
+      alert(`❌ Día inválido. Solo puedes registrar asistencias en los días asignados a tu horario para esta materia (${allowedNames}).`);
+    }
+    return false;
+  }
+
+  return true;
+}
+
 // --- FUNCION PARA CALCULAR LAPSO SEGÚN LA FECHA ---
 function calcularLapsoPorFecha(fechaStr) {
   if (!fechaStr || lapsosData.length === 0) return;
@@ -139,27 +217,18 @@ function calcularLapsoPorFecha(fechaStr) {
 }
 
 // VALIDACIÓN AL CAMBIAR LA FECHA MANUALMENTE
-dateInput.addEventListener("change", (e) => {
-  if (!e.target.value) {
+dateInput.addEventListener("change", function(e) {
+  if (!this.value) {
     termDisplay.value = "";
     termSelect.value = "";
     return;
   }
 
-  // Se añade T12:00:00 para asegurar que el día evaluado corresponde correctamente a la zona local
-  const selectedDate = new Date(e.target.value + "T12:00:00");
-  const day = selectedDate.getDay();
-
-  // 0 = Domingo, 6 = Sábado
-  if (day === 0 || day === 6) {
-    alert("🗓️ No se pueden registrar asistencias los fines de semana (Sábado y Domingo). Por favor, selecciona un día de Lunes a Viernes.");
-    e.target.value = ""; // Limpia la fecha seleccionada
-    termDisplay.value = "";
-    termSelect.value = "";
-    return;
+  // Calculamos el lapso pero NO mostramos alertas de día prohibido aquí (solo validamos formato/fines de semana básico)
+  const selectedDate = new Date(this.value + "T12:00:00");
+  if (!isNaN(selectedDate.getTime())) {
+    calcularLapsoPorFecha(this.value);
   }
-
-  calcularLapsoPorFecha(e.target.value);
 });
 
 // Evento: Cargar Estudiantes
@@ -176,6 +245,15 @@ btnLoad.addEventListener("click", async () => {
 
   if (!subjectId || !year || !section || term === "" || !selectedDate) {
     alert("Por favor, selecciona la materia, año, sección y verifica que la fecha elegida sea un día laborable y pertenezca a un lapso válido.");
+    return;
+  }
+
+  // --- VALIDACIÓN DE DÍA PERMITIDO (AHORA AL CARGAR) ---
+  if (!validarFechaPermitida(selectedDate, true)) {
+    // Si la validación falla (ya mostró el alert dentro de validarFechaPermitida), limpiamos y salimos
+    dateInput.value = "";
+    termDisplay.value = "";
+    termSelect.value = "";
     return;
   }
 
