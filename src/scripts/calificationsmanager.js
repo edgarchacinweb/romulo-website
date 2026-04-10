@@ -111,43 +111,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Lógica de Cargar Estudiantes
-    loadStudentsBtn.addEventListener('click', () => {
-        const grade = gradeSelect.value;
-        const section = sectionSelect.value;
+    loadStudentsBtn.addEventListener('click', async () => {
+        const gradeStr = gradeSelect.options[gradeSelect.selectedIndex]?.text;
+        const sectionStr = sectionSelect.options[sectionSelect.selectedIndex]?.text;
+        const courseId = gradeSelect.value;
+        const sectionIdx = sectionSelect.value;
 
-        initialWelcome.style.display = 'none';
-        studentsListSection.innerHTML = ''; // Limpiar anterior
-
-        if (grade === '2do año' && section === 'Sección A') {
-            const title = document.createElement('h2');
-            title.className = 'student-list-header';
-            title.textContent = `Estudiantes - ${grade}, ${section}`;
-            studentsListSection.appendChild(title);
-
-            // Renderizar estudiantes del mock data
-            renderStudentCard(studentData['ci_27987654'], 'blue');
-            renderStudentCard(studentData['ci_30456789']);
-
-        } else if (grade === '2do año' && section === 'Sección B') {
-            const title = document.createElement('h2');
-            title.className = 'student-list-header';
-            title.textContent = `Estudiantes - ${grade}, ${section}`;
-            studentsListSection.appendChild(title);
-
-            studentsListSection.innerHTML += `
-                <div class="no-students-message text-center card fade-in">
-                    <div class="no-students-icon">📚</div>
-                    <h3 class="no-students-title">No hay estudiantes registrados</h3>
-                    <p class="no-students-subtitle">Selecciona otro grado y sección</p>
-                </div>
-            `;
-        } else if (grade && section) {
-            studentsListSection.innerHTML += `
-                <div class="text-center fade-in" style="padding: 2rem;">No hay datos para esta selección</div>
-            `;
-        } else {
+        if (!courseId || sectionIdx === "") {
             initialWelcome.style.display = 'block';
             alert('Por favor selecciona grado y sección');
+            return;
+        }
+
+        initialWelcome.style.display = 'none';
+        const loaderIcon = document.createElement("loader-spinner");
+        studentsListSection.innerHTML = ''; 
+        studentsListSection.appendChild(loaderIcon);
+
+        try {
+            const sectionNumber = parseInt(sectionIdx) + 1; // 1-indexed for backend
+
+            const response = await fetch(`${window.APP_CONFIG.api_url}/students/filter`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    Estado: "inscrito",
+                    CursoId: courseId,
+                    Seccion: sectionNumber
+                })
+            });
+
+            const students = await response.json();
+            studentsListSection.innerHTML = '';
+
+            const title = document.createElement('h2');
+            title.className = 'student-list-header';
+            title.textContent = `Estudiantes - ${gradeStr}, ${sectionStr}`;
+            studentsListSection.appendChild(title);
+
+            if (!response.ok || !Array.isArray(students) || students.length === 0) {
+                 studentsListSection.innerHTML += `
+                    <div class="no-students-message text-center card fade-in">
+                        <div class="no-students-icon">📚</div>
+                        <h3 class="no-students-title">No hay estudiantes registrados</h3>
+                        <p class="no-students-subtitle">Selecciona otro grado y sección o verifica las inscripciones.</p>
+                    </div>
+                `;
+            } else {
+                students.forEach(student => {
+                    const stuData = {
+                        id: student.EstudianteId,
+                        name: `${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}`,
+                        ci: student.DatosPersona.Cedula,
+                        gender: student.DatosPersona.Sexo,
+                        avatar: student.DatosPersona.Nombre.charAt(0) + student.DatosPersona.Apellido.charAt(0),
+                        saved: false,
+                        grades: {} // Maintains mocked modal structure compatibility
+                    };
+                    renderStudentCard(stuData, student.DatosPersona.Sexo.toLowerCase() === 'masculino' ? 'blue' : 'pink');
+                });
+            }
+        } catch(error) {
+            console.error('Error al cargar estudiantes:', error);
+            studentsListSection.innerHTML = `<div class="text-center fade-in" style="padding: 2rem; color:red;">${error.message || 'Error al cargar estudiantes'}</div>`;
         }
     });
 
@@ -169,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="student-card__avatar ${avatarColor}">${student.avatar}</div>
                     <div class="student-card__name-wrapper">
                         <p class="student-card__name">${student.name}</p>
-                        <p class="student-card__ci">C.I: ${student.id.split('_')[1]} • Masculino</p>
+                        <p class="student-card__ci">C.I: ${student.ci || ''} • ${student.gender || 'Masculino'}</p>
                     </div>
                     ${savedIcon}
                 </div>
