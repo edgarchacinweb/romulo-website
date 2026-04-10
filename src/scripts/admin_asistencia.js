@@ -446,6 +446,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 tr.innerHTML = `
                     ${tdEstudiante}
                     <td style="color: #334155; font-weight: 500;">${nombreMateria}</td>
+                    <td style="color: #64748b;">${mData.Docente || 'Sin asignar'}</td>
                     <td style="text-align: center;">
                         <span class="badge present" style="padding: 4px 8px;">${mData["1"].A}</span> / 
                         <span class="badge absent" style="padding: 4px 8px;">${mData["1"].I}</span>
@@ -622,7 +623,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 doc.setTextColor(100, 116, 139); 
                 doc.text(`Año Escolar: 2025-2026`, pageWidth / 2, 52, { align: "center" });
 
-                const tableColumn = ["ESTUDIANTE", "MATERIA", "1ER MOMENTO", "2DO MOMENTO", "3ER MOMENTO", "TOTAL FALTAS"];
+                const tableColumn = ["ESTUDIANTE", "MATERIA", "DOCENTE", "1ER MOMENTO", "2DO MOMENTO", "3ER MOMENTO", "TOTAL FALTAS"];
                 const tableRows = [];
 
                 currentLapsoData.forEach(estudiante => {
@@ -638,7 +639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const momento2 = `${mData["2"].A} Asist. - ${mData["2"].I} Faltas`;
                         const momento3 = `${mData["3"].A} Asist. - ${mData["3"].I} Faltas`;
 
-                        tableRows.push([nombreCelda, nombreMateria, momento1, momento2, momento3, totalFaltas.toString()]);
+                        tableRows.push([nombreCelda, nombreMateria, mData.Docente || '-', momento1, momento2, momento3, totalFaltas.toString()]);
                     });
                 });
 
