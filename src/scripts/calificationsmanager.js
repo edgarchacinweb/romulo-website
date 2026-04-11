@@ -59,6 +59,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const confirmJustificationBtn = document.getElementById('confirmJustificationBtn');
     const cancelJustificationBtn = document.getElementById('cancelJustificationBtn');
 
+    // Elementos del modal de Edición Única
+    const singleEditModal = document.getElementById('singleEditModal');
+    const closeSingleEditBtn = document.getElementById('closeSingleEditBtn');
+    const singleEditCurrentGrade = document.getElementById('singleEditCurrentGrade');
+    const singleEditNewGrade = document.getElementById('singleEditNewGrade');
+    const singleEditJustification = document.getElementById('singleEditJustification');
+    const confirmSingleEditBtn = document.getElementById('confirmSingleEditBtn');
+    
+    let currentSingleEditData = null;
+
     // === Funciones Auxiliares ===
 
     // Validación de nota: rango 0-20 y tipo numérico
@@ -310,10 +320,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 initialGradesValid = false;
             }
 
+            const isReadonly = existingGrade !== '' ? 'readonly disabled' : '';
+            const editIcon = existingGrade !== '' ? `
+                <button type="button" class="btn-icon edit-single-grade" data-subject="${subject.id}" data-lapso="${lapso.id}" data-value="${existingGrade}" style="margin-left:8px; color:var(--primary-color);">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            ` : '';
+
             inputsHtml += `
                 <div class="lapso-input-wrapper">
                     <label for="${subject.id}_lapso${lapso.id}">${lapso.label}</label>
-                    <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="0.1">
+                    <div style="display: flex; align-items: center;">
+                       <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="0.1" ${isReadonly}>
+                       ${editIcon}
+                    </div>
                 </div>
             `;
 
@@ -360,6 +383,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (initialGradesValid) {
             setTimeout(() => updateSubjectSummary(subject.id), 0); // dejar que el DOM se actualice primero
         }
+
+        // Lógica para abrir el modal de edición única
+        card.querySelectorAll('.edit-single-grade').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentSingleEditData = {
+                    subjectId: btn.dataset.subject,
+                    lapsoId: btn.dataset.lapso,
+                    currentValue: document.getElementById(`${btn.dataset.subject}_lapso${btn.dataset.lapso}`).value
+                };
+                singleEditCurrentGrade.textContent = currentSingleEditData.currentValue;
+                singleEditNewGrade.value = '';
+                singleEditJustification.value = '';
+                singleEditModal.classList.add('open');
+            });
+        });
 
         return card;
     }
@@ -464,6 +502,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     cancelJustificationBtn.addEventListener('click', closeJustificationModal);
+
+    // Funciones del Modal de Edición Única
+    closeSingleEditBtn.addEventListener('click', () => {
+        singleEditModal.classList.remove('open');
+    });
+
+    confirmSingleEditBtn.addEventListener('click', async () => {
+        const newGrade = singleEditNewGrade.value;
+        const justification = singleEditJustification.value.trim();
+
+        if(!validateGrade(newGrade)) {
+            alert('Ingrese una nota válida (0-20)');
+            return;
+        }
+        if(!justification) {
+            alert('La justificación es obligatoria');
+            return;
+        }
+
+        confirmSingleEditBtn.disabled = true;
+        try {
+             const payload = [{
+                 Ponderacion: newGrade,
+                 MateriaId: currentSingleEditData.subjectId,
+                 EstudianteId: currentStudentId,
+                 LapsoId: currentLapsosMapping[`lapso${currentSingleEditData.lapsoId}`],
+                 Justificacion: justification
+             }];
+             const uploadPromise = await fetch(`${window.APP_CONFIG.api_url}/calification/create`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!uploadPromise.ok) {
+                const errorData = await uploadPromise.json();
+                throw new Error(errorData.message || "Error editando calificación");
+            }
+            
+            // Actualizar la UI localmente
+            const input = document.getElementById(`${currentSingleEditData.subjectId}_lapso${currentSingleEditData.lapsoId}`);
+            input.value = newGrade;
+            studentData[currentStudentId].grades[currentSingleEditData.subjectId][`lapso${currentSingleEditData.lapsoId}`] = newGrade;
+            studentData[currentStudentId].originalGrades[currentSingleEditData.subjectId][`lapso${currentSingleEditData.lapsoId}`] = newGrade;
+            
+            input.dispatchEvent(new Event('input'));
+            
+            singleEditModal.classList.remove('open');
+            alert("Nota modificada con éxito.");
+        } catch (e) {
+             alert(e.message || "Error desconocido");
+        } finally {
+             confirmSingleEditBtn.disabled = false;
+        }
+    });
 
     const performSaveGrades = async (justification = null) => {
         // Enviar notas al backend
@@ -630,6 +726,61 @@ document.addEventListener('DOMContentLoaded', async () => {
             option.value = i;
             option.textContent = numberToLetter(i + 1);
             sectionSelect.appendChild(option);
+        }
+    });
+
+    // Lógica del Historial de Cambios
+    const viewHistoryBtn = document.getElementById('viewHistoryBtn');
+    const historyModal = document.getElementById('historyModal');
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    const historyTableBody = document.getElementById('historyTableBody');
+
+    if (viewHistoryBtn) {
+        viewHistoryBtn.addEventListener('click', async () => {
+            historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem;"><loader-spinner></loader-spinner></td></tr>';
+            historyModal.classList.add('open');
+
+            try {
+                const response = await fetch(`${window.APP_CONFIG.api_url}/calification/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!response.ok) throw new Error('Error al obtener el historial');
+                
+                const data = await response.json();
+                historyTableBody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem;">No hay registros de modificaciones de notas.</td></tr>';
+                } else {
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Estudiante}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Materia}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.NotaAnterior}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;"><b>${row.NotaNueva}</b></td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Justificacion || '-'}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.FechaCambio}</td>
+                        `;
+                        historyTableBody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem; color: red;">Error cargando historial</td></tr>';
+            }
+        });
+    }
+
+    if (closeHistoryBtn) {
+        closeHistoryBtn.addEventListener('click', () => {
+            historyModal.classList.remove('open');
+        });
+    }
+    
+    window.addEventListener('click', (event) => {
+        if (event.target === historyModal) {
+            historyModal.classList.remove('open');
         }
     });
 
