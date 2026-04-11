@@ -112,7 +112,39 @@
         </div>
 
         <div id="results-container" class="schedule-container"></div>
+
+        <section id="section-info-card" class="card" style="display: none; margin-top: 1.5rem;">
+          <div class="card-header border-bottom">
+            <div class="icon-title">
+              <svg 
+                class="text-blue"
+                width="20" 
+                height="20" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                stroke-width="2" 
+                stroke-linecap="round" 
+                stroke-linejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <h2>Información de la Sección</h2>
+            </div>
+            <p class="card-subtitle">Datos administrativos adicionales de esta sección</p>
+          </div>
+          <div class="card-content" style="padding: 1.5rem;">
+            <p id="homeroom-teacher-display" style="font-size: 1.1rem; font-weight: 600; color: #1e293b;">
+              Profesor Guía (<span id="grade-label">-</span> - <span id="section-label">-</span>): 
+              <span id="homeroom-teacher-name" style="color: #2563eb;">No asignado</span>
+            </p>
+          </div>
+        </section>
       </main>
+
     </div>
     <div id="print-schedule">
       <article class="print__header">

@@ -32,6 +32,47 @@ const toggleEditMode = (enable) => {
   if (btnCancel) btnCancel.style.display = enable ? "flex" : "none";
   if (btnEdit) btnEdit.style.display = enable ? "none" : "flex";
 };
+
+const updateHomeroomInfo = () => {
+  const gradeField = document.getElementById("gradeField");
+  const sectionField = document.getElementById("sectionField");
+  const infoCard = document.getElementById("section-info-card");
+  const nameDisplay = document.getElementById("homeroom-teacher-name");
+  const gradeLabel = document.getElementById("grade-label");
+  const sectionLabel = document.getElementById("section-label");
+
+  if (!gradeField.value || !sectionField.value) {
+    infoCard.style.display = "none";
+    return;
+  }
+
+  // Encontrar el grado seleccionado
+  const selectedGrade = Array.from(gradeField.options).find(o => o.value === gradeField.value)?.text || "-";
+  // Convertir sección numérica a letra
+  const sectionLetter = Number(sectionField.value) > 0 ? numberToLetter(Number(sectionField.value)) : "-";
+
+  gradeLabel.textContent = `${selectedGrade}° Año`;
+  sectionLabel.textContent = `Sección ${sectionLetter}`;
+
+  // Encontrar el ID de "ORIENTACION Y CONVIVENCIA"
+  const orientacionSubject = subjects.find(s => 
+    s.Nombre.toUpperCase().includes("ORIENTACION") && 
+    s.Nombre.toUpperCase().includes("CONVIVENCIA")
+  );
+
+  if (orientacionSubject) {
+    const teacherSelector = document.querySelector(`.teacher-selector[data-subject="${orientacionSubject.MateriaId}"]`);
+    if (teacherSelector && teacherSelector.value) {
+      const selectedOption = teacherSelector.options[teacherSelector.selectedIndex];
+      nameDisplay.textContent = selectedOption.text;
+    } else {
+      nameDisplay.textContent = "No asignado";
+    }
+    infoCard.style.display = "block";
+  } else {
+    infoCard.style.display = "none";
+  }
+};
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -163,6 +204,20 @@ const renderTeacherSelector = (assignedSubjects) => {
 
     tableList.appendChild(tableItem);
   });
+
+  // Listener para actualización dinámica del Profesor Guía
+  const orientacionSubject = subjects.find(s => 
+    s.Nombre.toUpperCase().includes("ORIENTACION") && 
+    s.Nombre.toUpperCase().includes("CONVIVENCIA")
+  );
+
+  if (orientacionSubject) {
+    const selector = document.querySelector(`.teacher-selector[data-subject="${orientacionSubject.MateriaId}"]`);
+    if (selector) {
+      selector.addEventListener("change", updateHomeroomInfo);
+    }
+  }
+  updateHomeroomInfo();
 };
 
 const exportToPdf = async (grade, section) => {
@@ -947,8 +1002,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   sectionField.addEventListener(
     "change",
-    async () => await filter(gradeField.value, sectionField.value),
+    async () => {
+      await filter(gradeField.value, sectionField.value);
+      updateHomeroomInfo();
+    },
   );
+
+  gradeField.addEventListener("change", updateHomeroomInfo);
 
   await loadSchedules(
     termField.value,
