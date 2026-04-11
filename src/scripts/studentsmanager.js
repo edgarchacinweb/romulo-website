@@ -208,7 +208,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
             </div>
             <div class="file-actions">
-              <button class="btn-icon-small btn-download-file" data-file="autorizacion-${student["EstudianteId"]}.pdf">
+              <a href="${window.APP_CONFIG.api_url}/docs/get/autorizacion-${student["EstudianteId"]}.pdf?preview=1" target="_blank" class="btn-icon-small" title="Ver documento" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </a>
+              <button class="btn-icon-small btn-download-file" data-file="autorizacion-${student["EstudianteId"]}.pdf" title="Descargar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
@@ -229,7 +235,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
             </div>
             <div class="file-actions">
-              <button class="btn-icon-small btn-download-file" data-file="dni-${student["EstudianteId"]}.pdf">
+              <a href="${window.APP_CONFIG.api_url}/docs/get/dni-${student["EstudianteId"]}.pdf?preview=1" target="_blank" class="btn-icon-small" title="Ver documento" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </a>
+              <button class="btn-icon-small btn-download-file" data-file="dni-${student["EstudianteId"]}.pdf" title="Descargar">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                   <polyline points="7 10 12 15 17 10" />
@@ -347,7 +359,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="partida-${student["EstudianteId"]}.pdf">
+                      <a href="${window.APP_CONFIG.api_url}/docs/get/partida-${student["EstudianteId"]}.pdf?preview=1" target="_blank" class="btn-icon-small" title="Ver documento" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                      <button class="btn-icon-small btn-download-file" data-file="partida-${student["EstudianteId"]}.pdf" title="Descargar">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
@@ -365,7 +383,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="notas-${student["EstudianteId"]}.pdf">
+                      <a href="${window.APP_CONFIG.api_url}/docs/get/notas-${student["EstudianteId"]}.pdf?preview=1" target="_blank" class="btn-icon-small" title="Ver documento" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                      <button class="btn-icon-small btn-download-file" data-file="notas-${student["EstudianteId"]}.pdf" title="Descargar">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
@@ -429,7 +453,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                       </div>
                     </div>
                     <div class="file-actions">
-                      <button class="btn-icon-small btn-download-file" data-file="dni-${student["Representante"]["UsuarioId"]}.pdf">
+                      <a href="${window.APP_CONFIG.api_url}/docs/get/dni-${student["Representante"]["UsuarioId"]}.pdf?preview=1" target="_blank" class="btn-icon-small" title="Ver documento" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </a>
+                      <button class="btn-icon-small btn-download-file" data-file="dni-${student["Representante"]["UsuarioId"]}.pdf" title="Descargar">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
