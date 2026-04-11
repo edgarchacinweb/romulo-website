@@ -25,6 +25,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const studentData = document.getElementById("student-data");
   const btnSalir = document.getElementById("btn-salir");
   const appWrapper = document.getElementById("app-wrapper");
+  const exportPdfBtn = document.querySelector(".btn-primary");
+  const tableBody = document.querySelector(".table-container table tbody");
 
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando datos de estudiantes...");
@@ -133,8 +135,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       emptyState.classList.remove("active");
       studentData.classList.add("active");
 
-      // Cargando calificaciones del estudiante
-      const calificationsPromise = await fetch(`${window.APP_CONFIG.api_url}/calification/student/${student.EstudianteId}`, {
+      // Cargando boleta consolidada del estudiante (Nueva lógica unificada)
+      const reportPromise = await fetch(`${window.APP_CONFIG.api_url}/report-card/student/${student.EstudianteId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -142,38 +144,46 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      const calificationsResponse = await calificationsPromise.json();
-      if (!calificationsPromise.ok) throw new Error(calificationsResponse.message);
-      califications = [...calificationsResponse];
-      console.log(califications);
+      const reportResponse = await reportPromise.json();
+      if (!reportPromise.ok) throw new Error(reportResponse.message);
+      
+      const { reporte, habilitar_pdf } = reportResponse;
 
-      const level = student.Curso.Grado < 4 ? "Secundaria" : "Bachillerato";
-      const selectedSubjects = subjects.filter(s => s.Nivel === level);
+      // Limpiar tabla antes de poblar
+      tableBody.innerHTML = "";
 
-      const lapsesRecords = lapses.lapsos;
-      console.log(lapsesRecords);
-      selectedSubjects.forEach(subject => {
-        const grade1 = califications.find(c => c.MateriaId === subject.MateriaId && c.LapsoId === lapsesRecords[0].lapso_id)?.Ponderacion;
-        const grade2 = califications.find(c => c.MateriaId === subject.MateriaId && c.LapsoId === lapsesRecords[1].lapso_id)?.Ponderacion;
-        const grade3 = califications.find(c => c.MateriaId === subject.MateriaId && c.LapsoId === lapsesRecords[2].lapso_id)?.Ponderacion;
-        let average = undefined;
-        if (grade1 && grade2 && grade3) {
-          average = (grade1 + grade2 + grade3) / 3;
-        }
+      // Habilitar/Deshabilitar botón de PDF
+      exportPdfBtn.disabled = !habilitar_pdf;
+      exportPdfBtn.style.opacity = habilitar_pdf ? "1" : "0.5";
+      exportPdfBtn.style.cursor = habilitar_pdf ? "pointer" : "not-allowed";
+
+      reporte.forEach(row => {
         const tr = document.createElement("tr");
+        
+        // Helper para las notas y sus colores (pills)
+        const getNotaHTML = (nota) => {
+          if (nota === null || nota === undefined) return "-";
+          let colorClass = "pill-yellow-text";
+          if (nota >= 10) colorClass = "pill-green";
+          if (nota < 10) colorClass = "pill-red";
+          return `<span class="pill ${colorClass}">${nota}</span>`;
+        };
+
+        const averageHTML = (row.promedio_final !== null) 
+          ? `<span class="pill pill-green">${row.promedio_final}</span>` 
+          : "-";
+
         tr.innerHTML = `
-                <td>${subject.Nombre}</td>
-                <td class="center-text">${grade1 ?? "-"}</td>
-                <td class="center-text">${grade2 ?? "-"}</td>
-                <td class="center-text">${grade3 ?? "-"}</td>
-                <td class="center-text">
-                  <span class="pill pill-green">${average ?? "-"}</span>
-                </td>
-                <td class="center-text">
-                  <span class="pill pill-yellow">-</span>
-                </td>
+          <td>${row.materia}</td>
+          <td class="center-text">${getNotaHTML(row.lapsos[0]?.nota)}</td>
+          <td class="center-text">${getNotaHTML(row.lapsos[1]?.nota)}</td>
+          <td class="center-text">${getNotaHTML(row.lapsos[2]?.nota)}</td>
+          <td class="center-text">${averageHTML}</td>
+          <td class="center-text">
+            <span class="pill ${row.total_inasistencias > 0 ? 'pill-yellow' : 'pill-green-light'}">${row.total_inasistencias}</span>
+          </td>
         `;
-        document.querySelector(".table-container table tbody").appendChild(tr);
+        tableBody.appendChild(tr);
       });
 
       e.stopPropagation();
