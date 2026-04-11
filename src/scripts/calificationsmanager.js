@@ -39,15 +39,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentStudentSubjects = [];
     let currentLapsosMapping = {};
 
+    let lapsosStatus = {
+        lapso1_abierto: false,
+        lapso2_abierto: false,
+        lapso3_abierto: false
+    };
+
     // Obtener los IDs de los lapsos actuales a nivel global
     try {
-        const lapsosResponse = await fetch(`${window.APP_CONFIG.api_url}/lapsos/current`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const [lapsosResponse, statusResponse] = await Promise.all([
+            fetch(`${window.APP_CONFIG.api_url}/lapsos/current`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch(`${window.APP_CONFIG.api_url}/lapsos/status_carga`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ]);
         if(lapsosResponse.ok) {
             const dataLapsos = await lapsosResponse.json();
             dataLapsos.lapsos.forEach(l => { currentLapsosMapping[`lapso${l.lapso}`] = l.lapso_id; });
+        }
+        if(statusResponse.ok) {
+            lapsosStatus = await statusResponse.json();
         }
     } catch(err) {
         console.error("Error cargando lapsos", err);
@@ -320,7 +335,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 initialGradesValid = false;
             }
 
-            const isReadonly = existingGrade !== '' ? 'readonly disabled' : '';
+            let isReadonly = '';
+            let stateClass = '';
+            let tooltip = '';
+
+            if (existingGrade !== '') {
+                isReadonly = 'readonly disabled';
+            } else if (!lapsosStatus[`lapso${lapso.id}_abierto`]) {
+                isReadonly = 'disabled';
+                stateClass = 'locked-lapso-input';
+                tooltip = 'title="Lapso Cerrado. Abre en la última semana del lapso."';
+            }
+
             const editIcon = existingGrade !== '' ? `
                 <button type="button" class="btn-icon edit-single-grade" data-subject="${subject.id}" data-lapso="${lapso.id}" data-value="${existingGrade}" style="margin-left:8px; color:var(--primary-color);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -334,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="lapso-input-wrapper">
                     <label for="${subject.id}_lapso${lapso.id}">${lapso.label}</label>
                     <div style="display: flex; align-items: center;">
-                       <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="1" ${isReadonly}>
+                       <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input ${stateClass}" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="1" ${isReadonly} ${tooltip}>
                        ${editIcon}
                     </div>
                 </div>
