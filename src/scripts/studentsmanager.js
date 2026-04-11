@@ -10,6 +10,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const loader = document.createElement("loader-spinner");
   const studentCounter = document.getElementById("StudentsCounter");
   const cardsContainer = document.getElementById("CardsContainer");
+
+  // --- Utilidad Debounce para Live Search ---
+  function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+  }
   
   // Elementos del Modal de Rechazo
   const selectReason = document.querySelector(".rejectReason");
@@ -146,14 +155,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   };
 
-  const filterRequests = async () => {
+  const filterRequests = async (options = {}) => {
+    const { silent = false } = options; // silent = true evita el loader (usado en live search)
     const searchValue = searchField.value;
     const gradesValue = gradesField.value;
     const sectionsValue = sectionsField.value;
     const stateValue = stateField.value;
 
-    loader.setAttribute("title", "Buscando registros...");
-    document.body.appendChild(loader);
+    if (!silent) {
+      loader.setAttribute("title", "Buscando registros...");
+      document.body.appendChild(loader);
+    }
 
     try {
       const studentsRequestResponse = await fetch(
@@ -179,9 +191,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         ? `${studentsRequest.length}`
         : "0";
 
+      // Limpiar tarjetas anteriores y mensaje de "sin resultados"
       cardsContainer
-        .querySelectorAll(".student-card")
+        .querySelectorAll(".student-card, .empty-state-message")
         .forEach((elm) => elm.remove());
+
+      // --- Mensaje amigable cuando no hay resultados ---
+      if (!Array.isArray(studentsRequest) || studentsRequest.length === 0) {
+        const emptyMsg = document.createElement("div");
+        emptyMsg.classList.add("empty-state-message");
+        emptyMsg.innerHTML = `
+          <div style="text-align:center; padding:3rem 1rem; color:#64748b;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" style="margin-bottom:1rem;">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <p style="font-size:1.1rem; font-weight:600; margin-bottom:0.25rem;">No se encontraron estudiantes</p>
+            <p style="font-size:0.9rem;">Intenta ajustar los filtros o el término de búsqueda.</p>
+          </div>
+        `;
+        cardsContainer.appendChild(emptyMsg);
+        if (!silent) loader.remove();
+        return;
+      }
 
       studentsRequest.forEach((student) => {
         const studentBirthdate = new Date(student["FechaNacimiento"]);
@@ -636,14 +668,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       notification.setAttribute("text", Error.message);
       notifications.appendChild(notification);
     } finally {
-      loader.remove();
+      if (!silent) loader.remove();
     }
   };
 
   await filterRequests();
   
   // Event Listeners de Filtros
-  searchField.addEventListener("change", filterRequests);
+  // Live Search con debounce de 400ms para búsqueda inmediata al escribir
+  const debouncedSearch = debounce(() => filterRequests({ silent: true }), 400);
+  searchField.addEventListener("input", debouncedSearch);
   sectionsField.addEventListener("change", filterRequests);
   stateField.addEventListener("change", filterRequests);
 
