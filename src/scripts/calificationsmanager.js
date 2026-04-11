@@ -334,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <div class="lapso-input-wrapper">
                     <label for="${subject.id}_lapso${lapso.id}">${lapso.label}</label>
                     <div style="display: flex; align-items: center;">
-                       <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="0.1" ${isReadonly}>
+                       <input type="number" id="${subject.id}_lapso${lapso.id}" class="form-control grade-input" placeholder="0-20" min="0" max="20" value="${existingGrade}" step="1" ${isReadonly}>
                        ${editIcon}
                     </div>
                 </div>
@@ -376,7 +376,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Añadir event listeners a los inputs
         card.querySelectorAll('.grade-input').forEach(input => {
-            input.addEventListener('input', () => updateSubjectSummary(subject.id));
+            input.addEventListener('input', (e) => {
+                let val = e.target.value;
+                // Dejar solo números enteros
+                val = val.replace(/[^0-9]/g, '');
+                // Borrar automáticamente si pasa de 2 caracteres
+                if (val.length > 2) {
+                    val = val.substring(0, 2);
+                }
+                // Si el valor numérico es mayor a 20, forzar a 20 o resetear
+                if (val !== '' && parseInt(val, 10) > 20) {
+                    val = '20';
+                    input.classList.add('is-invalid');
+                    setTimeout(() => input.classList.remove('is-invalid'), 500);
+                }
+                if (e.target.value !== val) {
+                    e.target.value = val;
+                }
+                updateSubjectSummary(subject.id);
+            });
         });
 
         // Si existen notas válidas, hacer actualización inicial
@@ -506,6 +524,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Funciones del Modal de Edición Única
     closeSingleEditBtn.addEventListener('click', () => {
         singleEditModal.classList.remove('open');
+    });
+
+    singleEditNewGrade.addEventListener('input', (e) => {
+        let val = e.target.value;
+        val = val.replace(/[^0-9]/g, '');
+        if (val.length > 2) {
+            val = val.substring(0, 2);
+        }
+        if (val !== '' && parseInt(val, 10) > 20) {
+            val = '20';
+            e.target.classList.add('is-invalid');
+            setTimeout(() => e.target.classList.remove('is-invalid'), 500);
+        }
+        if (e.target.value !== val) {
+            e.target.value = val;
+        }
     });
 
     confirmSingleEditBtn.addEventListener('click', async () => {
