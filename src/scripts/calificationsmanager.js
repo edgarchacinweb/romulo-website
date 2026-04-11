@@ -37,6 +37,27 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let currentStudentId = null;
     let currentStudentSubjects = [];
+    let currentLapsosMapping = {};
+
+    // Obtener los IDs de los lapsos actuales a nivel global
+    try {
+        const lapsosResponse = await fetch(`${window.APP_CONFIG.api_url}/lapsos/current`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if(lapsosResponse.ok) {
+            const dataLapsos = await lapsosResponse.json();
+            dataLapsos.lapsos.forEach(l => { currentLapsosMapping[`lapso${l.lapso}`] = l.lapso_id; });
+        }
+    } catch(err) {
+        console.error("Error cargando lapsos", err);
+    }
+
+    // Elementos del modal de Justificación
+    const justificationModal = document.getElementById('justificationModal');
+    const justificationText = document.getElementById('justificationText');
+    const confirmJustificationBtn = document.getElementById('confirmJustificationBtn');
+    const cancelJustificationBtn = document.getElementById('cancelJustificationBtn');
 
     // === Funciones Auxiliares ===
 
@@ -164,6 +185,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         saved: false,
                         grades: {} // Maintains mocked modal structure compatibility
                     };
+                    studentData[stuData.id] = stuData;
                     renderStudentCard(stuData, student.DatosPersona.Sexo.toLowerCase() === 'masculino' ? 'blue' : 'pink');
                 });
             }
@@ -228,13 +250,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             // Mapeo dinamico de notas hacia lapsos
             student.grades = {};
+            student.originalGrades = {};
             if (Array.isArray(materias)) {
-                materias.forEach(m => student.grades[m.id] = {});
+                materias.forEach(m => {
+                    student.grades[m.id] = {};
+                    student.originalGrades[m.id] = {};
+                });
             }
             if (Array.isArray(gradesData)) {
                 gradesData.forEach(g => {
                     if (student.grades[g.MateriaId]) {
                         student.grades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
+                        student.originalGrades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
                     }
                 });
             }
@@ -430,7 +457,104 @@ document.addEventListener('DOMContentLoaded', async () => {
     closeModalBtn.addEventListener('click', closeModal);
     cancelGradesBtn.addEventListener('click', closeModal);
 
-    // Lógica de Guardar Calificaciones
+    // Funciones del Modal de Justificación
+    const closeJustificationModal = () => {
+        justificationModal.style.display = 'none';
+        justificationText.value = '';
+    };
+
+    cancelJustificationBtn.addEventListener('click', closeJustificationModal);
+
+    const performSaveGrades = async (justification = null) => {
+        // Enviar notas al backend
+        let calificationsPayload = [];
+        
+        currentStudentSubjects.forEach(subject => {
+            const card = document.getElementById(`subject-${subject.id}`);
+            const inputs = card.querySelectorAll('.grade-input');
+            
+            // Construimos el payload individual por materia/lapso
+            ['lapso1', 'lapso2', 'lapso3'].forEach((lKey, index) => {
+                const val = inputs[index].value;
+                if(val && val !== '') {
+                    let item = {
+                        Ponderacion: val,
+                        MateriaId: subject.id,
+                        EstudianteId: currentStudentId,
+                        LapsoId: currentLapsosMapping[lKey]
+                    };
+                    if (justification) {
+                        item.Justificacion = justification;
+                    }
+                    calificationsPayload.push(item);
+                }
+            });
+            
+            studentData[currentStudentId].grades[subject.id] = {
+                lapso1: inputs[0].value,
+                lapso2: inputs[1].value,
+                lapso3: inputs[2].value,
+                average: parseFloat(document.getElementById(`${subject.id}_average`).textContent)
+            };
+        });
+
+        saveGradesBtn.disabled = true;
+        
+        try {
+            const uploadPromise = await fetch(`${window.APP_CONFIG.api_url}/calification/create`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(calificationsPayload)
+            });
+
+            if (!uploadPromise.ok) {
+                const errorData = await uploadPromise.json();
+                throw new Error(errorData.message || "Error guardando calificaciones");
+            }
+            
+            // Establecer estado saved basado en materias llenas
+            if (Object.keys(studentData[currentStudentId].grades).length === currentStudentSubjects.length) {
+                studentData[currentStudentId].saved = true;
+            }
+
+            // Mostrar toast
+            showToast(studentData[currentStudentId].name);
+
+            // Actualizar la tarjeta del estudiante en la lista principal
+            const updatedCard = studentsListSection.querySelector(`[data-student-id="${currentStudentId}"]`);
+            if (updatedCard) {
+                updatedCard.classList.add('saved');
+                const statusIcon = updatedCard.querySelector('.status-icon');
+                if(statusIcon) {
+                    statusIcon.innerHTML = `
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    `;
+                }
+            }
+        } catch(e) {
+            alert(e.message);
+        } finally {
+            saveGradesBtn.disabled = false;
+            closeModal();
+            closeJustificationModal();
+        }
+    };
+
+    confirmJustificationBtn.addEventListener('click', () => {
+        const reason = justificationText.value.trim();
+        if(!reason) {
+            alert('Debe escribir la justificación.');
+            return;
+        }
+        performSaveGrades(reason);
+    });
+
+    // Lógica de Guardar Calificaciones Original (interceptada)
     saveGradesBtn.addEventListener('click', () => {
         if (!currentStudentId) return;
 
@@ -445,40 +569,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        // Recopilar notas y actualizar datos del estudiante
-        studentData[currentStudentId].grades = {};
+        // Verificar si se editó alguna nota ya existente de manera distinta
+        let isModified = false;
         currentStudentSubjects.forEach(subject => {
             const card = document.getElementById(`subject-${subject.id}`);
             const inputs = card.querySelectorAll('.grade-input');
-            studentData[currentStudentId].grades[subject.id] = {
-                lapso1: inputs[0].value,
-                lapso2: inputs[1].value,
-                lapso3: inputs[2].value,
-                average: parseFloat(card.querySelector(`#${subject.id}_average`).textContent)
-            };
+            
+            const l1 = inputs[0].value;
+            const l2 = inputs[1].value;
+            const l3 = inputs[2].value;
+
+            const orig1 = studentData[currentStudentId].originalGrades[subject.id]?.lapso1 || '';
+            const orig2 = studentData[currentStudentId].originalGrades[subject.id]?.lapso2 || '';
+            const orig3 = studentData[currentStudentId].originalGrades[subject.id]?.lapso3 || '';
+
+            if ((orig1 !== '' && parseFloat(l1) !== parseFloat(orig1)) ||
+                (orig2 !== '' && parseFloat(l2) !== parseFloat(orig2)) ||
+                (orig3 !== '' && parseFloat(l3) !== parseFloat(orig3))) {
+                isModified = true;
+            }
         });
 
-        // Establecer estado saved basado en materias llenas
-        if (Object.keys(studentData[currentStudentId].grades).length === currentStudentSubjects.length) {
-            studentData[currentStudentId].saved = true;
-        }
-
-        // Cerrar modal
-        closeModal();
-
-        // Mostrar toast
-        showToast(studentData[currentStudentId].name);
-
-        // Actualizar la tarjeta del estudiante en la lista principal
-        const updatedCard = studentsListSection.querySelector(`[data-student-id="${currentStudentId}"]`);
-        if (updatedCard) {
-            updatedCard.classList.add('saved');
-            const statusIcon = updatedCard.querySelector('.status-icon');
-            statusIcon.innerHTML = `
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            `;
+        if (isModified) {
+            // Mostrar modal secundario para pedir justificación
+            justificationModal.style.display = 'flex';
+        } else {
+            // Guardado normal sin justificación
+            performSaveGrades(null);
         }
     });
 

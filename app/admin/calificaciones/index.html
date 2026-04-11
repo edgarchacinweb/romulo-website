@@ -116,6 +116,22 @@
     </div>
   </div>
 
+  <div class="modal" id="justificationModal" style="z-index: 1000;">
+    <div class="modal-content card" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2 class="modal-title">Justificación Requerida</h2>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 1rem; color: var(--text-color);">Ha modificado calificaciones existentes. Por favor escriba una justificación para realizar este cambio (Auditoría).</p>
+        <textarea id="justificationText" class="form-control" rows="4" placeholder="Escriba la justificación aquí..."></textarea>
+      </div>
+      <div class="modal-footer" style="margin-top: 1rem;">
+        <button class="btn btn-secondary" id="cancelJustificationBtn">Cancelar</button>
+        <button class="btn btn-primary" id="confirmJustificationBtn">Confirmar y Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast hidden" id="toastNotification">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round"
