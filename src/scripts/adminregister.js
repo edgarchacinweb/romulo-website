@@ -386,8 +386,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       for (const [key, id] of Object.entries(filesMap)) {
         const fileInput = document.getElementById(id);
-        if (key === "DocDni" && useSchoolIdCheckbox.checked) continue;
-        if (key === "DocAutorizacion" && (relationshipField.value === "Padre" || relationshipField.value === "Madre" || !relationshipField.value)) continue;
+        
+        // Condiciones donde el documento NO es requerido
+        const skipDni = key === "DocDni" && useSchoolIdCheckbox.checked;
+        const skipAuth = key === "DocAutorizacion" && (relationshipField.value === "Padre" || relationshipField.value === "Madre" || !relationshipField.value);
+        
+        if (skipDni || skipAuth) continue;
+
+        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+            throw new Error(`Falta cargar el documento requerido: ${key.replace("FotoCarnet", "Foto del Estudiante").replace("DocDni", "Cédula de Identidad").replace("DocPartidaNacimiento", "Partida de Nacimiento").replace("DocNotasCertificadas", "Notas Certificadas").replace("DocAutorizacion", "Autorización Legal")}`);
+        }
 
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
