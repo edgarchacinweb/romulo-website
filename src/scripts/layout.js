@@ -86,15 +86,15 @@ function buildSidebarForRole(role) {
     const users = JSON.parse(localStorage.getItem("users"));
     if (users.length > 1) {
         navList.innerHTML += `<li id="change-user"><a href="/app/iniciar-sesion/usuario.html" class="nav-item">👤 Cambiar usuario</a></li>`
+        const changeUserBtn = document.getElementById("change-user");
+        changeUserBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.removeItem("auth");
+            localStorage.removeItem("user-selected");
+            window.location.href = "/app/iniciar-sesion/usuario.html";
+        });
     }
 
-    const changeUserBtn = document.getElementById("change-user");
-    changeUserBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        localStorage.removeItem("auth");
-        localStorage.removeItem("user-selected");
-        window.location.href = "/app/iniciar-sesion/usuario.html";
-    });
 }
 
 function initializeLayoutLogic() {

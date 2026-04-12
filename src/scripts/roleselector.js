@@ -5,6 +5,7 @@ const email = localStorage.getItem("user-email");
 if (role === "administrador") window.location.href = "/app/admin/dashboard/";
 else if (role === "docente") window.location.href = "/app/docente/inicio/";
 else if (role === "representante") window.location.href = "/app/representante/inicio/";
+else if (localStorage.length === 0 || !email) window.location.href = "/app/iniciar-sesion";
 
 document.addEventListener('DOMContentLoaded', async () => {
     const btnLogout = document.getElementById('btn-logout');
