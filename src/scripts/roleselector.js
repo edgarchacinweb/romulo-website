@@ -14,10 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Agregar la clase de animación de salida al body
         document.body.classList.remove('page-enter');
         document.body.classList.add('page-exit');
+        localStorage.clear();
 
         // Esperar a que termine la animación para redirigir
         setTimeout(() => {
-            window.location.href = '/iniciar-sesion';
+            window.location.href = '/app/iniciar-sesion';
         }, 500); // 500ms coincide con la duración de la animación css
     });
 });

@@ -1,15 +1,11 @@
 // Redireccionando si ya se inició sesión
 const role = localStorage.getItem("role");
+const email = localStorage.getItem("user-email");
 
-if (role) {
-  if (role === "administrador") {
-    window.location.href = "/app/admin/dashboard/";
-  } else if (role === "representante") {
-    window.location.href = "/app/representante/inicio/";
-  } else if (role === "docente") {
-    window.location.href = "/app/docente/inicio/";
-  }
-}
+if (!role && email) window.location.href = "/app/iniciar-sesion/usuario.html";
+else if (role === "administrador") window.location.href = "/app/admin/dashboard/";
+else if (role === "docente") window.location.href = "/app/docente/inicio/";
+else if (role === "representante") window.location.href = "/app/representante/inicio/";
 
 document.addEventListener("DOMContentLoaded", function () {
   const loginBtn = document.getElementById("loginBtn");
@@ -62,46 +58,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (response.status >= 400) return;
 
-        // Obteniendo el token de autenticación
-        const responseToken = await fetch(
-          `${window.APP_CONFIG.api_url}/user/token/${data.id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
+        localStorage.setItem("user-email", username);
 
-        if (responseToken.status != 200) {
-          const tokenErrorNotification = document.createElement(
-            "notification-component",
-          );
-          tokenErrorNotification.setAttribute(
-            "text",
-            "Error al obtener los datos del usuario",
-          );
-          tokenErrorNotification.setAttribute("type", "error");
-          notificationContainer.appendChild(tokenErrorNotification);
-        } else {
-          const { token, role } = await responseToken.json();
-
-          // Guardando el token de autenticación y el rol del usuario
-          localStorage.setItem("auth", token);
-          localStorage.setItem("role", role);
-          localStorage.setItem("email", username);
-
-          // Redirigiendo a la ventana correspondiente
-          let url = "";
-          if (role === "administrador") url = "/app/admin/dashboard/";
-          else if (role === "representante") url = "/app/representante/inicio/";
-          else if (role === "docente") url = "/app/docente/inicio/";
-          else url = "/";
-
-          setTimeout(() => {
-            window.location.href = url;
-          }, 1500);
-        }
+        setTimeout(() => {
+          window.location.href = "/app/iniciar-sesion/usuario.html";
+        }, 1200);
       } else {
         let warningText = "";
 

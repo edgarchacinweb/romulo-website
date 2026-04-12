@@ -111,19 +111,26 @@ class ConfirmModal extends HTMLElement {
         `;
 
         // Event Listeners internos del Shadow DOM
+        const overlay = this.shadowRoot.getElementById('overlay');
         this.shadowRoot.getElementById('btn-cancel').addEventListener('click', () => this.close());
         this.shadowRoot.getElementById('btn-confirm').addEventListener('click', () => {
             // Disparamos un evento personalizado para que main.js ejecute la animación de salida
             this.dispatchEvent(new CustomEvent('confirm-logout', { bubbles: true, composed: true }));
         });
+
+        window.addEventListener("scroll", (e) => {
+            overlay.style.top = `${window.scrollY}px`;
+        });
     }
 
     open() {
         this.shadowRoot.getElementById('overlay').classList.add('active');
+        document.body.style.overflow = "hidden";
     }
 
     close() {
         this.shadowRoot.getElementById('overlay').classList.remove('active');
+        document.body.style.overflowY = "auto";
     }
 }
 customElements.define('confirm-modal', ConfirmModal);

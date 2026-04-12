@@ -63,7 +63,7 @@ function buildSidebarForRole(role) {
         `;
     } else {
         navList.innerHTML = `
-            <li><a href="http://127.0.0.1:5500/app/admin/dashboard/" class="nav-item">🏠 Inicio</a></li>
+            <li><a href="/app/admin/dashboard/" class="nav-item">🏠 Inicio</a></li>
             <li><a href="/app/admin/periodo-escolar/" class="nav-item">🏫 Período escolar</a></li>
             <li>
                 <a href="/app/admin/periodo-inscripcion/" class="nav-item">📋 Período de inscripción</a>
@@ -77,10 +77,7 @@ function buildSidebarForRole(role) {
           <li><a href="/app/admin/docentes/" class="nav-item">👨‍🏫 Docentes</a></li>
           <li><a href="/app/admin/materias/" class="nav-item">📚 Materias</a></li>
           <li><a href="/app/admin/horarios/" class="nav-item">📅 Horarios</a></li>
-          
-          <!-- NUEVO BOTÓN PARA LAPSOS AQUÍ -->
           <li><a href="/app/admin/lapsos/index.html" class="nav-item">🗓️Lapsos</a></li>
-          
           <li><a href="/app/admin/auditorias/" class="nav-item">🧾 Auditorías</a></li>
           <li><a href="/app/admin/respaldo/" class="nav-item">💾 Respaldos</a></li>
         `;
