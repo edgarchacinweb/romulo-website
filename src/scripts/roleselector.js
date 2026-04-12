@@ -1,6 +1,56 @@
-document.addEventListener('DOMContentLoaded', () => {
+// Redireccionando si ya se inició sesión
+const role = localStorage.getItem("role") ?? "";
+const email = localStorage.getItem("user-email");
+
+if (role === "administrador") window.location.href = "/app/admin/dashboard/";
+else if (role === "docente") window.location.href = "/app/docente/inicio/";
+else if (role === "representante") window.location.href = "/app/representante/inicio/";
+
+document.addEventListener('DOMContentLoaded', async () => {
     const btnLogout = document.getElementById('btn-logout');
     const modal = document.getElementById('logout-modal');
+    const loader = document.createElement('loader-spinner');
+    const notificationContainer = document.getElementById("notifications");
+    loader.setAttribute("title", "Cargando Datos del Usuario...");
+
+    // Cargando datos del usuario
+    document.body.appendChild(loader);
+    try {
+        const response = await fetch(`${window.APP_CONFIG.api_url}/user/token/${email}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message);
+        }
+
+        const users = [...data];
+
+        // Guardando en localstorage al usuario por defecto, en caso de no tener otro usuario
+        localStorage.setItem("users", JSON.stringify(users));
+        if (users.length === 1) {
+            localStorage.setItem("user-selected", 0);
+            localStorage.setItem("auth", users[0].token);
+            const role = users[0].role;
+
+            if (role === "administrador") window.location.href = "/app/admin/dashboard/";
+            else if (role === "docente") window.location.href = "/app/docente/inicio/";
+            else if (role === "representante") window.location.href = "/app/representante/inicio/";
+            return;
+        }
+    } catch (error) {
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "error");
+        notification.setAttribute("text", error.message);
+        notificationContainer.appendChild(notification);
+    } finally {
+        loader.remove();
+    }
 
     // Abrir Modal
     btnLogout.addEventListener('click', () => {

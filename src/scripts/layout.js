@@ -82,11 +82,26 @@ function buildSidebarForRole(role) {
           <li><a href="/app/admin/respaldo/" class="nav-item">💾 Respaldos</a></li>
         `;
     }
+
+    const users = JSON.parse(localStorage.getItem("users"));
+    if (users.length > 1) {
+        navList.innerHTML += `<li id="change-user"><a href="/app/iniciar-sesion/usuario.html" class="nav-item">👤 Cambiar usuario</a></li>`
+    }
+
+    const changeUserBtn = document.getElementById("change-user");
+    changeUserBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.removeItem("auth");
+        localStorage.removeItem("user-selected");
+        window.location.href = "/app/iniciar-sesion/usuario.html";
+    });
 }
 
 function initializeLayoutLogic() {
     /* DATOS DEL USUARIO */
-    const roleStr = localStorage.getItem('role') || 'Usuario';
+    const selectedUser = parseInt(localStorage.getItem("user-selected"));
+    const user = JSON.parse(localStorage.getItem("users"))[selectedUser];
+    const roleStr = user.role;
     const roleElement = document.getElementById('userRole');
     if (roleElement) roleElement.textContent = roleStr;
 
@@ -147,7 +162,7 @@ function initializeLayoutLogic() {
             if (!displayInfo) displayInfo = 'Docente';
         } else {
             // Lógica original para Administrador (mostrar email)
-            const savedEmail = localStorage.getItem('email');
+            const savedEmail = user.email;
             if (savedEmail) {
                 displayInfo = savedEmail;
             } else if (token) {

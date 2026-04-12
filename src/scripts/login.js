@@ -1,11 +1,7 @@
 // Redireccionando si ya se inició sesión
-const role = localStorage.getItem("role");
 const email = localStorage.getItem("user-email");
 
-if (!role && email) window.location.href = "/app/iniciar-sesion/usuario.html";
-else if (role === "administrador") window.location.href = "/app/admin/dashboard/";
-else if (role === "docente") window.location.href = "/app/docente/inicio/";
-else if (role === "representante") window.location.href = "/app/representante/inicio/";
+if (email) window.location.href = "/app/iniciar-sesion/usuario.html";
 
 document.addEventListener("DOMContentLoaded", function () {
   const loginBtn = document.getElementById("loginBtn");
