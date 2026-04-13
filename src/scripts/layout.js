@@ -63,7 +63,7 @@ function buildSidebarForRole(role) {
         `;
     } else {
         navList.innerHTML = `
-            <li><a href="http://127.0.0.1:5500/app/admin/dashboard/" class="nav-item">🏠 Inicio</a></li>
+            <li><a href="/app/admin/dashboard/" class="nav-item">🏠 Inicio</a></li>
             <li><a href="/app/admin/periodo-escolar/" class="nav-item">🏫 Período escolar</a></li>
             <li>
                 <a href="/app/admin/periodo-inscripcion/" class="nav-item">📋 Período de inscripción</a>
@@ -77,19 +77,31 @@ function buildSidebarForRole(role) {
           <li><a href="/app/admin/docentes/" class="nav-item">👨‍🏫 Docentes</a></li>
           <li><a href="/app/admin/materias/" class="nav-item">📚 Materias</a></li>
           <li><a href="/app/admin/horarios/" class="nav-item">📅 Horarios</a></li>
-          
-          <!-- NUEVO BOTÓN PARA LAPSOS AQUÍ -->
           <li><a href="/app/admin/lapsos/index.html" class="nav-item">🗓️Lapsos</a></li>
-          
           <li><a href="/app/admin/auditorias/" class="nav-item">🧾 Auditorías</a></li>
           <li><a href="/app/admin/respaldo/" class="nav-item">💾 Respaldos</a></li>
         `;
     }
+
+    const users = JSON.parse(localStorage.getItem("users"));
+    if (users.length > 1) {
+        navList.innerHTML += `<li id="change-user"><a href="/app/iniciar-sesion/usuario.html" class="nav-item">👤 Cambiar usuario</a></li>`
+        const changeUserBtn = document.getElementById("change-user");
+        changeUserBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.removeItem("auth");
+            localStorage.removeItem("user-selected");
+            window.location.href = "/app/iniciar-sesion/usuario.html";
+        });
+    }
+
 }
 
 function initializeLayoutLogic() {
     /* DATOS DEL USUARIO */
-    const roleStr = localStorage.getItem('role') || 'Usuario';
+    const selectedUser = parseInt(localStorage.getItem("user-selected"));
+    const user = JSON.parse(localStorage.getItem("users"))[selectedUser];
+    const roleStr = user.role;
     const roleElement = document.getElementById('userRole');
     if (roleElement) roleElement.textContent = roleStr;
 
@@ -150,7 +162,7 @@ function initializeLayoutLogic() {
             if (!displayInfo) displayInfo = 'Docente';
         } else {
             // Lógica original para Administrador (mostrar email)
-            const savedEmail = localStorage.getItem('email');
+            const savedEmail = user.email;
             if (savedEmail) {
                 displayInfo = savedEmail;
             } else if (token) {
