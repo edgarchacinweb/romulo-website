@@ -11,11 +11,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const notificationsContainer = document.getElementById("notifications");
   const firstNameEntry = document.getElementById("nombre");
   const lastNameEntry = document.getElementById("apellido");
-  
+
   // ELEMENTOS DE CÉDULA
   const identityEntry = document.getElementById("cedula"); // El input de números
   const typeIdEntry = document.getElementById("tipo-cedula"); // El selector V/E
-  
+  const btnSearchCedula = document.getElementById("btn-search-cedula");
+
   const genderEntry = document.getElementById("sexo");
   const emailEntry = document.getElementById("email");
   const submitBtn = document.getElementById("btn-submit");
@@ -26,17 +27,65 @@ document.addEventListener("DOMContentLoaded", async () => {
   const searchInput = document.getElementById("searchInput"); // Elemento de Búsqueda
 
   // Estado de la aplicación
-  let parents = []; 
-  let isEditing = false; 
-  let currentEditId = null; 
+  let parents = [];
+  let isEditing = false;
+  let currentEditId = null;
   let currentSearchQuery = ""; // Control de búsqueda actual
-  
+  let currentPersonId = null;
+
   // --- VALIDACIÓN EN TIEMPO REAL: CÉDULA (SOLO NÚMEROS) ---
   if (identityEntry) {
-    identityEntry.addEventListener("input", function() {
+    identityEntry.addEventListener("input", function () {
       this.value = this.value.replace(/\D/g, "");
+      btnSearchCedula.disabled = !(/\d{7,9}/.test(this.value));
     });
   }
+
+  btnSearchCedula.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const loader = document.createElement("loader-spinner");
+    loader.setAttribute("title", "Cargando datos...");
+    try {
+      document.body.appendChild(loader);
+      const response = await fetch(`${window.APP_CONFIG.api_url}/user/get/${identityEntry.value}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      if (data.Rol === "representante") throw new Error("Ya hay un representante registrado con este número de cédula");
+      const notification = document.createElement("notification-component");
+      notification.setAttribute("text", "Datos cargados correctamente");
+      notification.setAttribute("type", "success");
+      notificationsContainer.appendChild(notification);
+
+      currentPersonId = data.DatosPersonaId;
+      btnSearchCedula.disabled = true;
+      document.querySelectorAll("input").forEach(i => i.disabled = true);
+      document.querySelectorAll("select").forEach(i => i.disabled = true);
+
+      firstNameEntry.value = data.Nombre;
+      lastNameEntry.value = data.Apellido;
+      identityEntry.value = data.Cedula;
+      genderEntry.value = data.Sexo;
+      emailEntry.value = data.Email;
+    } catch (Error) {
+      console.log(Error.stack);
+      const notification = document.createElement("notification-component");
+      notification.setAttribute("text", Error.message);
+      notification.setAttribute("type", "error");
+      notificationsContainer.appendChild(notification);
+    } finally {
+      loader.remove();
+    }
+  });
 
   // Iconos
   const icons = {
@@ -52,8 +101,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     isEditing = false;
     currentEditId = null;
     repForm.reset();
-    if(typeIdEntry) typeIdEntry.value = "V";
-    
+    if (typeIdEntry) typeIdEntry.value = "V";
+
     // Restaurar el botón original
     submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg> Registrar Representante`;
     submitBtn.classList.remove("btn-warning");
@@ -74,11 +123,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 1. Detectar si es extranjero para ajustar el selector
     if (cedulaCompleta.toUpperCase().startsWith("E")) {
-        typeIdEntry.value = "E";
-        identityEntry.value = cedulaCompleta.substring(1); 
+      typeIdEntry.value = "E";
+      identityEntry.value = cedulaCompleta.substring(1);
     } else {
-        typeIdEntry.value = "V";
-        identityEntry.value = cedulaCompleta; 
+      typeIdEntry.value = "V";
+      identityEntry.value = cedulaCompleta;
     }
 
     firstNameEntry.value = DatosPersona.Nombre;
@@ -93,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     submitBtn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Actualizar Representante`;
     submitBtn.classList.add("btn-warning");
-    
+
     // Crear el botón de cancelar si no existe
     if (!document.getElementById("btn-cancel-edit")) {
       const cancelBtn = document.createElement("button");
@@ -119,16 +168,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- RENDERIZAR LISTA ---
   const renderParents = (parentsData) => {
-    repsList.innerHTML = ""; 
+    repsList.innerHTML = "";
 
-    if(parentsData.length === 0) {
+    if (parentsData.length === 0) {
       repsList.innerHTML = `<p style="text-align:center; color:#666; width:100%; grid-column: 1 / -1;">No se encontraron representantes.</p>`;
     }
 
     parentsData.forEach((parent) => {
       const userId = parent.UsuarioId;
       const { DatosPersona } = parent;
-      
+
       // 2. Formateo visual inteligente
       let displayCedula = formatCedula(DatosPersona.Cedula);
 
@@ -170,7 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             `;
       repsList.appendChild(card);
     });
-    
+
     // Actualizamos el contador total. Si hay búsqueda mostramos los filtrados, sino el total real.
     totalCount.textContent = currentSearchQuery !== "" ? `${parentsData.length} (Filtrados)` : parentsData.length;
   };
@@ -185,12 +234,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const filtered = parents.filter(p => {
       const { DatosPersona } = p;
       const query = currentSearchQuery.toLowerCase();
-      
+
       const nameMatch = (DatosPersona.Nombre || "").toLowerCase().includes(query);
       const lastNameMatch = (DatosPersona.Apellido || "").toLowerCase().includes(query);
       const fullNameMatch = `${DatosPersona.Nombre} ${DatosPersona.Apellido}`.toLowerCase().includes(query);
       const cedulaMatch = (DatosPersona.Cedula || "").toString().toLowerCase().includes(query);
-      
+
       return nameMatch || lastNameMatch || fullNameMatch || cedulaMatch;
     });
 
@@ -198,7 +247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   // Escuchar entrada en la barra de búsqueda
-  if(searchInput) {
+  if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       currentSearchQuery = e.target.value.trim();
       applyFilterAndRender();
@@ -212,7 +261,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
       const parentsResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/people/list`, 
+        `${window.APP_CONFIG.api_url}/people/list`,
         {
           method: "GET",
           headers: {
@@ -223,11 +272,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
       const parentsData = await parentsResponse.json();
       if (parentsResponse.status !== 200) throw new Error(parentsData.message);
-      
+
       parents = parentsData;
       // En vez de usar renderParents directo, aplicamos el filtro por si el administrador estaba buscando algo
-      applyFilterAndRender(); 
-      
+      applyFilterAndRender();
+
     } catch (error) {
       if (!isBackgroundUpdate) {
         const loadNotification = document.createElement("notification-component");
@@ -241,15 +290,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   await loadParentsData(false);
-  setInterval(() => { loadParentsData(true); }, 5000); 
+  setInterval(() => { loadParentsData(true); }, 5000);
 
   // --- MANEJO DEL BOTÓN DE ENVÍO ---
   submitBtn.addEventListener("click", async (e) => {
     e.preventDefault();
     const firstName = firstNameEntry.value.trim();
     const lastName = lastNameEntry.value.trim();
-    const identityRaw = identityEntry.value.trim(); 
-    const identityType = typeIdEntry ? typeIdEntry.value : "V"; 
+    const identityRaw = identityEntry.value.trim();
+    const identityType = typeIdEntry ? typeIdEntry.value : "V";
     const gender = genderEntry.value;
     const email = emailEntry.value.trim().toLowerCase(); // Normalizamos a minúsculas
     const notification = document.createElement("notification-component");
@@ -257,19 +306,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.body.appendChild(loader);
 
     try {
+
+      let finalIdentity = identityType === "E" ? `E${identityRaw}` : identityRaw;
+      let defaultPassword = `${identityType}#${identityRaw}`;
+
+      console.log(currentPersonId)
+      if (currentPersonId) {
+        const userResponse = await fetch(
+          `${window.APP_CONFIG.api_url}/user/register`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              Email: email,
+              Rol: "representante",
+              Clave: defaultPassword,
+              DatosPersonaId: currentPersonId,
+            }),
+          },
+        );
+
+        const userData = await userResponse.json();
+        console.log(userResponse, userData);
+        if (!userResponse.ok) throw new Error(userData.message);
+
+        notification.setAttribute("type", "success");
+        notification.setAttribute("text", "Representante registrado correctamente");
+        await loadParentsData(true);
+
+        repForm.reset();
+        currentPersonId = null;
+        document.querySelectorAll("input, select").forEach(input => input.disabled = false);
+        return;
+      }
+
       // VALIDACIONES BÁSICAS
       if (firstName.length === 0) { firstNameEntry.focus(); throw new Error("Falta nombre"); }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(firstName)) { firstNameEntry.focus(); throw new Error("Nombre inválido"); }
       if (lastName.length === 0) { lastNameEntry.focus(); throw new Error("Falta apellido"); }
       if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/.test(lastName)) { lastNameEntry.focus(); throw new Error("Apellido inválido"); }
-      
+
       // VALIDACIONES CÉDULA
-      if (identityRaw.length === 0) { identityEntry.focus(); throw new Error("Introduce la cédula"); } 
-      if (!/^\d+$/.test(identityRaw)) { identityEntry.focus(); throw new Error("La cédula solo debe contener números"); } 
-      if (identityRaw.startsWith("0")) { identityEntry.focus(); throw new Error("La cédula no debe empezar por 0"); } 
-      if (identityRaw.length < 7) { 
-          identityEntry.focus(); 
-          throw new Error("La cédula debe tener entre 7 y 9 dígitos"); 
+      if (identityRaw.length === 0) { identityEntry.focus(); throw new Error("Introduce la cédula"); }
+      if (!/^\d+$/.test(identityRaw)) { identityEntry.focus(); throw new Error("La cédula solo debe contener números"); }
+      if (identityRaw.startsWith("0")) { identityEntry.focus(); throw new Error("La cédula no debe empezar por 0"); }
+      if (identityRaw.length < 7) {
+        identityEntry.focus();
+        throw new Error("La cédula debe tener entre 7 y 9 dígitos");
       }
       if (parseInt(identityRaw) <= 1000000) { identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000"); }
 
@@ -286,19 +369,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       // ===========================
 
-      // CONSTRUCCIÓN DE LA CÉDULA
-      let finalIdentity = identityType === "E" ? `E${identityRaw}` : identityRaw;
-      let defaultPassword = `${identityType}#${identityRaw}`;
-
       const payloadPerson = {
         Nombre: firstName,
         Apellido: lastName,
         Sexo: gender,
-        Cedula: finalIdentity, 
+        Cedula: finalIdentity,
       };
 
       if (isEditing) {
-        payloadPerson.Email = email; 
+        payloadPerson.Email = email;
         const updateResponse = await fetch(
           `${window.APP_CONFIG.api_url}/people/update/${currentEditId}`,
           {
@@ -316,7 +395,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("type", "success");
         notification.setAttribute("text", "Datos actualizados correctamente");
         await loadParentsData(true);
-        
+
         // Finalizar modo edición limpiando el formulario
         cancelEdit();
 
@@ -350,7 +429,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             body: JSON.stringify({
               Email: email,
               Rol: "representante",
-              Clave: defaultPassword, 
+              Clave: defaultPassword,
               DatosPersonaId: peopleId,
             }),
           },
@@ -362,13 +441,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.setAttribute("type", "success");
         notification.setAttribute("text", "Representante registrado correctamente");
         await loadParentsData(true);
-        
+
         repForm.reset();
-        if(typeIdEntry) typeIdEntry.value = "V";
+        if (typeIdEntry) typeIdEntry.value = "V";
       }
 
     } catch (error) {
-      console.error(error);
+      console.error(error.stack);
       notification.setAttribute("type", "error");
       notification.setAttribute("text", error.message || error);
     } finally {
@@ -376,16 +455,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       notificationsContainer.appendChild(notification);
     }
   });
-});
 
-document.getElementById("BtnBack").addEventListener("click", (event) => {
-  event.preventDefault();
-  
-  // SOLUCIÓN: Guardamos la URL antes de que el evento expire
-  const targetUrl = event.currentTarget.href; 
-  
-  document.body.style.animation = "goodByePage 0.8s forwards";
-  
-  // Usamos la variable guardada en lugar de buscarla en el evento original
-  setTimeout(() => (document.location.href = targetUrl), 1000);
+  document.getElementById("logoutBtnLayout").addEventListener("click", (event) => {
+    event.preventDefault();
+
+    // SOLUCIÓN: Guardamos la URL antes de que el evento expire
+    const targetUrl = event.currentTarget.href;
+
+    document.body.style.animation = "goodByePage 0.8s forwards";
+
+    // Usamos la variable guardada en lugar de buscarla en el evento original
+    setTimeout(() => (document.location.href = targetUrl), 1000);
+  });
+
+  document.getElementById("btn-delete").addEventListener("click", (event) => {
+    event.preventDefault();
+    btnSearchCedula.disabled = true;
+    repForm.reset();
+    if (typeIdEntry) typeIdEntry.value = "V";
+    document.querySelectorAll("input").forEach(i => i.disabled = false);
+    document.querySelectorAll("select").forEach(i => i.disabled = false);
+    currentPersonId = null;
+  });
 });
