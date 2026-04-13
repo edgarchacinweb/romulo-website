@@ -30,7 +30,9 @@ const submitBtn = document.getElementById("submit-btn");
 const cancelBtn = document.getElementById("cancel-btn");
 const exportBtn = document.getElementById("export-btn");
 const stateField = document.getElementById("estado");
+const btnSearchCedula = document.getElementById("btn-search-cedula");
 let selectedTeacherId = "";
+let currentPersonId = null;
 
 let subjectsSelectHtml = "";
 let selectedSubjects = [];
@@ -289,35 +291,35 @@ const addTeacherCard = (teacher) => {
       if (cancelBtn) cancelBtn.classList.remove("hidden");
       document.querySelector(".hidden").classList.remove("hidden");
 
-    firstNameField.value = teacher["DatosPersona"]["Nombre"];
-    lastNameField.value = teacher["DatosPersona"]["Apellido"];
-    identityField.value = teacher["DatosPersona"]["Cedula"];
-    genderField.value = teacher["DatosPersona"]["Sexo"];
-    ocupationField.value = teacher["DatosPersona"]["Ocupacion"];
-    emailField.value = teacher["Usuario"]["Email"];
-    hoursField.value = parseInt(teacher["HorasAcademicas"]);
-    locationField.value = teacher["DatosPersona"]["Direccion"];
-    phonePrefixField.value = phone[0];
-    phoneField.value = phone[1];
-    stateField.value = `${teacher["Activo"]}`;
+      firstNameField.value = teacher["DatosPersona"]["Nombre"];
+      lastNameField.value = teacher["DatosPersona"]["Apellido"];
+      identityField.value = teacher["DatosPersona"]["Cedula"];
+      genderField.value = teacher["DatosPersona"]["Sexo"];
+      ocupationField.value = teacher["DatosPersona"]["Ocupacion"];
+      emailField.value = teacher["Usuario"]["Email"];
+      hoursField.value = parseInt(teacher["HorasAcademicas"]);
+      locationField.value = teacher["DatosPersona"]["Direccion"];
+      phonePrefixField.value = phone[0];
+      phoneField.value = phone[1];
+      stateField.value = `${teacher["Activo"]}`;
 
-    selectedSubjects = teacher["Materias"].map((m) => ({
-      MateriaId: m["MateriaId"],
-      Nombre: m["Nombre"],
-    }));
+      selectedSubjects = teacher["Materias"].map((m) => ({
+        MateriaId: m["MateriaId"],
+        Nombre: m["Nombre"],
+      }));
 
-    teacher["Materias"].forEach((s) => {
-      const newSubject = document.createElement("p");
-      newSubject.textContent = s["Nombre"];
-      newSubject.classList.add("materia");
-      subjectsContainer.appendChild(newSubject);
-      addRemoveListener(newSubject, s);
-    });
+      teacher["Materias"].forEach((s) => {
+        const newSubject = document.createElement("p");
+        newSubject.textContent = s["Nombre"];
+        newSubject.classList.add("materia");
+        subjectsContainer.appendChild(newSubject);
+        addRemoveListener(newSubject, s);
+      });
 
-    Array.from(subjectField.options).forEach((s) => {
-      if (teacher["Materias"].find((m) => m["MateriaId"] === s.value))
-        s.remove();
-    });
+      Array.from(subjectField.options).forEach((s) => {
+        if (teacher["Materias"].find((m) => m["MateriaId"] === s.value))
+          s.remove();
+      });
     });
   }
 
@@ -449,24 +451,24 @@ const applyFilterAndRender = () => {
   if (isPaginating) {
     const start = (currentPage - 1) * pageSize;
     const end = start + pageSize;
-    
+
     // Update UI text
     const rangeStart = totalFiltered === 0 ? 0 : start + 1;
     const rangeEnd = Math.min(end, totalFiltered);
     if (paginationText) paginationText.textContent = `${rangeStart}-${rangeEnd} de ${totalFiltered.toLocaleString()}`;
-    
+
     // Controls state
     if (btnPrev) btnPrev.disabled = currentPage <= 1;
     if (btnNext) btnNext.disabled = currentPage >= totalPages;
     if (btnViewAll) btnViewAll.textContent = "Ver todo";
-    
+
     renderTeachers(filtered.slice(start, end));
   } else {
     if (paginationText) paginationText.textContent = `Mostrando todos (${totalFiltered.toLocaleString()})`;
     if (btnPrev) btnPrev.disabled = true;
     if (btnNext) btnNext.disabled = true;
     if (btnViewAll) btnViewAll.textContent = "Paginar";
-    
+
     renderTeachers(filtered);
   }
 };
@@ -566,7 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // 3. Ocultar botón cancelar
       cancelBtn.classList.add("hidden");
       document.getElementById("estado").closest('.form-group').classList.add("hidden");
-      
+
       // Limpiar materias seleccionadas
       subjectsContainer.querySelectorAll("p").forEach((p) => p.remove());
       selectedSubjects.forEach((s) => {
@@ -760,6 +762,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       notificationContainer.appendChild(notification);
     } finally {
       loader.remove();
+    }
+  });
+
+  identityField.addEventListener("input", () => {
+    const identity = identityField.value;
+    btnSearchCedula.disabled = !/\d{7,9}/.test(identity)
+  });
+
+  btnSearchCedula.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.querySelectorAll(".form-person").forEach(i => i.disabled = true);
+    btnSearchCedula.disabled = true;
+
+    loader.setAttribute("title", "Cargando Datos del Usuario...")
+    const notification = document.createElement("notification-component");
+    try {
+      notification.setAttribute("type", "success");
+      notification.setAttribute("text", "¡Datos del Usuario Encontrados!");
+    } catch (Error) {
+      console.error(Error.stack)
+      notification.setAttribute("type", "error");
+      notification.setAttribute("text", Error.message);
+    } finally {
+      loader.remove();
+      notificationContainer.appendChild(notification);
     }
   });
 });
