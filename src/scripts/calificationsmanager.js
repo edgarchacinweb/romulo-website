@@ -213,6 +213,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                     studentData[stuData.id] = stuData;
                     renderStudentCard(stuData, student.DatosPersona.Sexo.toLowerCase() === 'masculino' ? 'blue' : 'pink');
                 });
+
+                // --- Validación de estado de calificaciones ---
+                const allStudentIds = students.map(s => s.EstudianteId);
+                try {
+                    const statusResponse = await fetch(`${window.APP_CONFIG.api_url}/calification/grade_status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            StudentIds: allStudentIds,
+                            CursoId: courseId
+                        })
+                    });
+                    if (statusResponse.ok) {
+                        const statusMap = await statusResponse.json();
+                        Object.keys(statusMap).forEach(studentId => {
+                            const card = studentsListSection.querySelector(`[data-student-id="${studentId}"]`);
+                            if (card) {
+                                const statusIcon = card.querySelector('.status-icon');
+                                if (statusIcon) {
+                                    if (statusMap[studentId] === true) {
+                                        // Notas completas: reemplazar con ✅
+                                        statusIcon.outerHTML = '<span class="status-icon status-complete" title="Calificaciones completas" style="font-size: 18px; line-height: 1;">✅</span>';
+                                        card.classList.add('saved');
+                                        if (studentData[studentId]) {
+                                            studentData[studentId].saved = true;
+                                        }
+                                    }
+                                    // Si es false, el ícono de exclamación ya está renderizado por defecto
+                                }
+                            }
+                        });
+                    }
+                } catch (statusErr) {
+                    console.error('Error al verificar estado de calificaciones:', statusErr);
+                }
             }
         } catch (error) {
             console.error('Error al cargar estudiantes:', error);
@@ -682,14 +720,41 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Actualizar la tarjeta del estudiante en la lista principal
             const updatedCard = studentsListSection.querySelector(`[data-student-id="${currentStudentId}"]`);
             if (updatedCard) {
-                updatedCard.classList.add('saved');
-                const statusIcon = updatedCard.querySelector('.status-icon');
-                if(statusIcon) {
-                    statusIcon.innerHTML = `
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    `;
+                // Re-verificar estado de completitud via API
+                try {
+                    const reCheckResponse = await fetch(`${window.APP_CONFIG.api_url}/calification/grade_status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            StudentIds: [currentStudentId],
+                            CursoId: gradeSelect.value
+                        })
+                    });
+                    if (reCheckResponse.ok) {
+                        const reCheckMap = await reCheckResponse.json();
+                        const isComplete = reCheckMap[currentStudentId] === true;
+                        const statusIcon = updatedCard.querySelector('.status-icon');
+                        if (isComplete) {
+                            updatedCard.classList.add('saved');
+                            if (statusIcon) {
+                                statusIcon.outerHTML = '<span class="status-icon status-complete" title="Calificaciones completas" style="font-size: 18px; line-height: 1;">✅</span>';
+                            }
+                        } else {
+                            // Mantener/restaurar ícono de exclamación
+                            if (statusIcon && !statusIcon.querySelector('path[d*="8 12V8"]')) {
+                                statusIcon.outerHTML = `
+                                    <svg class="status-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 12V8M8 4.005H8.005M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8Z" stroke="#F97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                `;
+                            }
+                        }
+                    }
+                } catch(recheckErr) {
+                    console.error('Error re-verificando estado:', recheckErr);
                 }
             }
         } catch(e) {
