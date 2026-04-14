@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const reportResponse = await reportPromise.json();
       if (!reportPromise.ok) throw new Error(reportResponse.message);
       
-      const { reporte, habilitar_pdf } = reportResponse;
+      const { reporte, habilitar_pdf, promedio_general, promedio_seccion, posicion_curso, docente_guia } = reportResponse;
 
       // Limpiar tabla antes de poblar
       tableBody.innerHTML = "";
@@ -163,21 +163,87 @@ document.addEventListener("DOMContentLoaded", async () => {
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF('portrait');
           
-          doc.setFontSize(16);
-          doc.text(`Boleta de Calificaciones`, 14, 20);
-          doc.setFontSize(12);
-          doc.text(`Estudiante: ${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}`, 14, 28);
-          doc.text(`Cédula: ${student.DatosPersona.Cedula}`, 14, 34);
-          doc.text(`Grado: ${student.Curso.Grado}° Año, Sección ${numberToLetter(student.Curso.Seccion)}`, 14, 40);
+          // Membrete
+          doc.setFontSize(10);
+          doc.setFont("helvetica", "bold");
+          const membrete = [
+            "REPÚBLICA BOLIVARIANA DE VENEZUELA",
+            "MINISTERIO DEL PODER POPULAR PARA LA EDUCACIÓN",
+            "L.N. 'DON RÓMULO GALLEGOS'",
+            "C/SAN MATEO, BARRIO ALAYON, P. ANDRES ELOY BLANCO MARACAY"
+          ];
+          let startYX = 15;
+          membrete.forEach((line) => {
+             const textWidth = doc.getStringUnitWidth(line) * doc.internal.getFontSize() / doc.internal.scaleFactor;
+             const textOffset = (doc.internal.pageSize.width - textWidth) / 2;
+             doc.text(line, textOffset, startYX);
+             startYX += 5;
+          });
+
+          // Título
+          startYX += 5;
+          doc.setFontSize(14);
+          doc.text(`BOLETA DE CALIFICACIONES`, doc.internal.pageSize.width / 2, startYX, { align: 'center' });
+          
+          // Datos del alumno
+          startYX += 10;
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "normal");
+          doc.text(`Estudiante: ${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}`, 14, startYX);
+          doc.text(`Cédula: ${student.DatosPersona.Cedula}`, 14, startYX + 6);
+          doc.text(`Grado: ${student.Curso.Grado}° Año, Sección "${numberToLetter(student.Curso.Seccion)}"`, 14, startYX + 12);
           
           doc.autoTable({
             html: '.table-container table',
-            startY: 48,
+            startY: startYX + 18,
             theme: 'striped',
             headStyles: { fillColor: [30, 41, 59] },
-            styles: { fontSize: 10, cellPadding: 4, halign: 'center' },
+            styles: { fontSize: 9, cellPadding: 3, halign: 'center' },
             columnStyles: { 0: { halign: 'left' } }
           });
+          
+          let finalY = doc.lastAutoTable.finalY + 10;
+          
+          // Cuadro de promedios
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(11);
+          doc.text("Promedios:", 14, finalY);
+          
+          finalY += 2;
+          doc.autoTable({
+            head: [['Promedio General', 'Promedio de la Sección', 'Posición en el Curso']],
+            body: [[
+              promedio_general !== null ? promedio_general : '-', 
+              promedio_seccion !== null ? promedio_seccion : '-', 
+              posicion_curso
+            ]],
+            startY: finalY,
+            theme: 'grid',
+            headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+            styles: { fontSize: 10, halign: 'center', cellPadding: 3 }
+          });
+
+          // Firmas
+          let signatureY = doc.lastAutoTable.finalY + 30;
+          
+          // Chequear si hay espacio en la pagina, en boletas largas podria estar al limite
+          if (signatureY + 20 > doc.internal.pageSize.height) {
+              doc.addPage();
+              signatureY = 30;
+          }
+
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          
+          const centerX = doc.internal.pageSize.width / 2;
+          
+          // Firma Directora
+          doc.line(centerX - 70, signatureY, centerX - 20, signatureY); // linea
+          doc.text("Directora: Emily Alvarez", centerX - 45, signatureY + 5, { align: "center" });
+
+          // Firma Docente
+          doc.line(centerX + 20, signatureY, centerX + 70, signatureY); // linea
+          doc.text(`Docente Guía: ${docente_guia}`, centerX + 45, signatureY + 5, { align: "center" });
           
           doc.save(`boleta_${student.DatosPersona.Cedula}.pdf`);
         };
