@@ -7,6 +7,8 @@ else if (role === "docente") window.location.href = "/app/docente/inicio/";
 else if (role === "representante") window.location.href = "/app/representante/inicio/";
 else if (localStorage.length === 0 || !email) window.location.href = "/app/iniciar-sesion";
 
+let userData = [];
+
 document.addEventListener('DOMContentLoaded', async () => {
     const btnLogout = document.getElementById('btn-logout');
     const modal = document.getElementById('logout-modal');
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const cardContainer = document.querySelector(".cards-container");
+        userData = [...users];
         users.forEach(user => {
             const card = document.createElement("role-card");
             card.setAttribute("role-type", user.role);
@@ -112,4 +115,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             window.location.href = '/app/iniciar-sesion';
         }, 500); // 500ms coincide con la duración de la animación css
     });
+
+    document.querySelectorAll("role-card").forEach((card, index) => card.addEventListener("click", () => {
+        const data = userData[index];
+        localStorage.setItem("user-selected", index);
+        localStorage.setItem("auth", data.token);
+        const role = data.role;
+
+        if (role === "docente") window.location.href = "/app/docente/inicio/";
+        else if (role === "representante") window.location.href = "/app/representante/inicio/";
+    }));
 });
