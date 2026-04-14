@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(data.message);
         }
 
-        const users = [...data];
+        const users = Array.isArray(data) ? [...data] : [data];
 
         // Guardando en localstorage al usuario por defecto, en caso de no tener otro usuario
         localStorage.setItem("users", JSON.stringify(users));
@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardContainer.appendChild(card);
         });
     } catch (error) {
+        console.error(error.stack);
         const notification = document.createElement("notification-component");
         notification.setAttribute("type", "error");
         notification.setAttribute("text", error.message);
