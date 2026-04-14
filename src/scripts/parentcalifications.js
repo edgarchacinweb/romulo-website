@@ -157,6 +157,32 @@ document.addEventListener("DOMContentLoaded", async () => {
       exportPdfBtn.style.opacity = habilitar_pdf ? "1" : "0.5";
       exportPdfBtn.style.cursor = habilitar_pdf ? "pointer" : "not-allowed";
 
+      exportPdfBtn.onclick = null;
+      if (habilitar_pdf) {
+        exportPdfBtn.onclick = () => {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF('portrait');
+          
+          doc.setFontSize(16);
+          doc.text(`Boleta de Calificaciones`, 14, 20);
+          doc.setFontSize(12);
+          doc.text(`Estudiante: ${student.DatosPersona.Nombre} ${student.DatosPersona.Apellido}`, 14, 28);
+          doc.text(`Cédula: ${student.DatosPersona.Cedula}`, 14, 34);
+          doc.text(`Grado: ${student.Curso.Grado}° Año, Sección ${numberToLetter(student.Curso.Seccion)}`, 14, 40);
+          
+          doc.autoTable({
+            html: '.table-container table',
+            startY: 48,
+            theme: 'striped',
+            headStyles: { fillColor: [30, 41, 59] },
+            styles: { fontSize: 10, cellPadding: 4, halign: 'center' },
+            columnStyles: { 0: { halign: 'left' } }
+          });
+          
+          doc.save(`boleta_${student.DatosPersona.Cedula}.pdf`);
+        };
+      }
+
       reporte.forEach(row => {
         const tr = document.createElement("tr");
         
@@ -169,8 +195,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           return `<span class="pill ${colorClass}">${nota}</span>`;
         };
 
+        let avgColorClass = "pill-green";
+        const avgValue = parseFloat(row.promedio_final);
+        if (!isNaN(avgValue) && avgValue <= 9) {
+          avgColorClass = "pill-red";
+        }
         const averageHTML = (row.promedio_final !== null) 
-          ? `<span class="pill pill-green">${row.promedio_final}</span>` 
+          ? `<span class="pill ${avgColorClass}">${row.promedio_final}</span>` 
           : "-";
 
         tr.innerHTML = `
