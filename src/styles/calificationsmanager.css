@@ -564,6 +564,17 @@ body {
     color: #D1D5DB;
 }
 
+/* Ocultar flechas (spinners) de inputs numéricos de calificaciones */
+.grade-input::-webkit-outer-spin-button,
+.grade-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.grade-input {
+    -moz-appearance: textfield;
+}
+
 /* Validación is-invalid personalizada */
 .form-control.is-invalid {
     border-color: #EF4444;
