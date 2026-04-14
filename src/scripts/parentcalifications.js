@@ -157,9 +157,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       exportPdfBtn.style.opacity = habilitar_pdf ? "1" : "0.5";
       exportPdfBtn.style.cursor = habilitar_pdf ? "pointer" : "not-allowed";
 
+      // --- CALCULAR MATERIAS REPROBADAS (promedio_final <= 9) ---
+      const materiasReprobadas = reporte.filter(row => {
+        const avg = parseFloat(row.promedio_final);
+        return !isNaN(avg) && avg <= 9;
+      }).length;
+
       exportPdfBtn.onclick = null;
       if (habilitar_pdf) {
         exportPdfBtn.onclick = () => {
+          // --- VALIDACIÓN DE ESTADO ACADÉMICO ---
+          if (materiasReprobadas >= 1 && materiasReprobadas <= 2) {
+            alert("Estudiante con materias pendientes, debe dirigirse a la institucion");
+            return;
+          }
+          if (materiasReprobadas >= 3) {
+            alert("Estudiante reprobado, dirigirse a la institucion");
+            return;
+          }
+
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF('portrait');
           
