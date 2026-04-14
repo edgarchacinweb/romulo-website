@@ -94,7 +94,18 @@
           </p>
         </div>
 
+        <div id="schedule-metadata" class="schedule-summary-card" style="display: none;">
+          <div class="summary-item">
+            <span class="summary-label">Período Escolar:</span>
+            <span id="display-period" class="summary-value">---</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Profesor Guía:</span>
+            <span id="display-guide" class="summary-value">---</span>
+          </div>
+        </div>
         <div id="results-container" class="schedule-container"></div>
+
           </div>
         </div>
     <div id="print-schedule">
@@ -113,6 +124,8 @@
       </article>
       <article class="print__info">
         <p class="print__grade">1° Año - Sección A</p>
+        <p class="print__school-period">Año Escolar: <span id="print-period">---</span></p>
+        <p class="print__guide-teacher">Profesor Guía: <span id="print-guide">---</span></p>
       </article>
       <article class="print__schedule">
         <table class="print__table">

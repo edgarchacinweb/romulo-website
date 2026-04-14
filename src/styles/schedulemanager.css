@@ -597,6 +597,46 @@ select:disabled {
 }
 
 /* Resaltado de Clase Actual */
+/* --- Schedule Summary Card --- */
+.schedule-summary-card {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.summary-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-blue);
+}
+
+@media (max-width: 640px) {
+  .schedule-summary-card {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
 .current-class-highlight {
   position: relative !important;
   background-color: #eff6ff !important;

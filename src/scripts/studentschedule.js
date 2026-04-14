@@ -105,7 +105,7 @@ const renderTeacherSelector = (selectedSchedule) => {
   });
 };
 
-const filter = async (grade, section) => {
+const filter = async (grade, section, student) => {
   // Configurando reporte
   document.querySelector(".print__grade").textContent =
     `${grade}° Año - Sección ${section}`;
@@ -116,46 +116,74 @@ const filter = async (grade, section) => {
   const loader = document.createElement("loader-spinner");
   loader.setAttribute("title", "Cargando horario...");
   const notifications = document.getElementById("notifications");
+  document.body.appendChild(loader);
 
   const courseId = courses.find((c) => c["Grado"] === grade)["CursoId"];
   const numberSection = ["A", "B", "C", "D", "E", "F"].indexOf(section) + 1;
 
-  const selectedSchedule = schedule.filter(
-    (s) => s["Seccion"] === numberSection && s["CursoId"] === courseId,
-  );
+  try {
+    const response = await fetch(`${window.APP_CONFIG.api_url}/schedule/filter`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        CursoId: courseId,
+        Seccion: numberSection.toString(),
+        PeriodoEscolarId: student["Curso"]["PeriodoEscolarId"],
+      }),
+    });
 
-  if (selectedSchedule.length === 0) {
-    scheduleCard.innerHTML = "";
-    if (document.getElementById("results-container")) {
-      document.getElementById("results-container").innerHTML = "";
+    const answer = await response.json();
+    if (!response.ok) throw new Error(answer.message);
+
+    const { metadata, schedule: selectedSchedule } = answer;
+
+    // Actualizar metadata UI
+    const metadataContainer = document.getElementById("schedule-metadata");
+    if (metadataContainer) {
+      metadataContainer.style.display = "grid";
+      document.getElementById("display-period").textContent = metadata.PeriodoEscolarNombre;
+      document.getElementById("display-guide").textContent = metadata.DocenteGuia;
+      
+      // Actualizar print metadata
+      document.getElementById("print-period").textContent = metadata.PeriodoEscolarNombre;
+      document.getElementById("print-guide").textContent = metadata.DocenteGuia;
     }
 
-    emptyState.style.display = "flex";
-    emptyState.innerHTML = `
-        <div class="warning-banner">
-            <div class="warning-icon">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
-                    <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                    <line x1="3" y1="10" x2="21" y2="10"/>
-                    <line x1="9" y1="16" x2="15" y2="16"/>
-                </svg>
-            </div>
-            <h3>Sin Horario Asignado</h3>
-            <p>El estudiante seleccionado aún no tiene un horario cargado en el sistema.</p>
-            <p class="small">Esto puede deberse a que la sección aún está en proceso de conformación o el administrador no ha publicado los horarios. Por favor, consulte con la dirección del plantel.</p>
-        </div>
-    `;
-    return;
-  }
+    if (selectedSchedule.length === 0) {
+      scheduleCard.innerHTML = "";
+      if (document.getElementById("results-container")) {
+        document.getElementById("results-container").innerHTML = "";
+      }
 
-  try {
+      emptyState.style.display = "flex";
+      emptyState.innerHTML = `
+          <div class="warning-banner">
+              <div class="warning-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                      <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
+                      <line x1="3" y1="10" x2="21" y2="10"/>
+                      <line x1="9" y1="16" x2="15" y2="16"/>
+                  </svg>
+              </div>
+              <h3>Sin Horario Asignado</h3>
+              <p>El estudiante seleccionado aún no tiene un horario cargado en el sistema.</p>
+              <p class="small">Esto puede deberse a que la sección aún está en proceso de conformación o el administrador no ha publicado los horarios. Por favor, consulte con la dirección del plantel.</p>
+          </div>
+      `;
+      if (metadataContainer) metadataContainer.style.display = "none";
+      return;
+    }
+
     const scheduleRows = scheduleBlocks.reduce((prev, item, index) => {
       const minutes = calcMinutesDifferences(
         item["HoraInicio"],
         item["HoraFin"],
       );
 
-      const selectedBlock = schedule.filter(
+      const selectedBlock = selectedSchedule.filter(
         (s) =>
           s["CursoId"] === courseId &&
           s["Seccion"] === numberSection &&
@@ -460,21 +488,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       studentField.appendChild(option);
     });
 
-    // Obteniendo datos de horarios
-    const schedulePromise = await fetch(
-      `${window.APP_CONFIG.api_url}/schedule/list/${students[0]["Curso"]["PeriodoEscolarId"]}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    const scheduleResponse = await schedulePromise.json();
-    if (!schedulePromise.ok) throw new Error(scheduleResponse.message);
-    schedule = [...scheduleResponse];
+    // La obtención de datos de horarios se realiza ahora dinámicamente en la función filter al seleccionar un estudiante.
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -489,7 +503,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentId = studentField.value;
     const student = students.find((s) => s["EstudianteId"] === studentId);
 
-    filter(student["Curso"]["Grado"], student["Curso"]["Seccion"]);
+    if (student) {
+      filter(student["Curso"]["Grado"], student["Curso"]["Seccion"], student);
+    }
   });
 
   // Cargando grados
