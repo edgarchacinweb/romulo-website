@@ -44,6 +44,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             else if (role === "representante") window.location.href = "/app/representante/inicio/";
             return;
         }
+
+        // Cargando datos personales del usuario
+        const personResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${users[0].token}`
+            }
+        });
+
+        const personData = await personResponse.json();
+
+        if (!personResponse.ok) {
+            throw new Error(personData.message);
+        }
+
+        const cardContainer = document.querySelector(".cards-container");
+        users.forEach(user => {
+            const card = document.createElement("role-card");
+            card.setAttribute("role-type", user.role);
+            card.setAttribute("name", `${personData.Nombre} ${personData.Apellido}`);
+            card.setAttribute("cedula", `${!personData.Cedula.startsWith("E-") ? "V-" : "E-"}${personData.Cedula}`);
+            card.setAttribute("phone", personData.Telefono);
+            card.setAttribute("email", user.email);
+            card.innerHTML = `
+            <svg slot="icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>`
+            if (user.role === "representante") card.setAttribute("students", 2);
+            else if (user.role === "docente") {
+                card.setAttribute("years", JSON.stringify(["1er Año", "2do Año", "3er Año"]));
+                card.setAttribute("subjects", JSON.stringify(["Matemática", "Física", "Geometría"]));
+            }
+            cardContainer.appendChild(card);
+        });
     } catch (error) {
         const notification = document.createElement("notification-component");
         notification.setAttribute("type", "error");

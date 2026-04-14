@@ -1,212 +1,238 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestión de Representantes</title>
-    <!-- Estilos -->
-    <link rel="stylesheet" href="/src/styles/global.css" />
-    <link rel="stylesheet" href="/src/styles/parentsmanager.css" />
 
-    <!-- Estilo adicional para el grupo de cédula y búsqueda -->
-    <style>
-      .cedula-group {
-        display: flex;
-        gap: 10px;
-      }
-      .cedula-type {
-        width: 70px;
-        padding: 0.75rem;
-        border: 1px solid var(--border-color, #ccc);
-        border-radius: 6px;
-        background-color: #fff;
-      }
-      
-      /* Estilos para el contenedor del buscador */
-      .header-with-search {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: 1rem;
-        border-bottom: 1px solid var(--border-color, #eee);
-        padding-bottom: 1rem;
-        margin-bottom: 1rem;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Representantes</title>
+  <!-- Estilos -->
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/parentsmanager.css" />
 
-      .search-wrapper {
-        flex: 1;
-        max-width: 350px;
-        min-width: 250px;
-        position: relative;
-      }
+  <!-- Estilo adicional para el grupo de cédula y búsqueda -->
+  <style>
+    .cedula-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-      .search-wrapper svg {
-        position: absolute;
-        left: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #9ca3af;
-      }
+    .cedula-type {
+      width: 70px;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color, #ccc);
+      border-radius: 6px;
+      background-color: #fff;
+    }
 
-      .search-wrapper input {
-        width: 100%;
-        padding: 0.6rem 0.75rem 0.6rem 38px;
-        border: 1px solid var(--border-color, #d1d5db);
-        border-radius: 6px;
-        box-sizing: border-box;
-        font-family: inherit;
-        font-size: 0.95rem;
-        transition: border-color 0.2s;
-      }
+    .input-cedula {
+      flex: 1;
+    }
 
-      .search-wrapper input:focus {
-        outline: none;
-        border-color: #2563eb;
-      }
-    </style>
+    .btn-search {
+      width: 50px;
+      margin: 0;
+    }
 
-    <!-- Configuración -->
-    <script src="/src/scripts/config.js" type="module"></script>
+    .btn-search svg {
+      color: #ffffff;
+    }
 
-    <!-- Componentes -->
-    <script
-      src="/src/components/notifications-container.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/notification.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/loader.component.js"
-      type="module"
-      defer
-    ></script>
-    <link rel="stylesheet" href="/src/styles/layout.css" />
+    .btn-primary:disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    .btn-delete {
+      background-color: #dc3545;
+      color: #ffffff;
+      margin: 0;
+      width: 60px;
+    }
+
+    .btn-delete:hover {
+      background-color: #c82333;
+      cursor: pointer;
+    }
+
+    .btn-delete svg {
+      width: 30px;
+      margin: 0;
+    }
+
+    .btn-primary {
+      margin: 0;
+    }
+
+    .btn-form-group {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Estilos para el contenedor del buscador */
+    .header-with-search {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border-color, #eee);
+      padding-bottom: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .search-wrapper {
+      flex: 1;
+      max-width: 350px;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .search-wrapper svg {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+    }
+
+    .search-wrapper input {
+      width: 100%;
+      padding: 0.6rem 0.75rem 0.6rem 38px;
+      border: 1px solid var(--border-color, #d1d5db);
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    .search-wrapper input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+  </style>
+
+  <!-- Configuración -->
+  <script src="/src/scripts/config.js" type="module"></script>
+
+  <!-- Componentes -->
+  <script src="/src/components/notifications-container.component.js" type="module" defer></script>
+  <script src="/src/components/notification.component.js" type="module" defer></script>
+  <script src="/src/components/loader.component.js" type="module" defer></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
   <script src="/src/scripts/layout.js" defer></script>
 </head>
-  <body>
-    <notifications-container id="notifications"></notifications-container>
-    <div class="app-container">
+
+<body>
+  <notifications-container id="notifications"></notifications-container>
+  <div class="app-container">
     <header id="navbar-container" class="navbar-wrapper"></header>
     <div class="layout-main">
       <aside id="sidebar-container" class="sidebar-wrapper"></aside>
       <main class="content-wrapper main">
-      <div class="dashboard-layout">
-        <aside class="form-panel">
-          <div class="card">
-            <div class="card-header">
-              <h2>Agregar Representante</h2>
-              <p>Completa los datos del nuevo representante</p>
-            </div>
-
-            <form id="repForm">
-              <div class="form-group">
-                <label for="nombre">Nombre</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  placeholder="Ej: Juan"
-                  required
-                />
+        <div class="dashboard-layout">
+          <aside class="form-panel">
+            <div class="card">
+              <div class="card-header">
+                <h2>Agregar Representante</h2>
+                <p>Completa los datos del nuevo representante</p>
               </div>
 
-              <div class="form-group">
-                <label for="apellido">Apellido</label>
-                <input
-                  type="text"
-                  id="apellido"
-                  placeholder="Ej: Pérez"
-                  required
-                />
-              </div>
+              <form id="repForm">
+                <div class="form-group">
+                  <label for="nombre">Nombre</label>
+                  <input type="text" id="nombre" placeholder="Ej: Juan" required />
+                </div>
 
-              <div class="form-group">
-                <label for="cedula">Cédula de Identidad</label>
-                <div class="cedula-group">
-                  <select id="tipo-cedula" class="cedula-type">
-                    <option value="V">V</option>
-                    <option value="E">E</option>
+                <div class="form-group">
+                  <label for="apellido">Apellido</label>
+                  <input type="text" id="apellido" placeholder="Ej: Pérez" required />
+                </div>
+
+                <div class="form-group">
+                  <label for="cedula">Cédula de Identidad</label>
+                  <div class="cedula-group">
+                    <select id="tipo-cedula" class="cedula-type">
+                      <option value="V">V</option>
+                      <option value="E">E</option>
+                    </select>
+                    <input type="text" id="cedula" class="input-cedula" placeholder="Ej: 12345678" maxlength="9"
+                      minlength="7" pattern="\d{7,9}" required />
+                    <button id="btn-search-cedula" class="btn-primary btn-search" disabled>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="CurrentColor">
+                        <path
+                          d="M23.111 20.058l-4.977-4.977c.965-1.52 1.523-3.322 1.523-5.251 0-5.42-4.409-9.83-9.829-9.83-5.42 0-9.828 4.41-9.828 9.83s4.408 9.83 9.829 9.83c1.834 0 3.552-.505 5.022-1.383l5.021 5.021c2.144 2.141 5.384-1.096 3.239-3.24zm-20.064-10.228c0-3.739 3.043-6.782 6.782-6.782s6.782 3.042 6.782 6.782-3.043 6.782-6.782 6.782-6.782-3.043-6.782-6.782zm2.01-1.764c1.984-4.599 8.664-4.066 9.922.749-2.534-2.974-6.993-3.294-9.922-.749z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="sexo">Género</label>
+                  <select class="form-select" id="sexo">
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
                   </select>
-                  <input
-                    type="text"
-                    id="cedula"
-                    placeholder="Ej: 12345678"
-                    maxlength="9"
-                    minlength="7"
-                    pattern="\d{7,9}"
-                    required
-                  />
+                </div>
+
+                <div class="form-group">
+                  <label for="email">Correo Electrónico</label>
+                  <input type="email" id="email" placeholder="Ej: ejemplo@gmail.com" required />
+                </div>
+
+                <section class="btn-form-group">
+                  <button type="submit" class="btn-primary" id="btn-submit">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Registrar Representante
+                  </button>
+                  <button type="reset" class="btn-delete" id="btn-delete">
+                    <svg clip-rule="evenodd" fill-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2"
+                      viewBox="0 0 25 25" width="30" height="30" fill="CurrentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path
+                        d="m20.015 6.506h-16v14.423c0 .591.448 1.071 1 1.071h14c.552 0 1-.48 1-1.071 0-3.905 0-14.423 0-14.423zm-5.75 2.494c.414 0 .75.336.75.75v8.5c0 .414-.336.75-.75.75s-.75-.336-.75-.75v-8.5c0-.414.336-.75.75-.75zm-4.5 0c.414 0 .75.336.75.75v8.5c0 .414-.336.75-.75.75s-.75-.336-.75-.75v-8.5c0-.414.336-.75.75-.75zm-.75-5v-1c0-.535.474-1 1-1h4c.526 0 1 .465 1 1v1h5.254c.412 0 .746.335.746.747s-.334.747-.746.747h-16.507c-.413 0-.747-.335-.747-.747s.334-.747.747-.747zm4.5 0v-.5h-3v.5z"
+                        fill-rule="nonzero" />
+                    </svg>
+                  </button>
+                </section>
+              </form>
+            </div>
+          </aside>
+
+          <main class="list-panel">
+            <div class="card list-container">
+              <!-- NUEVO: Encabezado con buscador -->
+              <div class="header-with-search">
+                <div>
+                  <h2>Representantes Activos</h2>
+                  <p>Total registrados: <span id="totalCount">...</span></p>
+                </div>
+                <div class="search-wrapper">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <input type="text" id="searchInput" placeholder="Buscar por nombre o cédula..." />
                 </div>
               </div>
 
-              <div class="form-group">
-                <label for="sexo">Género</label>
-                <select class="form-select" id="sexo">
-                  <option value="Masculino">Masculino</option>
-                  <option value="Femenino">Femenino</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="email">Correo Electrónico</label>
-                <input
-                  type="email"
-                  id="email"
-                  placeholder="Ej: ejemplo@gmail.com"
-                  required
-                />
-              </div>
-
-              <button type="submit" class="btn-primary" id="btn-submit">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                Registrar Representante
-              </button>
-            </form>
-          </div>
-        </aside>
-
-        <main class="list-panel">
-          <div class="card list-container">
-            <!-- NUEVO: Encabezado con buscador -->
-            <div class="header-with-search">
-              <div>
-                <h2>Representantes Activos</h2>
-                <p>Total registrados: <span id="totalCount">...</span></p>
-              </div>
-              <div class="search-wrapper">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input type="text" id="searchInput" placeholder="Buscar por nombre o cédula..." />
-              </div>
+              <div id="repsList" class="reps-grid"></div>
             </div>
+          </main>
+        </div>
+    </div>
+    </main>
+  </div>
 
-            <div id="repsList" class="reps-grid"></div>
-          </div>
-        </main>
-      </div>
-    </div>
-      </main>
-    </div>
-
-    <script src="/src/scripts/parentsmanager.js" type="module"></script>
-    </div>
+  <script src="/src/scripts/parentsmanager.js" type="module"></script>
+  </div>
 </body>
+
 </html>

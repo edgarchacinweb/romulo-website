@@ -166,7 +166,7 @@ class RoleCard extends HTMLElement {
                     <slot name="icon"></slot>
                 </div>
                 <div>
-                    <div class="badge">${role}</div>
+                    <div class="badge">${role[0].toUpperCase()}${role.slice(1).toLocaleLowerCase()}</div>
                 </div>
                 <div class="name">${name}</div>
                 
