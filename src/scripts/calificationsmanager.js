@@ -135,11 +135,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (response.ok) {
             courses = [...data];
             gradeSelect.innerHTML = '<option value="" disabled selected>Seleccionar grado</option>';
+            const gradosVistos = new Set();
             data.forEach(course => {
-                const option = document.createElement('option');
-                option.value = course.CursoId;
-                option.textContent = `${course.Grado}° Año`;
-                gradeSelect.appendChild(option);
+                if (!gradosVistos.has(course.Grado)) {
+                    gradosVistos.add(course.Grado);
+                    const option = document.createElement('option');
+                    option.value = course.CursoId;
+                    option.textContent = `${course.Grado}° Año`;
+                    gradeSelect.appendChild(option);
+                }
             })
         }
     } catch (error) {
