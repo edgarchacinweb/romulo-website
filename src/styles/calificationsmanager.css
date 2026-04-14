@@ -330,6 +330,61 @@ body {
     margin: 0;
 }
 
+/* Indicador de Estatus Académico */
+.academic-status-badge {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-top: 0.35rem;
+    line-height: 1;
+    width: fit-content;
+    animation: badgeFadeIn 0.3s ease-out;
+}
+
+.academic-status-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.academic-status-badge.badge-warning {
+    background-color: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+}
+
+.academic-status-badge.badge-warning::before {
+    background-color: #F59E0B;
+}
+
+.academic-status-badge.badge-danger {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.academic-status-badge.badge-danger::before {
+    background-color: #EF4444;
+}
+
+@keyframes badgeFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .status-icon,
 .action-icon {
     display: flex;

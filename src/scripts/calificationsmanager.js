@@ -251,6 +251,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } catch (statusErr) {
                     console.error('Error al verificar estado de calificaciones:', statusErr);
                 }
+
+                // --- Obtener estatus académico (materias reprobadas) ---
+                await fetchAndRenderAcademicStatus(allStudentIds, courseId);
             }
         } catch (error) {
             console.error('Error al cargar estudiantes:', error);
@@ -277,6 +280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="student-card__name-wrapper">
                         <p class="student-card__name">${student.name}</p>
                         <p class="student-card__ci">C.I: ${student.ci || ''} • ${student.gender || 'Masculino'}</p>
+                        <span class="academic-status-badge" id="academic-status-${student.id}"></span>
                     </div>
                     ${savedIcon}
                 </div>
@@ -290,6 +294,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Añadir listener de clic a la tarjeta
         const newCard = studentsListSection.lastElementChild;
         newCard.addEventListener('click', () => openGradesModal(student));
+    }
+
+    /**
+     * Actualiza la etiqueta de estatus académico de un estudiante en su tarjeta.
+     * @param {string} studentId - ID del estudiante
+     * @param {number} reprobadas - Cantidad de materias reprobadas
+     */
+    function updateAcademicStatusBadge(studentId, reprobadas) {
+        const badge = document.getElementById(`academic-status-${studentId}`);
+        if (!badge) return;
+
+        // Limpiar clases previas
+        badge.classList.remove('badge-warning', 'badge-danger');
+        badge.textContent = '';
+        badge.style.display = 'none';
+
+        if (reprobadas >= 3) {
+            badge.textContent = 'Estudiante reprobado';
+            badge.classList.add('badge-danger');
+            badge.style.display = 'inline-flex';
+        } else if (reprobadas >= 1) {
+            badge.textContent = `${reprobadas} materia${reprobadas > 1 ? 's' : ''} pendiente${reprobadas > 1 ? 's' : ''}`;
+            badge.classList.add('badge-warning');
+            badge.style.display = 'inline-flex';
+        }
+        // Si es 0, no se muestra nada
+    }
+
+    /**
+     * Obtiene y renderiza el estatus académico de todos los estudiantes cargados.
+     * @param {string[]} allStudentIds - Array de IDs de estudiantes
+     * @param {string} courseId - ID del curso seleccionado
+     */
+    async function fetchAndRenderAcademicStatus(allStudentIds, courseId) {
+        try {
+            const response = await fetch(`${window.APP_CONFIG.api_url}/calification/academic_status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    StudentIds: allStudentIds,
+                    CursoId: courseId
+                })
+            });
+            if (response.ok) {
+                const statusMap = await response.json();
+                Object.keys(statusMap).forEach(studentId => {
+                    updateAcademicStatusBadge(studentId, statusMap[studentId]);
+                });
+            }
+        } catch (err) {
+            console.error('Error al obtener estatus académico:', err);
+        }
     }
 
     // Lógica del Modal
@@ -756,6 +815,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } catch(recheckErr) {
                     console.error('Error re-verificando estado:', recheckErr);
                 }
+
+                // Re-obtener estatus académico tras guardar notas
+                await fetchAndRenderAcademicStatus([currentStudentId], gradeSelect.value);
             }
         } catch(e) {
             alert(e.message);
