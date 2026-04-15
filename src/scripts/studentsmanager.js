@@ -4,7 +4,7 @@ import { numberToLetter, formatCedula } from "./utils.js";
 authorize("administrador");
 
 document.addEventListener("DOMContentLoaded", async () => {
-  
+
   const token = localStorage.getItem("auth");
   const notifications = document.getElementById("notifications");
   const loader = document.createElement("loader-spinner");
@@ -19,20 +19,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       timer = setTimeout(() => fn.apply(this, args), delay);
     };
   }
-  
+
   // Elementos del Modal de Rechazo
   const selectReason = document.querySelector(".rejectReason");
   const textDesc = document.querySelector(".rejectDesc");
   const studentName = document.getElementById("modalStudentName");
   const parentEmail = document.getElementById("modal-email");
-  
+
   // Elementos del Nuevo Modal de Edición de Estado
   const editModal = document.getElementById("editStatusModal");
   const editStudentName = document.getElementById("editStudentName");
   const newStatusSelect = document.getElementById("newStatusSelect");
   const cancelEditBtn = document.getElementById("cancelEditBtn");
   const confirmEditBtn = document.getElementById("confirmEditBtn");
-  let currentEditId = null; 
+  let currentEditId = null;
 
   const dateFormat = new Intl.DateTimeFormat("es-VE", {
     weekday: "long",
@@ -50,9 +50,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- NUEVO: LEER PARÁMETRO DE URL PARA APLICAR FILTRO AUTOMÁTICO ---
   const urlParams = new URLSearchParams(window.location.search);
   const estadoParam = urlParams.get("estado");
-  
+
   if (estadoParam && stateField) {
-      stateField.value = estadoParam;
+    stateField.value = estadoParam;
   }
   // -----------------------------------------------------------------
 
@@ -60,64 +60,64 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
   // --- Lógica del Modal de Edición (Estado) ---
-  if(cancelEditBtn) {
-      cancelEditBtn.addEventListener("click", () => {
-          editModal.classList.remove("open");
-          currentEditId = null;
-      });
+  if (cancelEditBtn) {
+    cancelEditBtn.addEventListener("click", () => {
+      editModal.classList.remove("open");
+      currentEditId = null;
+    });
   }
 
-  if(editModal) {
-      editModal.addEventListener("click", (e) => {
-          if (e.target === editModal) {
-              editModal.classList.remove("open");
-              currentEditId = null;
-          }
-      });
+  if (editModal) {
+    editModal.addEventListener("click", (e) => {
+      if (e.target === editModal) {
+        editModal.classList.remove("open");
+        currentEditId = null;
+      }
+    });
   }
 
-  if(confirmEditBtn) {
-      confirmEditBtn.addEventListener("click", async () => {
-          if (!currentEditId) return;
+  if (confirmEditBtn) {
+    confirmEditBtn.addEventListener("click", async () => {
+      if (!currentEditId) return;
 
-          const newStatus = newStatusSelect.value;
-          loader.setAttribute("title", "Actualizando estado...");
-          document.body.appendChild(loader);
+      const newStatus = newStatusSelect.value;
+      loader.setAttribute("title", "Actualizando estado...");
+      document.body.appendChild(loader);
 
-          try {
-              const response = await fetch(`${window.APP_CONFIG.api_url}/students/change_status/${currentEditId}`, {
-                  method: "PUT",
-                  headers: {
-                      "Content-Type": "application/json",
-                      "Authorization": `Bearer ${token}`
-                  },
-                  body: JSON.stringify({ "Estado": newStatus })
-              });
+      try {
+        const response = await fetch(`${window.APP_CONFIG.api_url}/students/change_status/${currentEditId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ "Estado": newStatus })
+        });
 
-              if (!response.ok) {
-                  const errorData = await response.json();
-                  throw new Error(errorData.message || "Error al actualizar");
-              }
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Error al actualizar");
+        }
 
-              editModal.classList.remove("open");
-              
-              const notification = document.createElement("notification-component");
-              notification.setAttribute("type", "success");
-              notification.setAttribute("text", "Estado actualizado correctamente");
-              notifications.appendChild(notification);
-              
-              filterRequests();
+        editModal.classList.remove("open");
 
-          } catch (error) {
-              console.error(error);
-              const notification = document.createElement("notification-component");
-              notification.setAttribute("type", "error");
-              notification.setAttribute("text", error.message);
-              notifications.appendChild(notification);
-          } finally {
-              loader.remove();
-          }
-      });
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "success");
+        notification.setAttribute("text", "Estado actualizado correctamente");
+        notifications.appendChild(notification);
+
+        filterRequests();
+
+      } catch (error) {
+        console.error(error);
+        const notification = document.createElement("notification-component");
+        notification.setAttribute("type", "error");
+        notification.setAttribute("text", error.message);
+        notifications.appendChild(notification);
+      } finally {
+        loader.remove();
+      }
+    });
   }
 
   const accordion = (acc, student) => {
@@ -147,11 +147,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const closeModal = () => modal.classList.remove("open");
-    if(btnCancel) btnCancel.addEventListener("click", closeModal);
-    if(modal) {
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) closeModal();
-        });
+    if (btnCancel) btnCancel.addEventListener("click", closeModal);
+    if (modal) {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
     }
   };
 
@@ -187,9 +187,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const studentsRequest = await studentsRequestResponse.json();
       if (!studentsRequestResponse.ok) throw new Error(studentsRequest.message);
-      studentCounter.textContent = Array.isArray(studentsRequest)
-        ? `${studentsRequest.length}`
-        : "0";
+
+      // El backend devuelve { sin_horario, estudiantes } — extraer el array
+      const estudiantesList = Array.isArray(studentsRequest)
+        ? studentsRequest
+        : (studentsRequest.estudiantes || []);
+
+      studentCounter.textContent = `${estudiantesList.length}`;
 
       // Limpiar tarjetas anteriores y mensaje de "sin resultados"
       cardsContainer
@@ -197,7 +201,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         .forEach((elm) => elm.remove());
 
       // --- Mensaje amigable cuando no hay resultados ---
-      if (!Array.isArray(studentsRequest) || studentsRequest.length === 0) {
+      if (estudiantesList.length === 0) {
         const emptyMsg = document.createElement("div");
         emptyMsg.classList.add("empty-state-message");
         emptyMsg.innerHTML = `
@@ -215,18 +219,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      studentsRequest.forEach((student) => {
+      estudiantesList.forEach((student) => {
         const studentBirthdate = new Date(student["FechaNacimiento"]);
-        
+
         // --- CORRECCIÓN DE CÉDULA ESCOLAR VS REGULAR ---
         const cedulaRaw = String(student["DatosPersona"]["Cedula"]);
         const cedulaLimpia = cedulaRaw.replace(/-/g, "").trim();
         // Las cédulas regulares (incluso extrangeras) no superan los 9 dígitos puros
-        const isSchoolId = cedulaLimpia.length > 9; 
-        
+        const isSchoolId = cedulaLimpia.length > 9;
+
         // Elemento Opcional de Autorización
         const requiereAutorizacion = student["Parentesco"] !== "Padre" && student["Parentesco"] !== "Madre";
-        
+
         let docCount = isSchoolId ? 2 : 3;
         if (requiereAutorizacion) docCount++;
 
@@ -320,10 +324,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <h3>${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}</h3>
                 <span class="badge">
                     ${student["Curso"]["Grado"]}° Año • 
-                    ${student["Curso"]["Seccion"] === "Por asignar" || student["Curso"]["Seccion"] == 0 
-                        ? "Por asignar" 
-                        : `Sección ${typeof student["Curso"]["Seccion"] === "string" ? student["Curso"]["Seccion"] : numberToLetter(student["Curso"]["Seccion"])}`
-                    }
+                    ${student["Curso"]["Seccion"] === "Por asignar" || student["Curso"]["Seccion"] == 0
+            ? "Por asignar"
+            : `Sección ${typeof student["Curso"]["Seccion"] === "string" ? student["Curso"]["Seccion"] : numberToLetter(student["Curso"]["Seccion"])}`
+          }
                 </span>
               </div>
             </div>
@@ -513,100 +517,100 @@ document.addEventListener("DOMContentLoaded", async () => {
         // --- Event Listener para el Lápiz (Abrir Modal) ---
         const editBtn = studentCard.querySelector(".edit-trigger");
         if (editBtn) {
-            editBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                currentEditId = student["EstudianteId"];
-                editStudentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
-                newStatusSelect.value = student["Estado"]; 
-                editModal.classList.add("open");
-            });
+          editBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            currentEditId = student["EstudianteId"];
+            editStudentName.textContent = `${student["DatosPersona"]["Nombre"]} ${student["DatosPersona"]["Apellido"]}`;
+            newStatusSelect.value = student["Estado"];
+            editModal.classList.add("open");
+          });
         }
 
         // Descargar Documentos
         studentCard.querySelectorAll(".btn-download-file").forEach((btn) =>
           btn.addEventListener("click", async () => {
-             loader.setAttribute("title", "Descargando documento...");
-             document.body.appendChild(loader);
-             let objectUrl = undefined;
-             try {
-               const downloadDocumentResponse = await fetch(
-                 `${window.APP_CONFIG.api_url}/docs/get/${btn.getAttribute("data-file")}`,
-                 { method: "GET" },
-               );
-               if (!downloadDocumentResponse.ok) {
-                 const documentError = await downloadDocumentResponse.json();
-                 throw new Error(documentError.message);
-               }
-               const downloadDocument = await downloadDocumentResponse.blob();
-               const anchor = document.createElement("a");
-               objectUrl = URL.createObjectURL(downloadDocument);
-               anchor.href = objectUrl;
-               anchor.download = btn.getAttribute("data-file");
-               anchor.click();
-             } catch (Error) {
-               console.error(Error.stack);
-               const notification = document.createElement("notification-component");
-               notification.setAttribute("type", "error");
-               notification.setAttribute("text", Error.message);
-               notifications.appendChild(notification);
-             } finally {
-               if (objectUrl) URL.revokeObjectURL(objectUrl);
-               loader.remove();
-             }
+            loader.setAttribute("title", "Descargando documento...");
+            document.body.appendChild(loader);
+            let objectUrl = undefined;
+            try {
+              const downloadDocumentResponse = await fetch(
+                `${window.APP_CONFIG.api_url}/docs/get/${btn.getAttribute("data-file")}`,
+                { method: "GET" },
+              );
+              if (!downloadDocumentResponse.ok) {
+                const documentError = await downloadDocumentResponse.json();
+                throw new Error(documentError.message);
+              }
+              const downloadDocument = await downloadDocumentResponse.blob();
+              const anchor = document.createElement("a");
+              objectUrl = URL.createObjectURL(downloadDocument);
+              anchor.href = objectUrl;
+              anchor.download = btn.getAttribute("data-file");
+              anchor.click();
+            } catch (Error) {
+              console.error(Error.stack);
+              const notification = document.createElement("notification-component");
+              notification.setAttribute("type", "error");
+              notification.setAttribute("text", Error.message);
+              notifications.appendChild(notification);
+            } finally {
+              if (objectUrl) URL.revokeObjectURL(objectUrl);
+              loader.remove();
+            }
           }),
         );
 
         studentCard.querySelectorAll(".btn-success").forEach((btn) =>
           btn.addEventListener("click", async () => {
-             loader.setAttribute("title", "Aprobando solicitud...");
-             document.body.appendChild(loader);
-             try {
-               const confirmation = confirm("¿Seguro que quieres aprobar la solicitud de ingreso de este estudiante?");
-               if (!confirmation) return;
-               const approveResponse = await fetch(
-                 `${window.APP_CONFIG.api_url}/students/approve/${student["EstudianteId"]}`,
-                 {
-                   method: "PUT",
-                   headers: {
-                     "Content-Type": "application/json",
-                     Authorization: `Bearer ${token}`,
-                   },
-                 },
-               );
-               
-               if (approveResponse.status !== 200 && approveResponse.status !== 204) {
-                 const approveError = await approveResponse.json();
-                 throw new Error(approveError.message);
-               }
-               
-               studentCard.remove();
-               const notification = document.createElement("notification-component");
-               notification.setAttribute("type", "success");
-               notification.setAttribute("text", `${student["DatosPersona"]["Nombre"]} inscrito correctamente`);
-               notifications.appendChild(notification);
-             } catch (Error) {
-               console.error(Error.stack);
-               const notification = document.createElement("notification-component");
-               notification.setAttribute("type", "error");
-               notification.setAttribute("text", Error.message);
-               notifications.appendChild(notification);
-             } finally {
-               loader.remove();
-             }
+            loader.setAttribute("title", "Aprobando solicitud...");
+            document.body.appendChild(loader);
+            try {
+              const confirmation = confirm("¿Seguro que quieres aprobar la solicitud de ingreso de este estudiante?");
+              if (!confirmation) return;
+              const approveResponse = await fetch(
+                `${window.APP_CONFIG.api_url}/students/approve/${student["EstudianteId"]}`,
+                {
+                  method: "PUT",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                },
+              );
+
+              if (approveResponse.status !== 200 && approveResponse.status !== 204) {
+                const approveError = await approveResponse.json();
+                throw new Error(approveError.message);
+              }
+
+              studentCard.remove();
+              const notification = document.createElement("notification-component");
+              notification.setAttribute("type", "success");
+              notification.setAttribute("text", `${student["DatosPersona"]["Nombre"]} inscrito correctamente`);
+              notifications.appendChild(notification);
+            } catch (Error) {
+              console.error(Error.stack);
+              const notification = document.createElement("notification-component");
+              notification.setAttribute("type", "error");
+              notification.setAttribute("text", Error.message);
+              notifications.appendChild(notification);
+            } finally {
+              loader.remove();
+            }
           }),
         );
       });
 
       const btnConfirm = document.querySelector(".confirmReject");
-      const newBtnConfirm = btnConfirm.cloneNode(true); 
+      const newBtnConfirm = btnConfirm.cloneNode(true);
       btnConfirm.parentNode.replaceChild(newBtnConfirm, btnConfirm);
 
       newBtnConfirm.addEventListener("click", async () => {
         const confirmation = confirm("¿Seguro que quieres rechazar la solicitud de inscripción?");
         if (!confirmation) return;
-        
+
         loader.setAttribute("title", "Rechazando solicitud de inscripción...");
         document.body.appendChild(loader);
         const modal = document.querySelector(".rejectModal");
@@ -644,10 +648,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
           const notification = document.createElement("notification-component");
-          notification.setAttribute("type", "error"); 
+          notification.setAttribute("type", "error");
           notification.setAttribute("text", "Solicitud rechazada correctamente");
           notifications.appendChild(notification);
-          
+
           filterRequests();
 
         } catch (Error) {
@@ -673,7 +677,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   await filterRequests();
-  
+
   // Event Listeners de Filtros
   // Live Search con debounce de 400ms para búsqueda inmediata al escribir
   const debouncedSearch = debounce(() => filterRequests({ silent: true }), 400);
@@ -704,10 +708,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const uniqueGrades = [];
     const seenGrades = new Set();
     sections.forEach(s => {
-        if(!seenGrades.has(s["CursoId"])) {
-            seenGrades.add(s["CursoId"]);
-            uniqueGrades.push(s);
-        }
+      if (!seenGrades.has(s["CursoId"])) {
+        seenGrades.add(s["CursoId"]);
+        uniqueGrades.push(s);
+      }
     });
 
     uniqueGrades.forEach((section) => {

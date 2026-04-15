@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const selectedCourseId = selectGrado.value;
     const secciones = [...new Set(teacherAssignments.filter(a => a.CursoId === selectedCourseId).map(a => a.Seccion))];
 
-    secciones.sort((a,b) => a - b).forEach(seccion => {
+    secciones.sort((a, b) => a - b).forEach(seccion => {
       const option = document.createElement("option");
       option.setAttribute("value", seccion);
       option.textContent = number_to_letter(seccion);
@@ -74,15 +74,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Buscar las materias únicas en las asignaciones para el grado y sección seleccionados
     const selectedCourseId = selectGrado.value;
     const selectedSeccion = parseInt(selectSeccion.value);
-    
+
     const materias = teacherAssignments.filter(a => a.CursoId === selectedCourseId && a.Seccion === selectedSeccion);
 
     // Evitar materias duplicadas
     const uniqueMaterias = [];
     materias.forEach(m => {
-        if(!uniqueMaterias.some(um => um.MateriaId === m.MateriaId)) {
-            uniqueMaterias.push(m);
-        }
+      if (!uniqueMaterias.some(um => um.MateriaId === m.MateriaId)) {
+        uniqueMaterias.push(m);
+      }
     });
 
     uniqueMaterias.forEach(m => {
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
       return;
     }
-    
+
     lapso = statusCarga.lapso;
 
     // Cargando asignaciones reales del docente
@@ -165,12 +165,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Extraer grados académicos únicos
     const uniqueGrades = [];
     teacherAssignments.forEach(a => {
-        if(!uniqueGrades.some(ug => ug.CursoId === a.CursoId)) {
-            uniqueGrades.push(a);
-        }
+      if (!uniqueGrades.some(ug => ug.CursoId === a.CursoId)) {
+        uniqueGrades.push(a);
+      }
     });
 
-    uniqueGrades.sort((a,b) => a.Grado - b.Grado).forEach((g) => {
+    uniqueGrades.sort((a, b) => a.Grado - b.Grado).forEach((g) => {
       const option = document.createElement("option");
       option.setAttribute("value", g.CursoId);
       option.textContent = `${g.Grado}° Año`;
@@ -178,8 +178,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Para mantener consistencia con variables existentes
-    grades = uniqueGrades.map(g => ({CursoId: g.CursoId, Grado: g.Grado}));
-    subjects = teacherAssignments.map(a => ({MateriaId: a.MateriaId, Nombre: a.MateriaNombre}));
+    grades = uniqueGrades.map(g => ({ CursoId: g.CursoId, Grado: g.Grado }));
+    subjects = teacherAssignments.map(a => ({ MateriaId: a.MateriaId, Nombre: a.MateriaNombre }));
 
     // Cargando estudiantes inscritos
     const studentsPromise = await fetch(
