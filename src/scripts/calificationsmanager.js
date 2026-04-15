@@ -187,15 +187,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                 })
             });
 
-            const students = await response.json();
+            const responseData = await response.json();
             studentsListSection.innerHTML = '';
+
+            // --- Detección temprana de sección sin horario ---
+            if (response.ok && responseData.sin_horario === true) {
+                studentsListSection.innerHTML = `
+                    <div class="no-schedule-warning fade-in" role="alert" aria-live="assertive">
+                        <div class="no-schedule-warning__icon" aria-hidden="true">⚠️</div>
+                        <h3 class="no-schedule-warning__title">Horario no configurado</h3>
+                        <p class="no-schedule-warning__message">
+                            debes crear el horario de la seccion
+                        </p>
+                        <p class="no-schedule-warning__hint">
+                            Ve al módulo de <strong>Horarios</strong> y asigna un horario a
+                            <strong>${gradeStr} – ${sectionStr}</strong> para poder registrar calificaciones.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            // -------------------------------------------------
+
+            const students = Array.isArray(responseData.estudiantes) ? responseData.estudiantes : [];
 
             const title = document.createElement('h2');
             title.className = 'student-list-header';
             title.textContent = `Estudiantes - ${gradeStr}, ${sectionStr}`;
             studentsListSection.appendChild(title);
 
-            if (!response.ok || !Array.isArray(students) || students.length === 0) {
+            if (!response.ok || students.length === 0) {
                 studentsListSection.innerHTML += `
                     <div class="no-students-message text-center card fade-in">
                         <div class="no-students-icon">📚</div>
@@ -264,6 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             studentsListSection.innerHTML = `<div class="text-center fade-in" style="padding: 2rem; color:red;">${error.message || 'Error al cargar estudiantes'}</div>`;
         }
     });
+
 
     function renderStudentCard(student, avatarColor = '') {
         const savedClass = student.saved ? 'saved' : '';
@@ -371,18 +393,35 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fetch(`${window.APP_CONFIG.api_url}/students/${student.id}/subjects`, { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch(`${window.APP_CONFIG.api_url}/calification/student/${student.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
-            const materias = await subjectsResponse.json();
+
+            // La nueva API retorna { sin_horario: bool, materias: [...] }
+            const subjectsData = subjectsResponse.ok ? await subjectsResponse.json() : null;
             const gradesData = gradesResponse.ok ? await gradesResponse.json() : [];
 
-            // Mapeo dinamico de notas hacia lapsos
+            gradesForm.innerHTML = ''; // Quitar loader
+
+            // --- Manejo de error de red/servidor ---
+            if (!subjectsResponse.ok || !subjectsData) {
+                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:var(--danger-color, #dc2626);">Error al cargar las materias. Intente de nuevo.</p>';
+                modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
+                gradesModal.classList.add('open');
+                return;
+            }
+
+            // --- Caso normal: hay materias desde el horario (sin_horario siempre false aquí) ---
+            // Restaurar botón guardar por si estaba oculto de una apertura previa
+            if (saveGradesBtn) saveGradesBtn.style.display = '';
+
+
+            const materias = subjectsData.materias || [];
+
+            // Mapeo dinámico de notas existentes hacia lapsos
             student.grades = {};
             student.originalGrades = {};
-            if (Array.isArray(materias)) {
-                materias.forEach(m => {
-                    student.grades[m.id] = {};
-                    student.originalGrades[m.id] = {};
-                });
-            }
+            materias.forEach(m => {
+                student.grades[m.id] = {};
+                student.originalGrades[m.id] = {};
+            });
             if (Array.isArray(gradesData)) {
                 gradesData.forEach(g => {
                     if (student.grades[g.MateriaId]) {
@@ -392,10 +431,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
 
-            gradesForm.innerHTML = ''; // Quitar loader
-
-            if (!subjectsResponse.ok || !Array.isArray(materias) || materias.length === 0) {
-                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">No se encontraron materias asignadas para la sección de este estudiante.</p>';
+            if (materias.length === 0) {
+                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color: var(--text-muted, #6b7280);">No se encontraron materias asignadas para la sección de este estudiante.</p>';
+                modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
+                gradesModal.classList.add('open');
                 return;
             }
 
@@ -407,7 +446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         } catch (error) {
             console.error('Error al cargar materias:', error);
-            gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">Error al cargar las materias. Intente de nuevo.</p>';
+            gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:var(--danger-color, #dc2626);">Error al cargar las materias. Intente de nuevo.</p>';
         }
 
         modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };

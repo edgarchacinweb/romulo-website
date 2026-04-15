@@ -712,3 +712,75 @@ body {
 .toast.hidden {
     display: none;
 }
+
+/* ============================================================
+   Advertencia: Sin Horario Asignado a la Sección
+   ============================================================ */
+.no-schedule-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.875rem;
+    padding: 2.5rem 2rem;
+    margin: 1rem 0;
+    background-color: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-left: 4px solid #F59E0B;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12);
+    animation: warningSlideIn 0.4s ease-out;
+}
+
+@keyframes warningSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.no-schedule-warning__icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.1); }
+}
+
+.no-schedule-warning__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #92400E;
+    margin: 0;
+}
+
+.no-schedule-warning__message {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #B45309;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    background-color: #FEF3C7;
+    border-radius: 6px;
+    border: 1px dashed #FCD34D;
+    letter-spacing: 0.01em;
+}
+
+.no-schedule-warning__hint {
+    font-size: 0.8rem;
+    color: #78350F;
+    margin: 0;
+    max-width: 380px;
+    line-height: 1.6;
+}
+
+.no-schedule-warning__hint strong {
+    color: #92400E;
+}
