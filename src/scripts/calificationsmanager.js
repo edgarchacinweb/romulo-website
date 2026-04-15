@@ -980,12 +980,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 historyTableBody.innerHTML = '';
                 
                 if (data.length === 0) {
-                    historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem;">No hay registros de modificaciones de notas.</td></tr>';
+                    historyTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1rem;">No hay registros de modificaciones de notas.</td></tr>';
                 } else {
                     data.forEach(row => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Estudiante}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Ano || 'N/A'}</td>
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Materia}</td>
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.NotaAnterior}</td>
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;"><b>${row.NotaNueva}</b></td>
@@ -995,9 +996,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         historyTableBody.appendChild(tr);
                     });
                 }
+
             } catch (err) {
                 console.error(err);
-                historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem; color: red;">Error cargando historial</td></tr>';
+                historyTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1rem; color: red;">Error cargando historial</td></tr>';
             }
         });
     }
