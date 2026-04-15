@@ -143,28 +143,85 @@ document.addEventListener("DOMContentLoaded", async () => {
       const actionContainer = document.createElement("div");
       actionContainer.className = "action-buttons";
 
-      if (e["Activo"]) {
+      // ============================================================
+      // LÓGICA CONDICIONAL DE ACCIONES SEGÚN ESTADO DEL PERÍODO
+      // ============================================================
+      // El campo `EsDefinitivamenteCerrado` viene calculado del servidor:
+      //   True  → date.today() > Fin  (vencimiento automático, irreversible)
+      //   False → la Fecha de Fin aún no ha llegado (puede reactivarse)
+
+      if (e["EsDefinitivamenteCerrado"]) {
+        // CASO 1: Fecha de Fin vencida — cierre definitivo e irreversible
+        // No se muestra ningún botón. El texto indica el estado permanente.
+        tdAccion.innerHTML = `
+          <span class="badge-closed-definitive" title="La Fecha de Fin ya venció. Este período no puede reactivarse.">
+            🔒 Inactivo/Cerrado
+          </span>`;
+
+      } else if (!e["Activo"]) {
+        // CASO 2: Cerrado manualmente, pero la Fecha de Fin NO ha vencido
+        // → Se muestra botón "Reactivar"
+        const btnReactivar = document.createElement("button");
+        btnReactivar.textContent = "Reactivar";
+        btnReactivar.className = "btn-table btn-reactivate";
+        btnReactivar.title = "El período fue cerrado antes de su fecha de fin. Puede reactivarse.";
+
+        btnReactivar.addEventListener("click", async () => {
+          if (!confirm("¿Deseas reactivar este período de inscripción?")) return;
+
+          try {
+            const res = await fetch(
+              `${window.APP_CONFIG.api_url}/registration/reactivate/${e["InscripcionId"]}`,
+              {
+                method: "PATCH",
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            );
+
+            if (res.ok) {
+              // Actualizar el objeto local y re-renderizar la fila
+              e["Activo"] = true;
+              actionContainer.innerHTML = "";
+              restoreActiveButtons();
+              const successNotif = document.createElement("notification-component");
+              successNotif.setAttribute("type", "success");
+              successNotif.setAttribute("text", "Período reactivado correctamente");
+              loadNotificationContainer.appendChild(successNotif);
+            } else {
+              const errData = await res.json();
+              alert("Error: " + (errData.message || "No se pudo reactivar el período."));
+            }
+          } catch (err) {
+            alert("Error de conexión con el servidor.");
+          }
+        });
+
+        actionContainer.appendChild(btnReactivar);
+        tdAccion.appendChild(actionContainer);
+
+      } else {
+        // CASO 3: Período activo — mostrar botones Editar y Cerrar
         // --- BOTÓN EDITAR ---
         const btnEdit = document.createElement("button");
         btnEdit.textContent = "Editar";
         btnEdit.className = "btn-table btn-edit";
-        
+
         btnEdit.addEventListener("click", () => {
           // Guardar valor original por si cancela
           const originalDate = tdEnd.textContent;
-          
+
           // Limpiar celda y poner input
           tdEnd.innerHTML = "";
           const inputDate = document.createElement("input");
           inputDate.type = "date";
           inputDate.className = "inline-date-input";
           inputDate.value = originalDate;
-          
+
           // Aplicar las mismas restricciones globales
           const hoy = new Date();
           const yyyy = hoy.getFullYear();
-          const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-          const dd = String(hoy.getDate()).padStart(2, '0');
+          const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+          const dd = String(hoy.getDate()).padStart(2, "0");
           inputDate.min = `${yyyy}-${mm}-${dd}`;
           inputDate.max = schoolTermMaxDateStr;
 
@@ -172,61 +229,64 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           // Cambiar botones: "Guardar" y "Cancelar"
           actionContainer.innerHTML = "";
-          
+
           const btnSave = document.createElement("button");
           btnSave.textContent = "Guardar";
           btnSave.className = "btn-table btn-save";
-          
+
           const btnCancel = document.createElement("button");
           btnCancel.textContent = "Cancelar";
           btnCancel.className = "btn-table btn-cancel";
 
           btnCancel.addEventListener("click", () => {
             tdEnd.textContent = originalDate;
-            restoreActionButtons();
+            restoreActiveButtons();
           });
 
           btnSave.addEventListener("click", async () => {
-             const newDate = inputDate.value;
-             if (!newDate) {
-                 alert("Por favor seleccione una fecha");
-                 return;
-             }
+            const newDate = inputDate.value;
+            if (!newDate) {
+              alert("Por favor seleccione una fecha");
+              return;
+            }
 
-             // Validar contra el inicio (e["Inicio"])
-             if (newDate < e["Inicio"]) {
-                 alert("La fecha de fin no puede ser anterior a la de inicio.");
-                 return;
-             }
+            // Validar contra el inicio (e["Inicio"])
+            if (newDate < e["Inicio"]) {
+              alert("La fecha de fin no puede ser anterior a la de inicio.");
+              return;
+            }
 
-             try {
-                const patchRes = await fetch(`${window.APP_CONFIG.api_url}/registration/update`, {
-                    method: "PATCH",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({
-                        PeriodoInscripcionId: e["InscripcionId"],
-                        FechaFin: newDate
-                    })
-                });
-
-                if (patchRes.ok) {
-                    tdEnd.textContent = newDate;
-                    e["Fin"] = newDate; // Actualizar en el objeto local
-                    const successNotif = document.createElement("notification-component");
-                    successNotif.setAttribute("type", "success");
-                    successNotif.setAttribute("text", "Fecha de fin actualizada correctamente");
-                    loadNotificationContainer.appendChild(successNotif);
-                    restoreActionButtons();
-                } else {
-                    const errData = await patchRes.json();
-                    alert("Error al actualizar: " + (errData.message || "Error desconocido"));
+            try {
+              const patchRes = await fetch(
+                `${window.APP_CONFIG.api_url}/registration/update`,
+                {
+                  method: "PATCH",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    PeriodoInscripcionId: e["InscripcionId"],
+                    FechaFin: newDate,
+                  }),
                 }
-             } catch (err) {
-                alert("Error de conexión al guardar.");
-             }
+              );
+
+              if (patchRes.ok) {
+                tdEnd.textContent = newDate;
+                e["Fin"] = newDate; // Actualizar en el objeto local
+                const successNotif = document.createElement("notification-component");
+                successNotif.setAttribute("type", "success");
+                successNotif.setAttribute("text", "Fecha de fin actualizada correctamente");
+                loadNotificationContainer.appendChild(successNotif);
+                restoreActiveButtons();
+              } else {
+                const errData = await patchRes.json();
+                alert("Error al actualizar: " + (errData.message || "Error desconocido"));
+              }
+            } catch (err) {
+              alert("Error de conexión al guardar.");
+            }
           });
 
           actionContainer.appendChild(btnSave);
@@ -237,18 +297,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         const btnCerrar = document.createElement("button");
         btnCerrar.textContent = "Cerrar";
         btnCerrar.className = "btn-table btn-close-term";
-        
+
         btnCerrar.addEventListener("click", async () => {
-          if (confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) {
+          if (
+            confirm(
+              "¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?"
+            )
+          ) {
             try {
-              const res = await fetch(`${window.APP_CONFIG.api_url}/registration/close/${e["InscripcionId"]}`, {
-                method: "PATCH",
-                headers: { Authorization: `Bearer ${token}` }
-              });
+              const res = await fetch(
+                `${window.APP_CONFIG.api_url}/registration/close/${e["InscripcionId"]}`,
+                {
+                  method: "PATCH",
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+
               if (res.ok) {
-                tdAccion.innerHTML = '<span style="color:red; font-weight:bold;">Inactivo/Cerrado</span>';
+                // Actualizar objeto local y mostrar botón Reactivar
+                e["Activo"] = false;
+                actionContainer.innerHTML = "";
+                const btnReactivar = document.createElement("button");
+                btnReactivar.textContent = "Reactivar";
+                btnReactivar.className = "btn-table btn-reactivate";
+                btnReactivar.title = "El período fue cerrado antes de su fecha de fin. Puede reactivarse.";
+                btnReactivar.addEventListener("click", () => window.location.reload());
+                actionContainer.appendChild(btnReactivar);
               } else {
-                alert("Error al intentar cerrar el período.");
+                const errData = await res.json();
+                alert("Error: " + (errData.message || "No se pudo cerrar el período."));
               }
             } catch (err) {
               alert("Error de conexión con el servidor.");
@@ -256,17 +333,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
         });
 
-        const restoreActionButtons = () => {
-            actionContainer.innerHTML = "";
-            actionContainer.appendChild(btnEdit);
-            actionContainer.appendChild(btnCerrar);
+        const restoreActiveButtons = () => {
+          actionContainer.innerHTML = "";
+          actionContainer.appendChild(btnEdit);
+          actionContainer.appendChild(btnCerrar);
         };
 
-        restoreActionButtons();
+        restoreActiveButtons();
         tdAccion.appendChild(actionContainer);
-      } else {
-        tdAccion.innerHTML = '<span style="color:gray; font-weight:bold;">Inactivo/Cerrado</span>';
-      }
+      } // fin else (período activo)
+
       item.appendChild(tdAccion);
       tableBody.appendChild(item);
     });
