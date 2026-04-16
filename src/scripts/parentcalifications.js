@@ -165,7 +165,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       exportPdfBtn.onclick = null;
       if (habilitar_pdf) {
-        exportPdfBtn.onclick = () => {
+        exportPdfBtn.onclick = async () => {
           // --- VALIDACIÓN DE ESTADO ACADÉMICO ---
           if (materiasReprobadas >= 1 && materiasReprobadas <= 2) {
             alert("Estudiante con materias pendientes, debe dirigirse a la institucion");
@@ -178,6 +178,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           const { jsPDF } = window.jspdf;
           const doc = new jsPDF('portrait');
+
+          // Cargar e insertar logo
+          const imgUrl = "/src/assets/images/romulo.png";
+          try {
+            const img = await new Promise((resolve, reject) => {
+              const image = new Image();
+              image.crossOrigin = "Anonymous";
+              image.onload = () => resolve(image);
+              image.onerror = (e) => reject(e);
+              image.src = imgUrl;
+            });
+            // Insertar el logo en la esquina superior izquierda
+            doc.addImage(img, 'PNG', 14, 12, 22, 22);
+          } catch (err) {
+            console.warn("No se pudo cargar el logo de la institución para el PDF", err);
+          }
           
           // Membrete
           doc.setFontSize(10);
