@@ -99,10 +99,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         if (studentsDataResponse.ok) {
-            const studentsData = await studentsDataResponse.json();
+            const rawData = await studentsDataResponse.json();
             
+            // Compatibilidad hacia atrás: si rawData es array u objeto
+            const studentsData = rawData.estudiantes ? rawData.estudiantes : rawData;
+            const periodoAbierto = rawData.hasOwnProperty("periodo_abierto") ? rawData.periodo_abierto : (activeEnrollmentPeriod?.open || false);
+
             // 4. Renderizar tarjetas
-            if (studentsData.length === 0) {
+            if (!studentsData || studentsData.length === 0) {
                 if (cardContainer) cardContainer.innerHTML = '<p style="color: #666; width: 100%; text-align: center; margin-top: 2rem;">No tienes estudiantes registrados.</p>';
                 return;
             }
@@ -126,9 +130,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               let actionButtonsHTML = "";
               if (estado === "rechazado") {
+                let corrText = "Corregir Solicitud";
+                let corrStyle = "display: block; width: 100%; padding: 10px; background-color: #dc3545; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: bold;";
+                let href = `/app/representante/inscripcion/?edit_id=${student.EstudianteId}`;
+                
+                if (!periodoAbierto) {
+                    corrText = "Inscripciones Cerradas";
+                    corrStyle += " opacity: 0.5; pointer-events: none; cursor: not-allowed; background-color: #6c757d;";
+                    href = "#";
+                }
+
                 actionButtonsHTML = `
                   <div class="card__section" style="margin-top: 1rem; border-top: 1px solid #eee; padding-top: 1rem;">
-                     <a href="/app/representante/inscripcion/?edit_id=${student.EstudianteId}" class="btn-edit" style="display: block; width: 100%; padding: 10px; background-color: #dc3545; color: white; text-align: center; border-radius: 8px; text-decoration: none; font-weight: bold;">Corregir Solicitud</a>
+                     <a href="${href}" class="btn-edit" style="${corrStyle}" ${!periodoAbierto ? 'disabled="true"' : ''}>${corrText}</a>
                   </div>`;
               } else if (estado === "inscrito") {
                   actionButtonsHTML = `
