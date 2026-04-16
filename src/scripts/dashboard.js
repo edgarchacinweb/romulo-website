@@ -103,6 +103,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const el = document.getElementById("activeEnrollments");
       if (el) el.innerHTML = `${data.count}`;
       if (resumenChart) { resumenChart.data.datasets[0].data[2] = data.count; resumenChart.update(); }
+
+      // Ocultar elementos si no hay período de inscripción activo
+      if (data.periodo_activo === false) {
+        const rejectedAlert = document.getElementById("rejectedAlert");
+        if (rejectedAlert) rejectedAlert.style.setProperty("display", "none", "important");
+
+        const rejectedCardValue = document.getElementById("rejectedEnrollments");
+        if (rejectedCardValue && rejectedCardValue.closest(".card")) {
+          rejectedCardValue.closest(".card").style.setProperty("display", "none", "important");
+        }
+      }
     } catch (err) { console.error(err); }
   })();
 
