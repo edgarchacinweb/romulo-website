@@ -128,8 +128,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error("Error al consultar estudiantes rechazados");
       
       const data = await res.json();
-      // data es un arreglo con los estudiantes rechazados. La cantidad es la longitud del arreglo.
-      const totalRechazados = Array.isArray(data) ? data.length : 0;
+      // data tiene formato { sin_horario: false, estudiantes: [...] }
+      const lista = data.estudiantes || data;
+      const totalRechazados = Array.isArray(lista) ? lista.length : 0;
       
       // Actualizar tarjeta
       if (rejectedCardValue) rejectedCardValue.innerHTML = `${totalRechazados}`;

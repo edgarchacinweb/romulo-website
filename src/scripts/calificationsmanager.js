@@ -418,15 +418,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Mapeo dinámico de notas existentes hacia lapsos
             student.grades = {};
             student.originalGrades = {};
+            student.convalidadas = {}; // { materiaId: { lapso1: bool, lapso2: bool, lapso3: bool } }
             materias.forEach(m => {
                 student.grades[m.id] = {};
                 student.originalGrades[m.id] = {};
+                student.convalidadas[m.id] = {};
             });
             if (Array.isArray(gradesData)) {
                 gradesData.forEach(g => {
                     if (student.grades[g.MateriaId]) {
                         student.grades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
                         student.originalGrades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
+                        student.convalidadas[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Convalidada === true;
                     }
                 });
             }
@@ -441,7 +444,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             currentStudentSubjects = materias;
 
             materias.forEach(subject => {
-                const subjectCard = createSubjectCard(subject, student.grades[subject.id]);
+                const convalidadasMateria = (student.convalidadas || {})[subject.id] || {};
+                const subjectCard = createSubjectCard(subject, student.grades[subject.id], convalidadasMateria);
                 gradesForm.appendChild(subjectCard);
             });
         } catch (error) {
@@ -453,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         gradesModal.classList.add('open');
     }
 
-    function createSubjectCard(subject, existingGrades = {}) {
+    function createSubjectCard(subject, existingGrades = {}, convalidadasMap = {}) {
         const card = document.createElement('div');
         card.className = 'subject-card';
         card.id = `subject-${subject.id}`;
@@ -464,6 +468,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             { id: 3, label: '3ER LAPSO' }
         ];
 
+        // Verificar si TODOS los lapsos de esta materia están convalidados
+        const todosConvalidados = lapsosData.every(l => convalidadasMap[`lapso${l.id}`] === true);
+
         let inputsHtml = '<div class="lapsos-container">';
         let summariesHtml = '<div class="summary-row">';
         let initialGradesValid = true;
@@ -471,6 +478,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lapsosData.forEach(lapso => {
             const gradeKey = `lapso${lapso.id}`;
             const existingGrade = existingGrades[gradeKey] ?? '';
+            const esConvalidada = convalidadasMap[gradeKey] === true;
             if (existingGrade !== '' && !validateGrade(existingGrade)) {
                 initialGradesValid = false;
             }
@@ -487,7 +495,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tooltip = 'title="Lapso Cerrado. Abre en la última semana del lapso."';
             }
 
-            const editIcon = existingGrade !== '' ? `
+            // Botón de edición: ocultar para notas convalidadas
+            const editIcon = (existingGrade !== '' && !esConvalidada) ? `
                 <button type="button" class="btn-icon edit-single-grade" data-subject="${subject.id}" data-lapso="${lapso.id}" data-value="${existingGrade}" style="margin-left:8px; color:var(--primary-color);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -516,8 +525,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         inputsHtml += '</div>';
         summariesHtml += '</div>';
 
+        // Badge "notas ya cargadas" solo si todos los lapsos son convalidados
+        const convalidadaBadge = todosConvalidados
+            ? `<span class="convalidada-badge" title="Notas migradas automáticamente por convalidación. No pueden modificarse." style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:2px 8px;border-radius:12px;background:#dcfce7;color:#166534;font-size:11px;font-weight:600;letter-spacing:.3px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                  notas ya cargadas
+               </span>`
+            : '';
+
         card.innerHTML = `
-            <h3 class="subject-card__title">${subject.name}</h3>
+            <h3 class="subject-card__title">${subject.name}${convalidadaBadge}</h3>
             ${inputsHtml}
             ${summariesHtml}
             <div class="final-summary-row hidden" id="${subject.id}_final_summary">
@@ -539,6 +556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             </div>
         `;
+
 
         // Añadir event listeners a los inputs
         card.querySelectorAll('.grade-input').forEach(input => {
