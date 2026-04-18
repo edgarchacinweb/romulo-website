@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(data.message);
         }
 
-        const users = Array.isArray(data) ? [...data] : [data];
+        const users = (Array.isArray(data) ? [...data] : [data]).sort((a, b) => a.role === "representante" ? -1 : 1);
 
         // Guardando en localstorage al usuario por defecto, en caso de no tener otro usuario
         localStorage.setItem("users", JSON.stringify(users));
@@ -76,6 +76,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(studentsData.message);
         }
 
+        // Cargando materias del docente
+        const subjectsResponse = await fetch(`${window.APP_CONFIG.api_url}/subject/teacher`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${users[1].token}`
+            }
+        });
+
+        const subjectsData = await subjectsResponse.json();
+
+        if (!subjectsResponse.ok) {
+            throw new Error(subjectsData.message);
+        }
+
+        const grades = Array.from(new Set(...subjectsData.map(subject => subject.Grados))).sort((a, b) => a - b);
+
         const cardContainer = document.querySelector(".cards-container");
         userData = [...users];
         users.forEach(user => {
@@ -95,8 +112,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             </svg>`
             if (user.role === "representante") card.setAttribute("students", studentsData.count);
             else if (user.role === "docente") {
-                card.setAttribute("years", JSON.stringify(["1er Año", "2do Año", "3er Año"]));
-                card.setAttribute("subjects", JSON.stringify(["Matemática", "Física", "Geometría"]));
+                card.setAttribute("years", JSON.stringify(grades.map(grade => `${grade}° Año`)));
+                card.setAttribute("subjects", JSON.stringify(subjectsData.map(subject => subject.Nombre)));
             }
             cardContainer.appendChild(card);
         });
