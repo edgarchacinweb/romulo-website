@@ -62,6 +62,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(personData.message);
         }
 
+        // Cargando cantidad de estudiantes representados
+        const studentsResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${personData.DatosPersonaId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const studentsData = await studentsResponse.json();
+
+        if (!studentsResponse.ok) {
+            throw new Error(studentsData.message);
+        }
+
         const cardContainer = document.querySelector(".cards-container");
         userData = [...users];
         users.forEach(user => {
@@ -79,7 +93,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>`
-            if (user.role === "representante") card.setAttribute("students", 2);
+            if (user.role === "representante") card.setAttribute("students", studentsData.count);
             else if (user.role === "docente") {
                 card.setAttribute("years", JSON.stringify(["1er Año", "2do Año", "3er Año"]));
                 card.setAttribute("subjects", JSON.stringify(["Matemática", "Física", "Geometría"]));
