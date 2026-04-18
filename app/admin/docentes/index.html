@@ -12,6 +12,11 @@
 
   <!-- Estilos adicionales para la barra de búsqueda y filtros -->
   <style>
+    input:disabled,
+    textarea:disabled {
+      opacity: .8;
+    }
+
     .list-header-top {
       display: flex;
       justify-content: space-between;
@@ -206,7 +211,7 @@
                   <div class="form-group">
                     <label for="ocupacion">Especialidad</label>
                     <input type="text" id="ocupacion" name="ocupacion" placeholder="Licenciado en Matemáticas"
-                      class="form-input" />
+                      class="form-input form-person" />
                   </div>
 
                   <div class="materia-group">

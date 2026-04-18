@@ -695,6 +695,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         Direccion: location,
       };
 
+      if (currentPersonId) {
+        peopleData.DatosPersonaId = currentPersonId;
+      }
       const updateAttribute = e.target.getAttribute("data-update") !== null;
 
       const registerTeacherResponse = await fetch(
@@ -770,14 +773,44 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnSearchCedula.disabled = !/\d{7,9}/.test(identity)
   });
 
-  btnSearchCedula.addEventListener("click", (e) => {
+  btnSearchCedula.addEventListener("click", async (e) => {
     e.preventDefault();
-    document.querySelectorAll(".form-person").forEach(i => i.disabled = true);
-    btnSearchCedula.disabled = true;
-
-    loader.setAttribute("title", "Cargando Datos del Usuario...")
     const notification = document.createElement("notification-component");
+    loader.setAttribute("title", "Cargando Datos del Usuario...")
+    document.body.appendChild(loader);
+
     try {
+      const response = await fetch(`${window.APP_CONFIG.api_url}/user/get/${identityField.value}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message);
+      }
+
+      if (data.Rol === "docente") throw new Error("Ya hay un docente registrado con este número de cédula");
+      document.querySelectorAll(".form-person").forEach(i => i.disabled = true);
+      btnSearchCedula.disabled = true;
+
+      firstNameField.value = data.Nombre;
+      lastNameField.value = data.Apellido;
+      identityField.value = data.Cedula;
+      genderField.value = data.Sexo;
+      emailField.value = data.Email;
+      phoneField.value = data.Telefono.split("-")[1];
+      phonePrefixField.value = data.Telefono.split("-")[0];
+      ocupationField.value = data.Ocupacion;
+      hoursField.value = data.Horas;
+      locationField.value = data.Direccion;
+      stateField.value = data.Activo;
+
+      currentPersonId = data.DatosPersonaId;
+
       notification.setAttribute("type", "success");
       notification.setAttribute("text", "¡Datos del Usuario Encontrados!");
     } catch (Error) {
