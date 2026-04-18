@@ -418,8 +418,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     teacherId = teacherIdResponse.DocenteId;
 
     // Obteniendo datos de horarios
+    const schoolTermId = schoolTermResponse.PeriodoEscolarId || schoolTermResponse.id;
+    if (!schoolTermId || schoolTermId === 'undefined') {
+        throw new Error("El identificador del período escolar es inválido o no existe un período activo.");
+    }
+
     const schedulePromise = await fetch(
-      `${window.APP_CONFIG.api_url}/schedule/list/${schoolTermResponse.id}`,
+      `${window.APP_CONFIG.api_url}/schedule/list/${schoolTermId}`,
       {
         method: "GET",
         headers: {
@@ -435,7 +440,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       (s) => s["DocenteId"] === teacherId,
     );
 
-    updateGrades(schoolTermResponse.id);
+    updateGrades(schoolTermId);
     sectionField.addEventListener("change", () => {
       filter(
         gradeField.value,
@@ -468,9 +473,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   courses = [...gradesResponse];
 });
 
-document.getElementById("btn-back").addEventListener("click", (e) => {
-  e.preventDefault();
-  const url = e.target.href;
-  document.body.style.animation = "goodByePage 0.8s forwards";
-  setTimeout(() => (window.location.href = url), 1000);
-});
+const btnBack = document.getElementById("btn-back");
+if (btnBack) {
+  btnBack.addEventListener("click", (e) => {
+    e.preventDefault();
+    const url = e.target.closest('a')?.href || e.currentTarget.href;
+    document.body.style.animation = "goodByePage 0.8s forwards";
+    setTimeout(() => (window.location.href = url), 1000);
+  });
+}

@@ -103,6 +103,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const el = document.getElementById("activeEnrollments");
       if (el) el.innerHTML = `${data.count}`;
       if (resumenChart) { resumenChart.data.datasets[0].data[2] = data.count; resumenChart.update(); }
+
+      // Ocultar elementos si no hay período de inscripción activo
+      if (data.periodo_activo === false) {
+        const rejectedAlert = document.getElementById("rejectedAlert");
+        if (rejectedAlert) rejectedAlert.style.setProperty("display", "none", "important");
+
+        const rejectedCardValue = document.getElementById("rejectedEnrollments");
+        if (rejectedCardValue && rejectedCardValue.closest(".card")) {
+          rejectedCardValue.closest(".card").style.setProperty("display", "none", "important");
+        }
+      }
     } catch (err) { console.error(err); }
   })();
 
@@ -128,8 +139,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!res.ok) throw new Error("Error al consultar estudiantes rechazados");
       
       const data = await res.json();
-      // data es un arreglo con los estudiantes rechazados. La cantidad es la longitud del arreglo.
-      const totalRechazados = Array.isArray(data) ? data.length : 0;
+      // data tiene formato { sin_horario: false, estudiantes: [...] }
+      const lista = data.estudiantes || data;
+      const totalRechazados = Array.isArray(lista) ? lista.length : 0;
       
       // Actualizar tarjeta
       if (rejectedCardValue) rejectedCardValue.innerHTML = `${totalRechazados}`;

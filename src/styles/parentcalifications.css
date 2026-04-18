@@ -19,6 +19,8 @@
   --pill-green-txt: #059669;
   --pill-yellow-bg: #fef08a;
   --pill-yellow-txt: #ca8a04;
+  --pill-red-bg: #fee2e2;
+  --pill-red-txt: #dc2626;
 }
 
 * {
@@ -454,6 +456,10 @@ td {
 .pill-yellow-text {
   background-color: #fef9c3;
   color: var(--pill-yellow-txt);
+}
+.pill-red {
+  background-color: var(--pill-red-bg);
+  color: var(--pill-red-txt);
 }
 
 /* =========================================

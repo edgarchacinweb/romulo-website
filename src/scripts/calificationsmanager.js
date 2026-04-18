@@ -135,11 +135,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (response.ok) {
             courses = [...data];
             gradeSelect.innerHTML = '<option value="" disabled selected>Seleccionar grado</option>';
+            const gradosVistos = new Set();
             data.forEach(course => {
-                const option = document.createElement('option');
-                option.value = course.CursoId;
-                option.textContent = `${course.Grado}° Año`;
-                gradeSelect.appendChild(option);
+                if (!gradosVistos.has(course.Grado)) {
+                    gradosVistos.add(course.Grado);
+                    const option = document.createElement('option');
+                    option.value = course.CursoId;
+                    option.textContent = `${course.Grado}° Año`;
+                    gradeSelect.appendChild(option);
+                }
             })
         }
     } catch (error) {
@@ -183,15 +187,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                 })
             });
 
-            const students = await response.json();
+            const responseData = await response.json();
             studentsListSection.innerHTML = '';
+
+            // --- Detección temprana de sección sin horario ---
+            if (response.ok && responseData.sin_horario === true) {
+                studentsListSection.innerHTML = `
+                    <div class="no-schedule-warning fade-in" role="alert" aria-live="assertive">
+                        <div class="no-schedule-warning__icon" aria-hidden="true">⚠️</div>
+                        <h3 class="no-schedule-warning__title">Horario no configurado</h3>
+                        <p class="no-schedule-warning__message">
+                            debes crear el horario de la seccion
+                        </p>
+                        <p class="no-schedule-warning__hint">
+                            Ve al módulo de <strong>Horarios</strong> y asigna un horario a
+                            <strong>${gradeStr} – ${sectionStr}</strong> para poder registrar calificaciones.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            // -------------------------------------------------
+
+            const students = Array.isArray(responseData.estudiantes) ? responseData.estudiantes : [];
 
             const title = document.createElement('h2');
             title.className = 'student-list-header';
             title.textContent = `Estudiantes - ${gradeStr}, ${sectionStr}`;
             studentsListSection.appendChild(title);
 
-            if (!response.ok || !Array.isArray(students) || students.length === 0) {
+            if (!response.ok || students.length === 0) {
                 studentsListSection.innerHTML += `
                     <div class="no-students-message text-center card fade-in">
                         <div class="no-students-icon">📚</div>
@@ -213,12 +238,54 @@ document.addEventListener('DOMContentLoaded', async () => {
                     studentData[stuData.id] = stuData;
                     renderStudentCard(stuData, student.DatosPersona.Sexo.toLowerCase() === 'masculino' ? 'blue' : 'pink');
                 });
+
+                // --- Validación de estado de calificaciones ---
+                const allStudentIds = students.map(s => s.EstudianteId);
+                try {
+                    const statusResponse = await fetch(`${window.APP_CONFIG.api_url}/calification/grade_status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            StudentIds: allStudentIds,
+                            CursoId: courseId
+                        })
+                    });
+                    if (statusResponse.ok) {
+                        const statusMap = await statusResponse.json();
+                        Object.keys(statusMap).forEach(studentId => {
+                            const card = studentsListSection.querySelector(`[data-student-id="${studentId}"]`);
+                            if (card) {
+                                const statusIcon = card.querySelector('.status-icon');
+                                if (statusIcon) {
+                                    if (statusMap[studentId] === true) {
+                                        // Notas completas: reemplazar con ✅
+                                        statusIcon.outerHTML = '<span class="status-icon status-complete" title="Calificaciones completas" style="font-size: 18px; line-height: 1;">✅</span>';
+                                        card.classList.add('saved');
+                                        if (studentData[studentId]) {
+                                            studentData[studentId].saved = true;
+                                        }
+                                    }
+                                    // Si es false, el ícono de exclamación ya está renderizado por defecto
+                                }
+                            }
+                        });
+                    }
+                } catch (statusErr) {
+                    console.error('Error al verificar estado de calificaciones:', statusErr);
+                }
+
+                // --- Obtener estatus académico (materias reprobadas) ---
+                await fetchAndRenderAcademicStatus(allStudentIds, courseId);
             }
         } catch (error) {
             console.error('Error al cargar estudiantes:', error);
             studentsListSection.innerHTML = `<div class="text-center fade-in" style="padding: 2rem; color:red;">${error.message || 'Error al cargar estudiantes'}</div>`;
         }
     });
+
 
     function renderStudentCard(student, avatarColor = '') {
         const savedClass = student.saved ? 'saved' : '';
@@ -239,6 +306,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <div class="student-card__name-wrapper">
                         <p class="student-card__name">${student.name}</p>
                         <p class="student-card__ci">C.I: ${student.ci || ''} • ${student.gender || 'Masculino'}</p>
+                        <span class="academic-status-badge" id="academic-status-${student.id}"></span>
                     </div>
                     ${savedIcon}
                 </div>
@@ -252,6 +320,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Añadir listener de clic a la tarjeta
         const newCard = studentsListSection.lastElementChild;
         newCard.addEventListener('click', () => openGradesModal(student));
+    }
+
+    /**
+     * Actualiza la etiqueta de estatus académico de un estudiante en su tarjeta.
+     * @param {string} studentId - ID del estudiante
+     * @param {number} reprobadas - Cantidad de materias reprobadas
+     */
+    function updateAcademicStatusBadge(studentId, reprobadas) {
+        const badge = document.getElementById(`academic-status-${studentId}`);
+        if (!badge) return;
+
+        // Limpiar clases previas
+        badge.classList.remove('badge-warning', 'badge-danger');
+        badge.textContent = '';
+        badge.style.display = 'none';
+
+        if (reprobadas >= 3) {
+            badge.textContent = 'Estudiante reprobado';
+            badge.classList.add('badge-danger');
+            badge.style.display = 'inline-flex';
+        } else if (reprobadas >= 1) {
+            badge.textContent = `${reprobadas} materia${reprobadas > 1 ? 's' : ''} pendiente${reprobadas > 1 ? 's' : ''}`;
+            badge.classList.add('badge-warning');
+            badge.style.display = 'inline-flex';
+        }
+        // Si es 0, no se muestra nada
+    }
+
+    /**
+     * Obtiene y renderiza el estatus académico de todos los estudiantes cargados.
+     * @param {string[]} allStudentIds - Array de IDs de estudiantes
+     * @param {string} courseId - ID del curso seleccionado
+     */
+    async function fetchAndRenderAcademicStatus(allStudentIds, courseId) {
+        try {
+            const response = await fetch(`${window.APP_CONFIG.api_url}/calification/academic_status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    StudentIds: allStudentIds,
+                    CursoId: courseId
+                })
+            });
+            if (response.ok) {
+                const statusMap = await response.json();
+                Object.keys(statusMap).forEach(studentId => {
+                    updateAcademicStatusBadge(studentId, statusMap[studentId]);
+                });
+            }
+        } catch (err) {
+            console.error('Error al obtener estatus académico:', err);
+        }
     }
 
     // Lógica del Modal
@@ -270,50 +393,71 @@ document.addEventListener('DOMContentLoaded', async () => {
                 fetch(`${window.APP_CONFIG.api_url}/students/${student.id}/subjects`, { headers: { 'Authorization': `Bearer ${token}` } }),
                 fetch(`${window.APP_CONFIG.api_url}/calification/student/${student.id}`, { headers: { 'Authorization': `Bearer ${token}` } })
             ]);
-            const materias = await subjectsResponse.json();
+
+            // La nueva API retorna { sin_horario: bool, materias: [...] }
+            const subjectsData = subjectsResponse.ok ? await subjectsResponse.json() : null;
             const gradesData = gradesResponse.ok ? await gradesResponse.json() : [];
 
-            // Mapeo dinamico de notas hacia lapsos
+            gradesForm.innerHTML = ''; // Quitar loader
+
+            // --- Manejo de error de red/servidor ---
+            if (!subjectsResponse.ok || !subjectsData) {
+                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:var(--danger-color, #dc2626);">Error al cargar las materias. Intente de nuevo.</p>';
+                modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
+                gradesModal.classList.add('open');
+                return;
+            }
+
+            // --- Caso normal: hay materias desde el horario (sin_horario siempre false aquí) ---
+            // Restaurar botón guardar por si estaba oculto de una apertura previa
+            if (saveGradesBtn) saveGradesBtn.style.display = '';
+
+
+            const materias = subjectsData.materias || [];
+
+            // Mapeo dinámico de notas existentes hacia lapsos
             student.grades = {};
             student.originalGrades = {};
-            if (Array.isArray(materias)) {
-                materias.forEach(m => {
-                    student.grades[m.id] = {};
-                    student.originalGrades[m.id] = {};
-                });
-            }
+            student.convalidadas = {}; // { materiaId: { lapso1: bool, lapso2: bool, lapso3: bool } }
+            materias.forEach(m => {
+                student.grades[m.id] = {};
+                student.originalGrades[m.id] = {};
+                student.convalidadas[m.id] = {};
+            });
             if (Array.isArray(gradesData)) {
                 gradesData.forEach(g => {
                     if (student.grades[g.MateriaId]) {
                         student.grades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
                         student.originalGrades[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Ponderacion;
+                        student.convalidadas[g.MateriaId][`lapso${g.LapsoNumero}`] = g.Convalidada === true;
                     }
                 });
             }
 
-            gradesForm.innerHTML = ''; // Quitar loader
-
-            if (!subjectsResponse.ok || !Array.isArray(materias) || materias.length === 0) {
-                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">No se encontraron materias asignadas para la sección de este estudiante.</p>';
+            if (materias.length === 0) {
+                gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color: var(--text-muted, #6b7280);">No se encontraron materias asignadas para la sección de este estudiante.</p>';
+                modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
+                gradesModal.classList.add('open');
                 return;
             }
 
             currentStudentSubjects = materias;
 
             materias.forEach(subject => {
-                const subjectCard = createSubjectCard(subject, student.grades[subject.id]);
+                const convalidadasMateria = (student.convalidadas || {})[subject.id] || {};
+                const subjectCard = createSubjectCard(subject, student.grades[subject.id], convalidadasMateria);
                 gradesForm.appendChild(subjectCard);
             });
         } catch (error) {
             console.error('Error al cargar materias:', error);
-            gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:red;">Error al cargar las materias. Intente de nuevo.</p>';
+            gradesForm.innerHTML = '<p class="text-center fade-in" style="padding: 2rem; color:var(--danger-color, #dc2626);">Error al cargar las materias. Intente de nuevo.</p>';
         }
 
         modalBackLink.onclick = (e) => { e.preventDefault(); closeModal(); };
         gradesModal.classList.add('open');
     }
 
-    function createSubjectCard(subject, existingGrades = {}) {
+    function createSubjectCard(subject, existingGrades = {}, convalidadasMap = {}) {
         const card = document.createElement('div');
         card.className = 'subject-card';
         card.id = `subject-${subject.id}`;
@@ -324,6 +468,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             { id: 3, label: '3ER LAPSO' }
         ];
 
+        // Verificar si TODOS los lapsos de esta materia están convalidados
+        const todosConvalidados = lapsosData.every(l => convalidadasMap[`lapso${l.id}`] === true);
+
         let inputsHtml = '<div class="lapsos-container">';
         let summariesHtml = '<div class="summary-row">';
         let initialGradesValid = true;
@@ -331,6 +478,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lapsosData.forEach(lapso => {
             const gradeKey = `lapso${lapso.id}`;
             const existingGrade = existingGrades[gradeKey] ?? '';
+            const esConvalidada = convalidadasMap[gradeKey] === true;
             if (existingGrade !== '' && !validateGrade(existingGrade)) {
                 initialGradesValid = false;
             }
@@ -347,7 +495,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 tooltip = 'title="Lapso Cerrado. Abre en la última semana del lapso."';
             }
 
-            const editIcon = existingGrade !== '' ? `
+            // Botón de edición: ocultar para notas convalidadas
+            const editIcon = (existingGrade !== '' && !esConvalidada) ? `
                 <button type="button" class="btn-icon edit-single-grade" data-subject="${subject.id}" data-lapso="${lapso.id}" data-value="${existingGrade}" style="margin-left:8px; color:var(--primary-color);">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -376,8 +525,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         inputsHtml += '</div>';
         summariesHtml += '</div>';
 
+        // Badge "notas ya cargadas" solo si todos los lapsos son convalidados
+        const convalidadaBadge = todosConvalidados
+            ? `<span class="convalidada-badge" title="Notas migradas automáticamente por convalidación. No pueden modificarse." style="display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding:2px 8px;border-radius:12px;background:#dcfce7;color:#166534;font-size:11px;font-weight:600;letter-spacing:.3px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                  notas ya cargadas
+               </span>`
+            : '';
+
         card.innerHTML = `
-            <h3 class="subject-card__title">${subject.name}</h3>
+            <h3 class="subject-card__title">${subject.name}${convalidadaBadge}</h3>
             ${inputsHtml}
             ${summariesHtml}
             <div class="final-summary-row hidden" id="${subject.id}_final_summary">
@@ -399,6 +556,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             </div>
         `;
+
 
         // Añadir event listeners a los inputs
         card.querySelectorAll('.grade-input').forEach(input => {
@@ -682,15 +840,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Actualizar la tarjeta del estudiante en la lista principal
             const updatedCard = studentsListSection.querySelector(`[data-student-id="${currentStudentId}"]`);
             if (updatedCard) {
-                updatedCard.classList.add('saved');
-                const statusIcon = updatedCard.querySelector('.status-icon');
-                if(statusIcon) {
-                    statusIcon.innerHTML = `
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M13.3333 4L6 11.3333L2.66667 8" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    `;
+                // Re-verificar estado de completitud via API
+                try {
+                    const reCheckResponse = await fetch(`${window.APP_CONFIG.api_url}/calification/grade_status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            StudentIds: [currentStudentId],
+                            CursoId: gradeSelect.value
+                        })
+                    });
+                    if (reCheckResponse.ok) {
+                        const reCheckMap = await reCheckResponse.json();
+                        const isComplete = reCheckMap[currentStudentId] === true;
+                        const statusIcon = updatedCard.querySelector('.status-icon');
+                        if (isComplete) {
+                            updatedCard.classList.add('saved');
+                            if (statusIcon) {
+                                statusIcon.outerHTML = '<span class="status-icon status-complete" title="Calificaciones completas" style="font-size: 18px; line-height: 1;">✅</span>';
+                            }
+                        } else {
+                            // Mantener/restaurar ícono de exclamación
+                            if (statusIcon && !statusIcon.querySelector('path[d*="8 12V8"]')) {
+                                statusIcon.outerHTML = `
+                                    <svg class="status-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 12V8M8 4.005H8.005M14 8C14 11.3137 11.3137 14 8 14C4.68629 14 2 11.3137 2 8C2 4.68629 4.68629 2 8 2C11.3137 2 14 4.68629 14 8Z" stroke="#F97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                `;
+                            }
+                        }
+                    }
+                } catch(recheckErr) {
+                    console.error('Error re-verificando estado:', recheckErr);
                 }
+
+                // Re-obtener estatus académico tras guardar notas
+                await fetchAndRenderAcademicStatus([currentStudentId], gradeSelect.value);
             }
         } catch(e) {
             alert(e.message);
@@ -810,12 +998,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 historyTableBody.innerHTML = '';
                 
                 if (data.length === 0) {
-                    historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem;">No hay registros de modificaciones de notas.</td></tr>';
+                    historyTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1rem;">No hay registros de modificaciones de notas.</td></tr>';
                 } else {
                     data.forEach(row => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Estudiante}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Ano || 'N/A'}</td>
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.Materia}</td>
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;">${row.NotaAnterior}</td>
                             <td style="padding: 8px; border-bottom: 1px solid #E5E7EB;"><b>${row.NotaNueva}</b></td>
@@ -825,9 +1014,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         historyTableBody.appendChild(tr);
                     });
                 }
+
             } catch (err) {
                 console.error(err);
-                historyTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 1rem; color: red;">Error cargando historial</td></tr>';
+                historyTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 1rem; color: red;">Error cargando historial</td></tr>';
             }
         });
     }

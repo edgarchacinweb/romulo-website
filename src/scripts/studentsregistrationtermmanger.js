@@ -52,36 +52,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     schoolTermYear = new Date(data["FechaInicio"]).getFullYear();
     registrationEntry.value = `Período ${schoolTermYear} - ${schoolTermYear + 1}`;
 
-    // =======================================================
-    // NUEVA LÓGICA: LIMITAR CALENDARIO (FECHA MIN Y MAX)
-    // =======================================================
+    // Limitar calendario (fecha min y max)
+    const fechaFinStr = data["FechaFin"];
+    schoolTermMaxDateStr = fechaFinStr.split("T")[0];
     
-    // 1. Obtener la Fecha de Fin del Período Escolar de la BD
-    const fechaFinStr = data["FechaFin"]; // Ej: "2026-07-31" o "2026-07-31T00:00:00"
-    schoolTermMaxDateStr = fechaFinStr.split("T")[0]; // Asegurar formato YYYY-MM-DD
-    
-    // Convertir de forma segura a hora local separando los componentes
     const [finY, finM, finD] = schoolTermMaxDateStr.split('-');
     schoolTermEndDateObj = new Date(finY, finM - 1, finD);
     schoolTermEndDateObj.setHours(0, 0, 0, 0);
 
-    // 2. Obtener fecha de HOY en formato local YYYY-MM-DD
     const hoy = new Date();
     const yyyy = hoy.getFullYear();
     const mm = String(hoy.getMonth() + 1).padStart(2, '0');
     const dd = String(hoy.getDate()).padStart(2, '0');
     const hoyStr = `${yyyy}-${mm}-${dd}`;
 
-    // 3. Aplicar restricciones a los inputs HTML
-    // No permitir fechas antes de hoy
     startDateEntry.min = hoyStr;
     endDateEntry.min = hoyStr;
-    
-    // No permitir fechas después del fin del período escolar
     startDateEntry.max = schoolTermMaxDateStr;
     endDateEntry.max = schoolTermMaxDateStr;
 
-    // 4. Mejorar UX: Al elegir fecha de inicio, la fecha fin no puede ser anterior
     startDateEntry.addEventListener("change", (e) => {
       if (e.target.value) {
         endDateEntry.min = e.target.value;
@@ -89,7 +78,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         endDateEntry.min = hoyStr;
       }
     });
-    // =======================================================
 
   } catch (error) {
     loadNotification.setAttribute("type", "error");
@@ -143,90 +131,93 @@ document.addEventListener("DOMContentLoaded", async () => {
       const actionContainer = document.createElement("div");
       actionContainer.className = "action-buttons";
 
-      if (e["Activo"]) {
+      // ================================================================
+      // FUNCIÓN COMPARTIDA: renderiza los botones "Editar" y "Cerrar".
+      // FIX: Declarada en el scope del forEach (compartido entre los tres
+      // casos) para que el botón "Reactivar" del CASO 2 pueda llamarla
+      // sin lanzar un ReferenceError que caía al catch como "Error de red".
+      // ================================================================
+      const renderActiveButtons = () => {
+        actionContainer.innerHTML = "";
+
         // --- BOTÓN EDITAR ---
         const btnEdit = document.createElement("button");
         btnEdit.textContent = "Editar";
         btnEdit.className = "btn-table btn-edit";
-        
+
         btnEdit.addEventListener("click", () => {
-          // Guardar valor original por si cancela
           const originalDate = tdEnd.textContent;
-          
-          // Limpiar celda y poner input
+
           tdEnd.innerHTML = "";
           const inputDate = document.createElement("input");
           inputDate.type = "date";
           inputDate.className = "inline-date-input";
           inputDate.value = originalDate;
-          
-          // Aplicar las mismas restricciones globales
+
           const hoy = new Date();
           const yyyy = hoy.getFullYear();
-          const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-          const dd = String(hoy.getDate()).padStart(2, '0');
+          const mm = String(hoy.getMonth() + 1).padStart(2, "0");
+          const dd = String(hoy.getDate()).padStart(2, "0");
           inputDate.min = `${yyyy}-${mm}-${dd}`;
           inputDate.max = schoolTermMaxDateStr;
 
           tdEnd.appendChild(inputDate);
 
-          // Cambiar botones: "Guardar" y "Cancelar"
           actionContainer.innerHTML = "";
-          
+
           const btnSave = document.createElement("button");
           btnSave.textContent = "Guardar";
           btnSave.className = "btn-table btn-save";
-          
+
           const btnCancel = document.createElement("button");
           btnCancel.textContent = "Cancelar";
           btnCancel.className = "btn-table btn-cancel";
 
           btnCancel.addEventListener("click", () => {
             tdEnd.textContent = originalDate;
-            restoreActionButtons();
+            renderActiveButtons(); // llamada recursiva — ya está en scope
           });
 
           btnSave.addEventListener("click", async () => {
-             const newDate = inputDate.value;
-             if (!newDate) {
-                 alert("Por favor seleccione una fecha");
-                 return;
-             }
-
-             // Validar contra el inicio (e["Inicio"])
-             if (newDate < e["Inicio"]) {
-                 alert("La fecha de fin no puede ser anterior a la de inicio.");
-                 return;
-             }
-
-             try {
-                const patchRes = await fetch(`${window.APP_CONFIG.api_url}/registration/update`, {
-                    method: "PATCH",
-                    headers: { 
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({
-                        PeriodoInscripcionId: e["InscripcionId"],
-                        FechaFin: newDate
-                    })
-                });
-
-                if (patchRes.ok) {
-                    tdEnd.textContent = newDate;
-                    e["Fin"] = newDate; // Actualizar en el objeto local
-                    const successNotif = document.createElement("notification-component");
-                    successNotif.setAttribute("type", "success");
-                    successNotif.setAttribute("text", "Fecha de fin actualizada correctamente");
-                    loadNotificationContainer.appendChild(successNotif);
-                    restoreActionButtons();
-                } else {
-                    const errData = await patchRes.json();
-                    alert("Error al actualizar: " + (errData.message || "Error desconocido"));
+            const newDate = inputDate.value;
+            if (!newDate) {
+              alert("Por favor seleccione una fecha");
+              return;
+            }
+            if (newDate < e["Inicio"]) {
+              alert("La fecha de fin no puede ser anterior a la de inicio.");
+              return;
+            }
+            try {
+              const patchRes = await fetch(
+                `${window.APP_CONFIG.api_url}/registration/update`,
+                {
+                  method: "PATCH",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    PeriodoInscripcionId: e["InscripcionId"],
+                    FechaFin: newDate,
+                  }),
                 }
-             } catch (err) {
-                alert("Error de conexión al guardar.");
-             }
+              );
+              if (patchRes.ok) {
+                tdEnd.textContent = newDate;
+                e["Fin"] = newDate;
+                const successNotif = document.createElement("notification-component");
+                successNotif.setAttribute("type", "success");
+                successNotif.setAttribute("text", "Fecha de fin actualizada correctamente");
+                loadNotificationContainer.appendChild(successNotif);
+                renderActiveButtons();
+              } else {
+                const errData = await patchRes.json();
+                alert("Error al actualizar: " + (errData.message || "Error desconocido"));
+              }
+            } catch (err) {
+              alert("Error de conexión al guardar.");
+            }
           });
 
           actionContainer.appendChild(btnSave);
@@ -237,36 +228,128 @@ document.addEventListener("DOMContentLoaded", async () => {
         const btnCerrar = document.createElement("button");
         btnCerrar.textContent = "Cerrar";
         btnCerrar.className = "btn-table btn-close-term";
-        
+
         btnCerrar.addEventListener("click", async () => {
-          if (confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) {
-            try {
-              const res = await fetch(`${window.APP_CONFIG.api_url}/registration/close/${e["InscripcionId"]}`, {
+          if (!confirm("¿Estás seguro de que deseas cerrar este período de inscripción prematuramente?")) return;
+
+          try {
+            const res = await fetch(
+              `${window.APP_CONFIG.api_url}/registration/close/${e["InscripcionId"]}`,
+              {
                 method: "PATCH",
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              if (res.ok) {
-                tdAccion.innerHTML = '<span style="color:red; font-weight:bold;">Inactivo/Cerrado</span>';
-              } else {
-                alert("Error al intentar cerrar el período.");
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
               }
-            } catch (err) {
-              alert("Error de conexión con el servidor.");
+            );
+
+            if (res.ok) {
+              e["Activo"] = false;
+              // Mostrar botón Reactivar con handler completo
+              actionContainer.innerHTML = "";
+              renderReactivateButton();
+            } else {
+              const errData = await res.json();
+              alert("Error: " + (errData.message || "No se pudo cerrar el período."));
             }
+          } catch (err) {
+            alert("Error de conexión con el servidor.");
           }
         });
 
-        const restoreActionButtons = () => {
-            actionContainer.innerHTML = "";
-            actionContainer.appendChild(btnEdit);
-            actionContainer.appendChild(btnCerrar);
-        };
+        actionContainer.appendChild(btnEdit);
+        actionContainer.appendChild(btnCerrar);
+      }; // fin renderActiveButtons
 
-        restoreActionButtons();
+      // ================================================================
+      // FUNCIÓN COMPARTIDA: renderiza el botón "Reactivar" con su handler.
+      // También declarada en el scope del forEach para reutilización.
+      // ================================================================
+      const renderReactivateButton = () => {
+        actionContainer.innerHTML = "";
+
+        const btnReactivar = document.createElement("button");
+        btnReactivar.textContent = "Reactivar";
+        btnReactivar.className = "btn-table btn-reactivate";
+        btnReactivar.title = "El período fue cerrado antes de su fecha de fin. Puede reactivarse.";
+
+        btnReactivar.addEventListener("click", async () => {
+          if (!confirm("¿Deseas reactivar este período de inscripción?")) return;
+
+          btnReactivar.disabled = true;
+          btnReactivar.textContent = "Reactivando...";
+
+          try {
+            const res = await fetch(
+              `${window.APP_CONFIG.api_url}/registration/reactivate/${e["InscripcionId"]}`,
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            );
+
+            // Leer JSON de la respuesta (presente tanto en éxito como en error)
+            let resData = {};
+            try { resData = await res.json(); } catch (_) { /* respuesta sin body */ }
+
+            if (res.ok) {
+              // ✅ Actualizar objeto local y redibujar botones Editar/Cerrar sin recargar
+              e["Activo"] = true;
+              renderActiveButtons();
+
+              const successNotif = document.createElement("notification-component");
+              successNotif.setAttribute("type", "success");
+              successNotif.setAttribute("text", resData.message || "Período reactivado correctamente");
+              loadNotificationContainer.appendChild(successNotif);
+            } else {
+              // Error semántico del servidor (403, 404, 409…) — petición llegó, servidor respondió
+              btnReactivar.disabled = false;
+              btnReactivar.textContent = "Reactivar";
+              const errNotif = document.createElement("notification-component");
+              errNotif.setAttribute("type", "error");
+              errNotif.setAttribute("text", resData.message || "No se pudo reactivar el período.");
+              loadNotificationContainer.appendChild(errNotif);
+            }
+          } catch (err) {
+            // Solo llega aquí con error REAL de red (servidor caído, sin conexión)
+            btnReactivar.disabled = false;
+            btnReactivar.textContent = "Reactivar";
+            const errNotif = document.createElement("notification-component");
+            errNotif.setAttribute("type", "error");
+            errNotif.setAttribute("text", "Error de red: no se pudo comunicar con el servidor.");
+            loadNotificationContainer.appendChild(errNotif);
+            console.error("[Reactivar] Network error:", err);
+          }
+        });
+
+        actionContainer.appendChild(btnReactivar);
+      }; // fin renderReactivateButton
+
+      // ============================================================
+      // LÓGICA CONDICIONAL DE ACCIONES SEGÚN ESTADO DEL PERÍODO
+      // ============================================================
+      if (e["EsDefinitivamenteCerrado"]) {
+        // CASO 1: Fecha de Fin vencida — cierre definitivo e irreversible
+        tdAccion.innerHTML = `
+          <span class="badge-closed-definitive" title="La Fecha de Fin ya venció. Este período no puede reactivarse.">
+            🔒 Inactivo/Cerrado
+          </span>`;
+
+      } else if (!e["Activo"]) {
+        // CASO 2: Cerrado manualmente, Fecha de Fin aún vigente → "Reactivar"
+        renderReactivateButton();
         tdAccion.appendChild(actionContainer);
+
       } else {
-        tdAccion.innerHTML = '<span style="color:gray; font-weight:bold;">Inactivo/Cerrado</span>';
+        // CASO 3: Período activo → "Editar" y "Cerrar"
+        renderActiveButtons();
+        tdAccion.appendChild(actionContainer);
       }
+
       item.appendChild(tdAccion);
       tableBody.appendChild(item);
     });
@@ -288,7 +371,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         throw new Error("Debes rellenar ambos campos primero");
       }
 
-      // CORRECCIÓN ZONA HORARIA: Parseamos manualemente para evitar que caiga al día anterior por el UTC
       const [startYear, startMonth, startDay] = startDate.split('-');
       const startEntryDate = new Date(startYear, startMonth - 1, startDay);
       startEntryDate.setHours(0, 0, 0, 0);
@@ -297,9 +379,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const endEntryDate = new Date(endYear, endMonth - 1, endDay);
       endEntryDate.setHours(0, 0, 0, 0);
 
-      // =======================================================
-      // NUEVA LÓGICA: VALIDACIÓN ESTRICTA AL ENVIAR
-      // =======================================================
       const hoyParaValidar = new Date();
       hoyParaValidar.setHours(0, 0, 0, 0);
 
@@ -315,15 +394,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (startEntryDate > endEntryDate) {
         throw new Error("La fecha de inicio no puede ser posterior a la fecha de fin.");
       }
-      // =======================================================
 
-      // OPTIMIZACIÓN: Comparar cadenas ISO (YYYY-MM-DD) directamente evita por completo fallos de zona horaria
       const hasOverlap = schoolTerms.some((term) => {
         const tStart = term["Inicio"].split("T")[0];
         const tEnd = term["Fin"].split("T")[0];
-        
-        // Hay solapamiento si el inicio del existente es MENOR O IGUAL al fin nuevo, 
-        // Y el fin del existente es MAYOR O IGUAL al inicio nuevo.
         return tStart <= endDate && tEnd >= startDate;
       });
 
@@ -390,7 +464,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           try {
             const res = await fetch(`${window.APP_CONFIG.api_url}/registration/close/${data.id}`, {
               method: "PATCH",
-              headers: { Authorization: `Bearer ${token}` }
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              }
             });
             if (res.ok) {
               tdAccion.innerHTML = '<span style="color:red; font-weight:bold;">Inactivo/Cerrado</span>';

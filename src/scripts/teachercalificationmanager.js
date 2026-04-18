@@ -53,9 +53,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Buscar las secciones únicas en las asignaciones para el grado seleccionado
     const selectedCourseId = selectGrado.value;
-    const secciones = [...new Set(teacherAssignments.filter(a => a.CursoId === selectedCourseId).map(a => a.Seccion))];
+    const secciones = [...new Set(teacherAssignments.filter(a => String(a.CursoId) === String(selectedCourseId)).map(a => a.Seccion))];
 
-    secciones.sort((a,b) => a - b).forEach(seccion => {
+    secciones.sort((a, b) => a - b).forEach(seccion => {
       const option = document.createElement("option");
       option.setAttribute("value", seccion);
       option.textContent = number_to_letter(seccion);
@@ -74,15 +74,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Buscar las materias únicas en las asignaciones para el grado y sección seleccionados
     const selectedCourseId = selectGrado.value;
     const selectedSeccion = parseInt(selectSeccion.value);
-    
-    const materias = teacherAssignments.filter(a => a.CursoId === selectedCourseId && a.Seccion === selectedSeccion);
+
+    const materias = teacherAssignments.filter(a => String(a.CursoId) === String(selectedCourseId) && a.Seccion === selectedSeccion);
 
     // Evitar materias duplicadas
     const uniqueMaterias = [];
     materias.forEach(m => {
-        if(!uniqueMaterias.some(um => um.MateriaId === m.MateriaId)) {
-            uniqueMaterias.push(m);
-        }
+      if (!uniqueMaterias.some(um => um.MateriaId === m.MateriaId)) {
+        uniqueMaterias.push(m);
+      }
     });
 
     uniqueMaterias.forEach(m => {
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
       return;
     }
-    
+
     lapso = statusCarga.lapso;
 
     // Cargando asignaciones reales del docente
@@ -165,12 +165,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Extraer grados académicos únicos
     const uniqueGrades = [];
     teacherAssignments.forEach(a => {
-        if(!uniqueGrades.some(ug => ug.CursoId === a.CursoId)) {
-            uniqueGrades.push(a);
-        }
+      if (!uniqueGrades.some(ug => ug.CursoId === a.CursoId)) {
+        uniqueGrades.push(a);
+      }
     });
 
-    uniqueGrades.sort((a,b) => a.Grado - b.Grado).forEach((g) => {
+    uniqueGrades.sort((a, b) => a.Grado - b.Grado).forEach((g) => {
       const option = document.createElement("option");
       option.setAttribute("value", g.CursoId);
       option.textContent = `${g.Grado}° Año`;
@@ -178,8 +178,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Para mantener consistencia con variables existentes
-    grades = uniqueGrades.map(g => ({CursoId: g.CursoId, Grado: g.Grado}));
-    subjects = teacherAssignments.map(a => ({MateriaId: a.MateriaId, Nombre: a.MateriaNombre}));
+    grades = uniqueGrades.map(g => ({ CursoId: g.CursoId, Grado: g.Grado }));
+    subjects = teacherAssignments.map(a => ({ MateriaId: a.MateriaId, Nombre: a.MateriaNombre }));
 
     // Cargando estudiantes inscritos
     const studentsPromise = await fetch(
@@ -198,7 +198,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const studentsResponse = await studentsPromise.json();
     if (!studentsPromise.ok) throw new Error(studentsResponse.message);
-    students = [...studentsResponse];
+    students = [...studentsResponse.estudiantes];
   } catch (Error) {
     console.error(Error.stack);
     const notification = document.createElement("notification-component");
@@ -251,7 +251,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Generamos las filas dinámicamente
-    const grade = grades.find((g) => g["CursoId"] === selectGrado.value);
+    const grade = grades.find((g) => String(g["CursoId"]) === String(selectGrado.value));
     const studentsData = students.filter(
       (s) =>
         s["Curso"]["Grado"] === grade["Grado"] &&
@@ -261,12 +261,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log(calificationsResponse);
     const filas = studentsData
       .map((est, index) => {
-        const calification = calificationsResponse.find(
+        const calificationData = lapso ? calificationsResponse.find(
           (c) =>
-            c["LapsoId"] === lapso["LapsoId"] &&
+            c && String(c["LapsoId"]) === String(lapso["LapsoId"]) &&
             c["EstudianteId"] === est["EstudianteId"] &&
             c["MateriaId"] === selectMateria.value,
-        )?.Ponderacion;
+        ) : undefined;
+        const calification = calificationData?.Ponderacion;
+        const convalidada = calificationData?.Convalidada;
         let status = "Pendiente";
         let statusClass = "status-pendiente";
         if (calification) {
@@ -274,13 +276,21 @@ document.addEventListener("DOMContentLoaded", async () => {
           statusClass =
             calification > 9 ? "status-aprobado" : "status-reprobado";
         }
+
+        let inputHtml = `
+            <input type="number" class="grade-input" min="1" max="20" value="${calification ?? ""}" placeholder="--" data-index="${index}" data-id="${est["EstudianteId"]}" ${convalidada ? "disabled readonly title=\"Nota migrada automáticamente\"" : ""}>
+        `;
+        if (convalidada) {
+            inputHtml += `<span style="display:block; font-size: 0.8rem; color: #10b981; margin-top: 4px;">✔ notas ya cargadas</span>`;
+        }
+
         return `
             <tr>
                 <td>${index + 1}</td>
                 <td>${est["DatosPersona"]["Nombre"]} ${est["DatosPersona"]["Apellido"]}</td>
                 <td>${est["DatosPersona"]["Cedula"]}</td>
                 <td>
-                    <input type="number" class="grade-input" min="1" max="20" value="${calification ?? ""}" placeholder="--" data-index="${index}" data-id="${est["EstudianteId"]}">
+                    ${inputHtml}
                 </td>
                 <td id="status-${index}">
                     <span class="status-badge ${statusClass}">${status}</span>

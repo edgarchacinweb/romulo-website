@@ -330,6 +330,61 @@ body {
     margin: 0;
 }
 
+/* Indicador de Estatus Académico */
+.academic-status-badge {
+    display: none;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-top: 0.35rem;
+    line-height: 1;
+    width: fit-content;
+    animation: badgeFadeIn 0.3s ease-out;
+}
+
+.academic-status-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.academic-status-badge.badge-warning {
+    background-color: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+}
+
+.academic-status-badge.badge-warning::before {
+    background-color: #F59E0B;
+}
+
+.academic-status-badge.badge-danger {
+    background-color: #FEE2E2;
+    color: #991B1B;
+    border: 1px solid #FECACA;
+}
+
+.academic-status-badge.badge-danger::before {
+    background-color: #EF4444;
+}
+
+@keyframes badgeFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .status-icon,
 .action-icon {
     display: flex;
@@ -509,6 +564,17 @@ body {
     color: #D1D5DB;
 }
 
+/* Ocultar flechas (spinners) de inputs numéricos de calificaciones */
+.grade-input::-webkit-outer-spin-button,
+.grade-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.grade-input {
+    -moz-appearance: textfield;
+}
+
 /* Validación is-invalid personalizada */
 .form-control.is-invalid {
     border-color: #EF4444;
@@ -645,4 +711,76 @@ body {
 
 .toast.hidden {
     display: none;
+}
+
+/* ============================================================
+   Advertencia: Sin Horario Asignado a la Sección
+   ============================================================ */
+.no-schedule-warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.875rem;
+    padding: 2.5rem 2rem;
+    margin: 1rem 0;
+    background-color: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-left: 4px solid #F59E0B;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.12);
+    animation: warningSlideIn 0.4s ease-out;
+}
+
+@keyframes warningSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.no-schedule-warning__icon {
+    font-size: 2.5rem;
+    line-height: 1;
+    animation: warningPulse 2s ease-in-out infinite;
+}
+
+@keyframes warningPulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.1); }
+}
+
+.no-schedule-warning__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #92400E;
+    margin: 0;
+}
+
+.no-schedule-warning__message {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #B45309;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    background-color: #FEF3C7;
+    border-radius: 6px;
+    border: 1px dashed #FCD34D;
+    letter-spacing: 0.01em;
+}
+
+.no-schedule-warning__hint {
+    font-size: 0.8rem;
+    color: #78350F;
+    margin: 0;
+    max-width: 380px;
+    line-height: 1.6;
+}
+
+.no-schedule-warning__hint strong {
+    color: #92400E;
 }

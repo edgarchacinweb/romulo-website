@@ -290,6 +290,54 @@ body {
   background-color: #5c636a;
 }
 
+/* --- BOTÓN REACTIVAR (período cerrado manualmente, fecha aún vigente) --- */
+.btn-reactivate {
+  background-color: #0f766e;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  animation: reactivate-pulse 2s ease-in-out infinite;
+}
+
+.btn-reactivate:hover {
+  background-color: #0d9488;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(15, 118, 110, 0.35);
+  animation: none;
+}
+
+.btn-reactivate:active {
+  transform: translateY(0);
+}
+
+@keyframes reactivate-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.4); }
+  50%       { box-shadow: 0 0 0 5px rgba(15, 118, 110, 0); }
+}
+
+/* --- BADGE CIERRE DEFINITIVO (fecha de fin vencida, irreversible) --- */
+.badge-closed-definitive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  letter-spacing: 0.02em;
+}
+
 /* --- INPUT INLINE --- */
 .inline-date-input {
   padding: 4px 8px;
