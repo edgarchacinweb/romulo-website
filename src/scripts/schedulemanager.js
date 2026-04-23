@@ -55,8 +55,8 @@ const updateHomeroomInfo = () => {
   sectionLabel.textContent = `Sección ${sectionLetter}`;
 
   // Encontrar el ID de "ORIENTACION Y CONVIVENCIA"
-  const orientacionSubject = subjects.find(s => 
-    s.Nombre.toUpperCase().includes("ORIENTACION") && 
+  const orientacionSubject = subjects.find(s =>
+    s.Nombre.toUpperCase().includes("ORIENTACION") &&
     s.Nombre.toUpperCase().includes("CONVIVENCIA")
   );
 
@@ -206,8 +206,8 @@ const renderTeacherSelector = (assignedSubjects) => {
   });
 
   // Listener para actualización dinámica del Profesor Guía
-  const orientacionSubject = subjects.find(s => 
-    s.Nombre.toUpperCase().includes("ORIENTACION") && 
+  const orientacionSubject = subjects.find(s =>
+    s.Nombre.toUpperCase().includes("ORIENTACION") &&
     s.Nombre.toUpperCase().includes("CONVIVENCIA")
   );
 
@@ -258,11 +258,11 @@ const exportToPdf = async (grade, section) => {
     tr.innerHTML +=
       minutes > 15
         ? `
-          <td class="print__subject">${blocks[0] ?? ""}</td>
-          <td class="print__subject">${blocks[1] ?? ""}</td>
-          <td class="print__subject">${blocks[2] ?? ""}</td>
-          <td class="print__subject">${blocks[3] ?? ""}</td>
-          <td class="print__subject">${blocks[4] ?? ""}</td>
+          <td class="print__subject">${blocks[0] ?? "LIBRE"}</td>
+          <td class="print__subject">${blocks[1] ?? "LIBRE"}</td>
+          <td class="print__subject">${blocks[2] ?? "LIBRE"}</td>
+          <td class="print__subject">${blocks[3] ?? "LIBRE"}</td>
+          <td class="print__subject">${blocks[4] ?? "LIBRE"}</td>
         </tr>
         `
         : `
@@ -332,7 +332,7 @@ const filter = async (grade, section) => {
     const statusData = await statusResponse.json();
     const currentSection = statusData.find(s => s.CursoId === grade && s.Seccion == section);
 
-    if (currentSection && currentSection.Alumnos < 15) {
+    if (currentSection && currentSection.Alumnos < (window.APP_CONFIG.min_students || 15)) {
       emptyState.style.display = "flex";
       emptyState.innerHTML = `
         <div class="warning-banner">
@@ -360,7 +360,7 @@ const filter = async (grade, section) => {
     const canEdit = selectedTerm === termId;
     const disabledValue = (canEdit && isEditingMode) ? "" : " disabled";
     const courseGrade = courses.find((c) => c["CursoId"] === grade)?.["Grado"];
-    
+
     const options = subjects
       .filter((s) => {
         const hsInfo = s.HorasPorCurso?.find(hc => hc.Grado === courseGrade);
@@ -658,7 +658,7 @@ const filter = async (grade, section) => {
           const updatedSchedule = [];
           document.querySelectorAll(".select-subject").forEach((s) => {
             const scheduleBlockId = s.parentElement.getAttribute("data-row");
-            
+
             if (s.value === "") {
               updatedSchedule.push({
                 CursoId: grade,
@@ -927,12 +927,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const term = await termResponse.json();
     if (!termResponse.ok) throw new Error(term.message);
-    
+
     // El sistema ahora solo maneja el período activo
     termList = [term];
     const termId = term["PeriodoEscolarId"] || term["id"];
     const termName = `${new Date(term["FechaInicio"]).getFullYear()} - ${new Date(term["FechaFin"]).getFullYear()}`;
-    
+
     termField.value = termId;
     if (termNameDisplay) {
       termNameDisplay.value = termName;

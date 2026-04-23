@@ -1,6 +1,7 @@
 :root {
   --primary-blue: #0045cc;
-  --primary-green: #2e7d32; /* Color del item activo */
+  --primary-green: #2e7d32;
+  /* Color del item activo */
   --bg-light: #f4f6f9;
   --text-dark: #1a1a1a;
   --text-gray: #666;
@@ -53,6 +54,7 @@ body {
   font-size: 16px;
   font-weight: 700;
 }
+
 .app-name span {
   font-size: 11px;
   opacity: 0.7;
@@ -78,10 +80,12 @@ body {
   width: 20px;
   height: 20px;
 }
+
 .menu li a div {
   display: flex;
   flex-direction: column;
 }
+
 .menu li a small {
   font-size: 10px;
   opacity: 0.6;
@@ -105,6 +109,7 @@ body {
   padding: 20px 24px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .logout a {
   display: flex;
   align-items: center;
@@ -114,10 +119,12 @@ body {
   font-size: 14px;
   transition: 0.3s;
 }
+
 .logout a:hover {
   color: var(--white);
   transform: translateX(5px);
 }
+
 .logout svg {
   width: 18px;
 }
@@ -126,11 +133,13 @@ body {
 .page-header {
   margin-bottom: 30px;
 }
+
 .page-header h1 {
   font-size: 24px;
   color: var(--text-dark);
   margin-bottom: 5px;
 }
+
 .page-header p {
   color: var(--text-gray);
   font-size: 14px;
@@ -145,7 +154,7 @@ body {
 }
 
 .card {
-  width: 100%;
+  max-width: 360px;
   background: var(--white);
   border-radius: var(--border-radius);
   box-shadow: var(--card-shadow);
@@ -176,41 +185,37 @@ body {
 }
 
 .card__image--female::after {
-  background-image: linear-gradient(
-    45deg,
-    hsl(350deg 99% 59%) 0%,
-    hsl(343deg 99% 55%) 8%,
-    hsl(336deg 100% 50%) 17%,
-    hsl(333deg 100% 49%) 25%,
-    hsl(330deg 100% 49%) 33%,
-    hsl(327deg 100% 48%) 42%,
-    hsl(323deg 100% 46%) 50%,
-    hsl(318deg 100% 44%) 58%,
-    hsl(312deg 100% 42%) 67%,
-    hsl(305deg 100% 40%) 75%,
-    hsl(297deg 100% 39%) 83%,
-    hsl(288deg 100% 41%) 92%,
-    hsl(276deg 82% 48%) 100%
-  );
+  background-image: linear-gradient(45deg,
+      hsl(350deg 99% 59%) 0%,
+      hsl(343deg 99% 55%) 8%,
+      hsl(336deg 100% 50%) 17%,
+      hsl(333deg 100% 49%) 25%,
+      hsl(330deg 100% 49%) 33%,
+      hsl(327deg 100% 48%) 42%,
+      hsl(323deg 100% 46%) 50%,
+      hsl(318deg 100% 44%) 58%,
+      hsl(312deg 100% 42%) 67%,
+      hsl(305deg 100% 40%) 75%,
+      hsl(297deg 100% 39%) 83%,
+      hsl(288deg 100% 41%) 92%,
+      hsl(276deg 82% 48%) 100%);
 }
 
 .card__image--male::after {
-  background-image: linear-gradient(
-    155deg,
-    hsl(208deg 92% 54%) 0%,
-    hsl(209deg 83% 51%) 8%,
-    hsl(210deg 83% 48%) 14%,
-    hsl(212deg 83% 45%) 20%,
-    hsl(214deg 83% 43%) 26%,
-    hsl(216deg 82% 41%) 33%,
-    hsl(219deg 81% 38%) 39%,
-    hsl(222deg 79% 36%) 47%,
-    hsl(225deg 77% 34%) 55%,
-    hsl(230deg 75% 32%) 64%,
-    hsl(235deg 73% 29%) 75%,
-    hsl(242deg 75% 26%) 87%,
-    hsl(249deg 96% 21%) 100%
-  );
+  background-image: linear-gradient(155deg,
+      hsl(208deg 92% 54%) 0%,
+      hsl(209deg 83% 51%) 8%,
+      hsl(210deg 83% 48%) 14%,
+      hsl(212deg 83% 45%) 20%,
+      hsl(214deg 83% 43%) 26%,
+      hsl(216deg 82% 41%) 33%,
+      hsl(219deg 81% 38%) 39%,
+      hsl(222deg 79% 36%) 47%,
+      hsl(225deg 77% 34%) 55%,
+      hsl(230deg 75% 32%) 64%,
+      hsl(235deg 73% 29%) 75%,
+      hsl(242deg 75% 26%) 87%,
+      hsl(249deg 96% 21%) 100%);
 }
 
 .card__photo {
@@ -232,41 +237,37 @@ body {
 }
 
 .card__data--female {
-  background-image: linear-gradient(
-    155deg,
-    hsl(319deg 77% 88%) 0%,
-    hsl(318deg 85% 87%) 8%,
-    hsl(317deg 91% 86%) 14%,
-    hsl(316deg 95% 85%) 20%,
-    hsl(315deg 98% 83%) 26%,
-    hsl(314deg 100% 82%) 33%,
-    hsl(312deg 100% 80%) 39%,
-    hsl(311deg 100% 79%) 47%,
-    hsl(310deg 100% 77%) 55%,
-    hsl(309deg 100% 76%) 64%,
-    hsl(308deg 100% 74%) 75%,
-    hsl(307deg 100% 72%) 87%,
-    hsl(306deg 100% 70%) 100%
-  );
+  background-image: linear-gradient(155deg,
+      hsl(319deg 77% 88%) 0%,
+      hsl(318deg 85% 87%) 8%,
+      hsl(317deg 91% 86%) 14%,
+      hsl(316deg 95% 85%) 20%,
+      hsl(315deg 98% 83%) 26%,
+      hsl(314deg 100% 82%) 33%,
+      hsl(312deg 100% 80%) 39%,
+      hsl(311deg 100% 79%) 47%,
+      hsl(310deg 100% 77%) 55%,
+      hsl(309deg 100% 76%) 64%,
+      hsl(308deg 100% 74%) 75%,
+      hsl(307deg 100% 72%) 87%,
+      hsl(306deg 100% 70%) 100%);
 }
 
 .card__data--male {
-  background-image: linear-gradient(
-    155deg,
-    hsl(208deg 92% 54%) 0%,
-    hsl(208deg 94% 52%) 8%,
-    hsl(208deg 98% 50%) 14%,
-    hsl(209deg 100% 50%) 20%,
-    hsl(211deg 100% 51%) 26%,
-    hsl(214deg 100% 54%) 33%,
-    hsl(217deg 100% 56%) 39%,
-    hsl(221deg 100% 59%) 47%,
-    hsl(226deg 100% 61%) 55%,
-    hsl(230deg 100% 63%) 64%,
-    hsl(236deg 100% 66%) 75%,
-    hsl(243deg 100% 66%) 87%,
-    hsl(249deg 99% 64%) 100%
-  );
+  background-image: linear-gradient(155deg,
+      hsl(208deg 92% 54%) 0%,
+      hsl(208deg 94% 52%) 8%,
+      hsl(208deg 98% 50%) 14%,
+      hsl(209deg 100% 50%) 20%,
+      hsl(211deg 100% 51%) 26%,
+      hsl(214deg 100% 54%) 33%,
+      hsl(217deg 100% 56%) 39%,
+      hsl(221deg 100% 59%) 47%,
+      hsl(226deg 100% 61%) 55%,
+      hsl(230deg 100% 63%) 64%,
+      hsl(236deg 100% 66%) 75%,
+      hsl(243deg 100% 66%) 87%,
+      hsl(249deg 99% 64%) 100%);
 }
 
 .card__name {

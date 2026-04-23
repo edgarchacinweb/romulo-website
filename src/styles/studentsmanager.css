@@ -61,6 +61,7 @@ body {
   font-weight: 700;
   color: var(--text-dark);
 }
+
 .brand__subtitle {
   font-size: 1.2rem;
   color: var(--text-gray);
@@ -75,6 +76,7 @@ body {
   border-radius: 50%;
   transition: background 0.2s;
 }
+
 .btn-icon:hover {
   background: #f3f4f6;
   color: var(--text-dark);
@@ -120,6 +122,10 @@ body {
   gap: 1rem;
 }
 
+.empty-state-message {
+  width: 100%;
+}
+
 .form-control {
   width: 100%;
   padding: 0.6rem 1rem;
@@ -141,6 +147,7 @@ body {
 .search-wrapper {
   position: relative;
 }
+
 .search-icon {
   position: absolute;
   left: 10px;
@@ -148,6 +155,7 @@ body {
   transform: translateY(-50%);
   color: var(--text-gray);
 }
+
 .search-wrapper input {
   padding-left: 2.5rem;
 }
@@ -209,12 +217,14 @@ body {
   align-items: center;
   gap: 1rem;
 }
+
 .avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
   border: 2px solid var(--white);
 }
+
 .badge {
   font-size: 0.75rem;
   color: var(--text-gray);
@@ -242,10 +252,12 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 .info-item p {
   font-size: 0.95rem;
   font-weight: 500;
 }
+
 .link {
   color: var(--primary);
   text-decoration: none;
@@ -281,6 +293,7 @@ body {
   font-weight: 600;
   color: var(--text-dark);
 }
+
 .counter-badge {
   background: var(--success);
   color: white;
@@ -288,9 +301,11 @@ body {
   padding: 2px 6px;
   border-radius: 10px;
 }
+
 .chevron {
   transition: transform 0.3s;
 }
+
 .accordion.active .chevron {
   transform: rotate(180deg);
 }
@@ -300,8 +315,10 @@ body {
   overflow: hidden;
   transition: max-height 0.3s ease-out;
 }
+
 .accordion.active .accordion-content {
-  max-height: 500px; /* Suficiente para el contenido */
+  max-height: 500px;
+  /* Suficiente para el contenido */
 }
 
 /* --- Files List --- */
@@ -311,6 +328,7 @@ body {
   flex-direction: column;
   gap: 0.75rem;
 }
+
 .file-item {
   background: #f8fafc;
   border: 1px solid var(--border);
@@ -320,11 +338,13 @@ body {
   justify-content: space-between;
   align-items: center;
 }
+
 .file-info {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
+
 .icon-file {
   width: 36px;
   height: 36px;
@@ -335,14 +355,17 @@ body {
   font-weight: bold;
   border-radius: 6px;
 }
+
 .icon-file.green {
   background: #d1fae5;
   color: #059669;
 }
+
 .file-name {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
 .file-type {
   font-size: 0.75rem;
   color: var(--text-gray);
@@ -364,6 +387,7 @@ body {
   cursor: pointer;
   margin-left: 0.25rem;
 }
+
 .btn-icon-small:hover {
   border-color: var(--primary);
   color: var(--primary);
@@ -383,8 +407,10 @@ body {
   display: flex;
   gap: 1rem;
   position: relative;
-  z-index: 10; /* Asegurar que esté por encima */
-  pointer-events: auto !important; /* FORZAR CLICK HABILITADO */
+  z-index: 10;
+  /* Asegurar que esté por encima */
+  pointer-events: auto !important;
+  /* FORZAR CLICK HABILITADO */
 }
 
 .btn {
@@ -400,13 +426,15 @@ body {
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.2s;
-  pointer-events: auto; /* Asegurar que los botones reciban click */
+  pointer-events: auto;
+  /* Asegurar que los botones reciban click */
 }
 
 .btn-success {
   background: var(--success);
   color: white;
 }
+
 .btn-success:hover {
   background: #16a34a;
   box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.4);
@@ -416,6 +444,7 @@ body {
   background: #009dff;
   color: white;
 }
+
 .btn-search:hover {
   background: #007bff;
   box-shadow: 0 4px 6px -1px #007bff66;
@@ -426,6 +455,7 @@ body {
   border-color: #fecaca;
   color: var(--danger);
 }
+
 .btn-danger:hover {
   background: var(--danger-light);
   border-color: var(--danger);
@@ -444,12 +474,15 @@ body {
   justify-content: center;
   z-index: 1000;
   opacity: 0;
-  pointer-events: none; /* Correcto: invisible no bloquea */
+  pointer-events: none;
+  /* Correcto: invisible no bloquea */
   transition: opacity 0.3s;
 }
+
 .modal-overlay.open {
   opacity: 1;
-  pointer-events: auto; /* Correcto: visible sí interactúa */
+  pointer-events: auto;
+  /* Correcto: visible sí interactúa */
 }
 
 .modal-content {
@@ -461,6 +494,7 @@ body {
   transform: translateY(20px);
   transition: transform 0.3s;
 }
+
 .modal-overlay.open .modal-content {
   transform: translateY(0);
 }
@@ -469,11 +503,13 @@ body {
   padding: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
+
 .modal-title-group {
   display: flex;
   gap: 1rem;
   align-items: center;
 }
+
 .icon-box-danger {
   width: 40px;
   height: 40px;
@@ -506,12 +542,14 @@ body {
 .form-group {
   margin-bottom: 1.25rem;
 }
+
 .form-group label {
   display: block;
   font-weight: 600;
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
 }
+
 .helper-text {
   font-size: 0.75rem;
   color: var(--text-gray);
@@ -523,6 +561,7 @@ body {
   border-radius: 8px;
   margin-top: 1rem;
 }
+
 .preview-header {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
@@ -532,12 +571,14 @@ body {
   display: flex;
   justify-content: space-between;
 }
+
 .preview-content {
   padding: 1rem;
   font-size: 0.9rem;
   color: #4b5563;
   line-height: 1.6;
 }
+
 .italic-text {
   font-style: italic;
   margin-top: 0.5rem;
@@ -553,11 +594,13 @@ body {
   justify-content: space-between;
   gap: 1rem;
 }
+
 .btn-outline {
   background: var(--white);
   border: 1px solid var(--border);
   color: var(--text-dark);
 }
+
 .btn-outline:hover {
   background: #f3f4f6;
 }
@@ -567,6 +610,7 @@ body {
   color: white;
   border-color: var(--danger);
 }
+
 .modal-footer .btn-danger:hover {
   background: #dc2626;
 }
@@ -592,6 +636,7 @@ body {
   .filters-grid {
     grid-template-columns: 1fr;
   }
+
   .modal-content {
     width: 95%;
   }

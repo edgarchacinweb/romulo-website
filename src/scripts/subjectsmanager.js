@@ -281,6 +281,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // Limpiar input y renderizar
       nameInput.value = "";
       nameInput.focus();
+      document.querySelectorAll(".hours-input").forEach((h) => (h.value = "0"));
       renderSubjects();
     } catch (Error) {
       console.error(Error.stack);

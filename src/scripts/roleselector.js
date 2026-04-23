@@ -118,6 +118,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             cardContainer.appendChild(card);
         });
     } catch (error) {
+        if (error.message === "No se encontró el usuario") {
+            localStorage.clear();
+            window.location.href = "/app/iniciar-sesion";
+            return;
+        }
         console.error(error.stack);
         const notification = document.createElement("notification-component");
         notification.setAttribute("type", "error");
