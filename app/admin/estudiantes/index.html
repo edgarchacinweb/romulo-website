@@ -1,203 +1,176 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestión de Inscripciones</title>
 
-    <link rel="stylesheet" href="/src/styles/global.css" />
-    <link rel="stylesheet" href="/src/styles/studentsmanager.css" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestión de Inscripciones</title>
 
-    <script src="/src/components/loader.component.js" type="module"></script>
-    <script
-      src="/src/components/notification.component.js"
-      type="module"
-      defer
-    ></script>
-    <script
-      src="/src/components/notifications-container.component.js"
-      type="module"
-      defer
-    ></script>
-    <link rel="stylesheet" href="/src/styles/layout.css" />
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/studentsmanager.css" />
+
+  <script src="/src/components/loader.component.js" type="module"></script>
+  <script src="/src/components/notification.component.js" type="module" defer></script>
+  <script src="/src/components/notifications-container.component.js" type="module" defer></script>
+  <link rel="stylesheet" href="/src/styles/layout.css" />
   <script src="/src/scripts/layout.js" defer></script>
 </head>
-  <body>
-    <notifications-container id="notifications"></notifications-container>
-    <header id="navbar-container" class="navbar-wrapper"></header>
-    <div class="layout-main">
-      <aside id="sidebar-container" class="sidebar-wrapper"></aside>
-      <main class="content-wrapper main">
-        <main class="container">
-      <section class="filters-section">
-        <h2>Filtrar Solicitudes</h2>
-        <div class="filters-grid">
-          <div class="search-wrapper">
-            <svg
-              class="search-icon"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
-            </svg>
-            <input
-              id="SearchField"
-              type="text"
-              placeholder="Buscar por primer nombre y apellido o cédula..."
-              class="form-control"
-            />
-          </div>
-          <select class="form-control" id="GradesField">
-            <option value="">Todos los grados</option>
-          </select>
-          <select class="form-control" id="SectionsField">
-            <option value="">Todas las secciones</option>
-          </select>
-          
-          <select class="form-control" id="StateField">
-            <option value="revision">En Revisión</option>
-            <option value="inscrito">Inscrito</option>
-            <option value="retirado">Retirado</option>
-            <option value="graduado">Graduado</option>
-            <option value="rechazado">Rechazados</option>
-          </select>
-          <a href="/app/admin/inscripciones/nueva/" class="btn" style="background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; padding: 0 20px; display: flex; align-items: center; justify-content: center;">
-            + Nueva Inscripción
-          </a>
-        </div>
-        <p class="results-count">
-          <span id="StudentsCounter">...</span> solicitudes encontradas
-        </p>
-      </section>
 
-      <div class="cards-flex">
-        <section class="cards-grid" id="CardsContainer"></section>
-      </div>
-    </main>
-
-    <div class="modal-overlay rejectModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <div class="icon-box-danger">!</div>
-            <div>
-              <h3>Rechazar Solicitud</h3>
-              <p id="modalStudentName">Carlos González</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-body">
-          <div class="alert-box">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#3b82f6"
-              stroke-width="2"
-            >
-              <rect x="3" y="4" width="18" height="16" rx="2" />
-              <path d="M16 2v4M8 2v4M3 10h18" />
-            </svg>
-            <div>
-              <span class="font-bold">Se enviará un correo a:</span><br />
-              <span class="link" id="modal-email"
-                >maria.gonzalez@email.com</span
-              >
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Motivo del Rechazo *</label>
-            <div class="select-wrapper">
-              <select class="form-control rejectReason">
-                <option value="" disabled selected>
-                  Seleccionar motivo...
-                </option>
-                <option value="Documentos inválidos">
-                  Documentos inválidos
-                </option>
-                <option value="Información incompleta">
-                  Información incompleta
-                </option>
-                <option value="Sin cupo">Sin cupo disponible</option>
-                 </option>
-                 <option value="Matricula insuficiente">Matrícula insuficiente</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Descripción Detallada *</label>
-            <textarea
-              class="form-control rejectDesc"
-              rows="3"
-              placeholder="Proporciona una descripción clara y detallada del motivo del rechazo..."
-            ></textarea>
-            <span class="helper-text">Mínimo 10 caracteres</span>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-outline cancelReject">Cancelar</button>
-          <button class="btn btn-danger confirmReject">
-            Rechazar y Enviar Email
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-overlay" id="editStatusModal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <div class="modal-title-group">
-            <div style="background:#e0f2fe; color:#0284c7; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+<body>
+  <notifications-container id="notifications"></notifications-container>
+  <header id="navbar-container" class="navbar-wrapper"></header>
+  <div class="layout-main">
+    <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+    <main class="content-wrapper main">
+      <main class="container">
+        <section class="filters-section">
+          <h2>Filtrar Solicitudes</h2>
+          <div class="filters-grid">
+            <div class="search-wrapper">
+              <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="M21 21l-4.35-4.35" />
               </svg>
+              <input id="SearchField" type="text" placeholder="Buscar por primer nombre y apellido o cédula..."
+                class="form-control" />
             </div>
-            <div>
-              <h3>Cambiar Estado</h3>
-              <p id="editStudentName">Nombre del Estudiante</p>
+            <select class="form-control" id="GradesField">
+              <option value="">Todos los grados</option>
+            </select>
+            <select class="form-control" id="SectionsField">
+              <option value="">Todas las secciones</option>
+            </select>
+
+            <select class="form-control" id="StateField">
+              <option value="revision">En Revisión</option>
+              <option value="inscrito">Inscrito</option>
+              <option value="retirado">Retirado</option>
+              <option value="graduado">Graduado</option>
+              <option value="rechazado">Rechazados</option>
+            </select>
+            <a href="/app/admin/inscripciones/nueva/" class="btn"
+              style="background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 0.9rem; padding: 0 20px; display: flex; align-items: center; justify-content: center;">
+              + Nueva Inscripción
+            </a>
+          </div>
+          <p class="results-count">
+            <span id="StudentsCounter">...</span> solicitudes encontradas
+          </p>
+        </section>
+
+        <div class="cards-flex">
+          <section class="cards-grid" id="CardsContainer"></section>
+        </div>
+      </main>
+
+      <div class="modal-overlay rejectModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <div class="icon-box-danger">!</div>
+              <div>
+                <h3>Rechazar Solicitud</h3>
+                <p id="modalStudentName">Carlos González</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="modal-body">
-          <div class="form-group">
-            <label>Seleccionar Nuevo Estado</label>
-            <div class="select-wrapper">
-              <select class="form-control" id="newStatusSelect">
-                <option value="inscrito">Inscrito</option>
-                <option value="retirado">Retirado</option>
-                <option value="graduado">Graduado</option>
-                <option value="revision">En Revisión</option>
-              </select>
+          <div class="modal-body">
+            <div class="alert-box">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+              </svg>
+              <div>
+                <span class="font-bold">Se enviará un correo a:</span><br />
+                <span class="link" id="modal-email">maria.gonzalez@email.com</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Motivo del Rechazo *</label>
+              <div class="select-wrapper">
+                <select class="form-control rejectReason">
+                  <option value="" disabled selected>
+                    Seleccionar motivo...
+                  </option>
+                  <option value="Documentos inválidos">
+                    Documentos inválidos
+                  </option>
+                  <option value="Información incompleta">
+                    Información incompleta
+                  </option>
+                  <option value="Sin cupo">Sin cupo disponible</option>
+                  </option>
+                  <option value="Matricula insuficiente">Matrícula insuficiente</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Descripción Detallada *</label>
+              <textarea class="form-control rejectDesc" rows="3"
+                placeholder="Proporciona una descripción clara y detallada del motivo del rechazo..."></textarea>
+              <span class="helper-text">Mínimo 10 caracteres</span>
             </div>
           </div>
-        </div>
 
-        <div class="modal-footer">
-          <button class="btn btn-outline" id="cancelEditBtn">Cancelar</button>
-          <button class="btn" style="background-color: #0284c7; color: white;" id="confirmEditBtn">
-            Guardar Cambios
-          </button>
+          <div class="modal-footer">
+            <button class="btn btn-outline cancelReject">Cancelar</button>
+            <button class="btn btn-danger confirmReject">
+              Rechazar y Enviar Email
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <script src="/src/scripts/config.js"></script>
-    <script src="/src/scripts/auth.js" type="module"></script>
-    <script src="/src/scripts/studentsmanager.js" type="module"></script>
-        </main>
-      </main>
-    </div>
+      <div class="modal-overlay" id="editStatusModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="modal-title-group">
+              <div
+                style="background:#e0f2fe; color:#0284c7; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3>Cambiar Estado</h3>
+                <p id="editStudentName">Nombre del Estudiante</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Seleccionar Nuevo Estado</label>
+              <div class="select-wrapper">
+                <select class="form-control" id="newStatusSelect">
+                  <option value="inscrito">Inscrito</option>
+                  <option value="retirado">Retirado</option>
+                  <option value="graduado">Graduado</option>
+                  <option value="revision">En Revisión</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button class="btn btn-outline" id="cancelEditBtn">Cancelar</button>
+            <button class="btn" style="background-color: #0284c7; color: white;" id="confirmEditBtn">
+              Guardar Cambios
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <script src="/src/scripts/config.js"></script>
+      <script src="/src/scripts/auth.js" type="module"></script>
+      <script src="/src/scripts/studentsmanager.js" type="module"></script>
+    </main>
+  </div>
 </body>
+
 </html>

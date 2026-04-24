@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(data.message);
         }
 
-        const users = Array.isArray(data) ? [...data] : [data];
+        const users = (Array.isArray(data) ? [...data] : [data]).sort((a, b) => a.role === "representante" ? -1 : 1);
 
         // Guardando en localstorage al usuario por defecto, en caso de no tener otro usuario
         localStorage.setItem("users", JSON.stringify(users));
@@ -62,6 +62,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             throw new Error(personData.message);
         }
 
+        // Cargando cantidad de estudiantes representados
+        const studentsResponse = await fetch(`${window.APP_CONFIG.api_url}/students/count/by_parent/${personData.DatosPersonaId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        const studentsData = await studentsResponse.json();
+
+        if (!studentsResponse.ok) {
+            throw new Error(studentsData.message);
+        }
+
+        // Cargando materias del docente
+        const subjectsResponse = await fetch(`${window.APP_CONFIG.api_url}/subject/teacher`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${users[1].token}`
+            }
+        });
+
+        const subjectsData = await subjectsResponse.json();
+
+        if (!subjectsResponse.ok) {
+            throw new Error(subjectsData.message);
+        }
+
+        const grades = Array.from(new Set(...subjectsData.map(subject => subject.Grados))).sort((a, b) => a - b);
+
         const cardContainer = document.querySelector(".cards-container");
         userData = [...users];
         users.forEach(user => {
@@ -79,14 +110,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                 <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
             </svg>`
-            if (user.role === "representante") card.setAttribute("students", 2);
+            if (user.role === "representante") card.setAttribute("students", studentsData.count);
             else if (user.role === "docente") {
-                card.setAttribute("years", JSON.stringify(["1er Año", "2do Año", "3er Año"]));
-                card.setAttribute("subjects", JSON.stringify(["Matemática", "Física", "Geometría"]));
+                card.setAttribute("years", JSON.stringify(grades.map(grade => `${grade}° Año`)));
+                card.setAttribute("subjects", JSON.stringify(subjectsData.map(subject => subject.Nombre)));
             }
             cardContainer.appendChild(card);
         });
     } catch (error) {
+        if (error.message === "No se encontró el usuario") {
+            localStorage.clear();
+            window.location.href = "/app/iniciar-sesion";
+            return;
+        }
         console.error(error.stack);
         const notification = document.createElement("notification-component");
         notification.setAttribute("type", "error");
