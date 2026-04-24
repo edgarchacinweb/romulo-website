@@ -402,14 +402,13 @@ const renderTeachers = (teachersData) => {
   }
 
   // Actualizamos contadores 
-  const activeCount = teachersData.filter((t) => t.Activo).length;
+  const activeCount = teachers.length;
   const activeTeachers = document.getElementById("active-teachers");
 
-  activeTeachers.textContent = (currentSearchQuery !== "" || currentSubjectFilter !== "")
-    ? `${activeCount} (Filtrados)`
-    : activeCount;
+  activeTeachers.textContent = activeCount;
 
-  document.getElementById("teachers-count").textContent = `(${activeCount})`;
+  const realActiveCount = teachers.filter((t) => t.Activo).length;
+  document.getElementById("teachers-count").textContent = `(${realActiveCount})`;
 
   if (teachersData.length > 0) exportBtn.removeAttribute("disabled");
   else exportBtn.setAttribute("disabled", true);
