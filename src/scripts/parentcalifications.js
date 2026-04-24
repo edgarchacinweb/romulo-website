@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const studentsResponse = await studentsPromise.json();
     if (!studentsPromise.ok) throw new Error(studentsResponse.message);
-    students = [...studentsResponse];
+    students = [...studentsResponse.estudiantes];
 
     const selectOptionsContainer = document.querySelector(".select-options");
     selectOptionsContainer.innerHTML = "";
@@ -320,16 +320,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // 2. Lógica del botón Salir (Animación y Redirección)
-  btnSalir.addEventListener("click", (e) => {
-    e.preventDefault();
+  if (btnSalir) {
+    btnSalir.addEventListener("click", (e) => {
+      e.preventDefault();
 
-    // Cambiamos la animación de entrada por la de salida
-    appWrapper.classList.remove("fade-in-up");
-    appWrapper.classList.add("fade-out-down");
+      // Cambiamos la animación de entrada por la de salida
+      appWrapper.classList.remove("fade-in-up");
+      appWrapper.classList.add("fade-out-down");
 
-    // Esperamos 400ms (lo que dura la animación CSS) para cambiar de página
-    setTimeout(() => {
-      window.location.href = "/app/representante/inicio/";
-    }, 400);
-  });
+      // Esperamos 400ms (lo que dura la animación CSS) para cambiar de página
+      setTimeout(() => {
+        window.location.href = "/app/representante/inicio/";
+      }, 400);
+    });
+  }
 });

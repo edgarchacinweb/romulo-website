@@ -479,7 +479,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const studentsResponse = await studentsPromise.json();
     if (!studentsPromise.ok) throw new Error(studentsResponse.message);
 
-    students = [...studentsResponse];
+    students = [...studentsResponse.estudiantes];
     studentField.innerHTML = `<option value="">Selecciona un Estudiante</option>`;
     students.forEach((student) => {
       const option = document.createElement("option");
@@ -524,7 +524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   courses = [...gradesResponse];
 });
 
-document.getElementById("btn-back").addEventListener("click", (e) => {
+document.getElementById("btn-back")?.addEventListener("click", (e) => {
   e.preventDefault();
   document.body.style.animation = "goodByePage 0.8s forwards";
   setTimeout(() => (window.location.href = "/app/representante/inicio"), 1000);
