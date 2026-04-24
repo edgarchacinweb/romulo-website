@@ -113,9 +113,9 @@ const validations = () => {
   } else if (!email) {
     emailField.focus();
     throw new Error("Debes indicar el correo electrónico del docente.");
-  } else if (!new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)) {
+  } else if (!new RegExp(/^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|yahoo\.com|outlook\.com)$/i).test(email)) {
     emailField.focus();
-    throw new Error("Formato de correo electrónico inválido");
+    throw new Error("El correo electrónico debe ser @gmail.com, @hotmail.com, @yahoo.com o @outlook.com");
   } else if (!location) {
     locationField.focus();
     throw new Error("Debes indicar la dirección de habitación del docente");
