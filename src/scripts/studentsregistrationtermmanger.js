@@ -21,7 +21,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   let schoolTermYear = null;
   
   // --- VARIABLES PARA LÍMITES DE FECHAS ---
+  let schoolTermStartDateObj = null;
   let schoolTermEndDateObj = null; 
+  let schoolTermMinDateStr = "";
   let schoolTermMaxDateStr = "";
 
   // Cargar período escolar
@@ -60,6 +62,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     schoolTermEndDateObj = new Date(finY, finM - 1, finD);
     schoolTermEndDateObj.setHours(0, 0, 0, 0);
 
+    const fechaInicioStr = data["FechaInicio"];
+    schoolTermMinDateStr = fechaInicioStr.split("T")[0];
+
+    const [iniY, iniM, iniD] = schoolTermMinDateStr.split('-');
+    schoolTermStartDateObj = new Date(iniY, iniM - 1, iniD);
+    schoolTermStartDateObj.setHours(0, 0, 0, 0);
+
     const hoy = new Date();
     const yyyy = hoy.getFullYear();
     const mm = String(hoy.getMonth() + 1).padStart(2, '0');
@@ -74,8 +83,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     startDateEntry.addEventListener("change", (e) => {
       if (e.target.value) {
         endDateEntry.min = e.target.value;
+        const parts = e.target.value.split('-');
+        const tempDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        tempDate.setMonth(tempDate.getMonth() + 1);
+
+        const limitParts = schoolTermMaxDateStr.split('-');
+        const limitByTerm = new Date(limitParts[0], limitParts[1] - 1, limitParts[2]);
+        const actualMax = tempDate > limitByTerm ? limitByTerm : tempDate;
+
+        const maxY = actualMax.getFullYear();
+        const maxM = String(actualMax.getMonth() + 1).padStart(2, '0');
+        const maxD = String(actualMax.getDate()).padStart(2, '0');
+        endDateEntry.max = `${maxY}-${maxM}-${maxD}`;
       } else {
         endDateEntry.min = hoyStr;
+        endDateEntry.max = schoolTermMaxDateStr;
       }
     });
 
@@ -115,8 +137,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       item.innerHTML = `
         <td class="font-medium">${schoolTermYear} - ${schoolTermYear + 1}</td>
-        <td>${e["Inicio"]}</td>
       `;
+
+      const tdStart = document.createElement("td");
+      tdStart.textContent = e["Inicio"].split("T")[0];
+      item.appendChild(tdStart);
 
       const tdEnd = document.createElement("td");
       tdEnd.textContent = e["Fin"];
@@ -147,6 +172,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         btnEdit.addEventListener("click", () => {
           const originalDate = tdEnd.textContent;
+          const originalStartDate = tdStart.textContent;
 
           tdEnd.innerHTML = "";
           const inputDate = document.createElement("input");
@@ -154,14 +180,52 @@ document.addEventListener("DOMContentLoaded", async () => {
           inputDate.className = "inline-date-input";
           inputDate.value = originalDate;
 
+          tdStart.innerHTML = "";
+          const inputStartDate = document.createElement("input");
+          inputStartDate.type = "date";
+          inputStartDate.className = "inline-date-input";
+          inputStartDate.value = originalStartDate;
+
           const hoy = new Date();
           const yyyy = hoy.getFullYear();
           const mm = String(hoy.getMonth() + 1).padStart(2, "0");
           const dd = String(hoy.getDate()).padStart(2, "0");
-          inputDate.min = `${yyyy}-${mm}-${dd}`;
-          inputDate.max = schoolTermMaxDateStr;
+          const hoyStr = `${yyyy}-${mm}-${dd}`;
+          
+          const rowTermEndDateStr = e["PeriodoEscolar"]["FechaFin"].split("T")[0];
+
+          inputDate.min = hoyStr;
+          inputDate.max = rowTermEndDateStr;
+
+          inputStartDate.min = hoyStr;
+          inputStartDate.max = rowTermEndDateStr;
+
+          const updateInlineLimits = () => {
+            if (inputStartDate.value) {
+              inputDate.min = inputStartDate.value;
+              const parts = inputStartDate.value.split('-');
+              const tempDate = new Date(parts[0], parts[1] - 1, parts[2]);
+              tempDate.setMonth(tempDate.getMonth() + 1);
+              
+              const limitParts = rowTermEndDateStr.split('-');
+              const limitByTerm = new Date(limitParts[0], limitParts[1] - 1, limitParts[2]);
+              const actualMax = tempDate > limitByTerm ? limitByTerm : tempDate;
+              
+              const maxY = actualMax.getFullYear();
+              const maxM = String(actualMax.getMonth() + 1).padStart(2, "0");
+              const maxD = String(actualMax.getDate()).padStart(2, "0");
+              inputDate.max = `${maxY}-${maxM}-${maxD}`;
+            } else {
+              inputDate.min = hoyStr;
+              inputDate.max = rowTermEndDateStr;
+            }
+          };
+
+          inputStartDate.addEventListener("change", updateInlineLimits);
+          updateInlineLimits();
 
           tdEnd.appendChild(inputDate);
+          tdStart.appendChild(inputStartDate);
 
           actionContainer.innerHTML = "";
 
@@ -175,19 +239,61 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           btnCancel.addEventListener("click", () => {
             tdEnd.textContent = originalDate;
+            tdStart.textContent = originalStartDate;
             renderActiveButtons(); // llamada recursiva — ya está en scope
           });
 
           btnSave.addEventListener("click", async () => {
             const newDate = inputDate.value;
-            if (!newDate) {
-              alert("Por favor seleccione una fecha");
+            const newStartDate = inputStartDate.value;
+            
+            if (!newDate || !newStartDate) {
+              alert("Por favor seleccione ambas fechas");
               return;
             }
-            if (newDate < e["Inicio"]) {
+            
+            const [sY, sM, sD] = newStartDate.split('-');
+            const sDateObj = new Date(sY, sM - 1, sD);
+            sDateObj.setHours(0, 0, 0, 0);
+            
+            const [eY, eM, eD] = newDate.split('-');
+            const eDateObj = new Date(eY, eM - 1, eD);
+            eDateObj.setHours(0, 0, 0, 0);
+            
+            const hoyParaValidar = new Date();
+            hoyParaValidar.setHours(0, 0, 0, 0);
+
+            // Regla 1: Límite de Hoy
+            if (sDateObj < hoyParaValidar) {
+              alert("La fecha de inicio de la inscripción debe ser mayor o igual al día actual.");
+              return;
+            }
+
+            if (eDateObj < sDateObj) {
               alert("La fecha de fin no puede ser anterior a la de inicio.");
               return;
             }
+            
+            // Regla 2: Diferencia Máxima de 1 Mes
+            const expectedMaxDate = new Date(sY, sM - 1, sD);
+            expectedMaxDate.setMonth(expectedMaxDate.getMonth() + 1);
+            if (eDateObj > expectedMaxDate) {
+              alert("La fecha de fin no puede exceder más de un mes exacto desde la fecha de inicio.");
+              return;
+            }
+
+            // Regla 3: Límite Superior del Período Escolar
+            if (sDateObj > schoolTermEndDateObj || eDateObj > schoolTermEndDateObj) {
+               alert("Las fechas de inscripción no deben ser después de la fecha de fin del Período Escolar en curso.");
+               return;
+            }
+
+            // Regla 4: Límite Inferior del Período Escolar
+            if (sDateObj < schoolTermStartDateObj || eDateObj < schoolTermStartDateObj) {
+               alert("Las fechas de inscripción no deben ser antes de la fecha de inicio del Período Escolar en curso.");
+               return;
+            }
+
             try {
               const patchRes = await fetch(
                 `${window.APP_CONFIG.api_url}/registration/update`,
@@ -199,16 +305,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                   },
                   body: JSON.stringify({
                     PeriodoInscripcionId: e["InscripcionId"],
+                    FechaInicio: newStartDate,
                     FechaFin: newDate,
                   }),
                 }
               );
               if (patchRes.ok) {
                 tdEnd.textContent = newDate;
+                tdStart.textContent = newStartDate;
                 e["Fin"] = newDate;
+                e["Inicio"] = newStartDate;
                 const successNotif = document.createElement("notification-component");
                 successNotif.setAttribute("type", "success");
-                successNotif.setAttribute("text", "Fecha de fin actualizada correctamente");
+                successNotif.setAttribute("text", "Fechas actualizadas correctamente");
                 loadNotificationContainer.appendChild(successNotif);
                 renderActiveButtons();
               } else {
@@ -382,16 +491,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       const hoyParaValidar = new Date();
       hoyParaValidar.setHours(0, 0, 0, 0);
 
+      // Regla 1: Límite de Hoy
       if (startEntryDate < hoyParaValidar) {
-        throw new Error("La fecha de inicio no puede ser anterior al día de hoy.");
+        throw new Error("La fecha de inicio de la inscripción debe ser mayor o igual al día actual.");
       }
 
-      if (endEntryDate > schoolTermEndDateObj) {
-        const [y, m, d] = schoolTermMaxDateStr.split("-");
-        throw new Error(`La fecha de fin no puede exceder el límite del período escolar (${d}/${m}/${y}).`);
+      // Regla 2: Diferencia Máxima de 1 Mes
+      const maxAllowedEnd = new Date(startYear, startMonth - 1, startDay);
+      maxAllowedEnd.setMonth(maxAllowedEnd.getMonth() + 1);
+      if (endEntryDate > maxAllowedEnd) {
+        throw new Error("La fecha de fin no puede exceder más de un mes exacto desde la fecha de inicio.");
       }
 
-      if (startEntryDate > endEntryDate) {
+      // Regla 3: Límite Superior del Período Escolar
+      if (startEntryDate > schoolTermEndDateObj || endEntryDate > schoolTermEndDateObj) {
+        throw new Error("Las fechas de inscripción no deben ser después de la fecha de fin del Período Escolar en curso.");
+      }
+
+      // Regla 4: Límite Inferior del Período Escolar
+      if (startEntryDate < schoolTermStartDateObj || endEntryDate < schoolTermStartDateObj) {
+        throw new Error("Las fechas de inscripción no deben ser antes de la fecha de inicio del Período Escolar en curso.");
+      }
+
+      if (endEntryDate < startEntryDate) {
         throw new Error("La fecha de inicio no puede ser posterior a la fecha de fin.");
       }
 
@@ -424,7 +546,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const data = await response.json();
 
-      if (response.status !== 201) throw new Error(data);
+      if (response.status !== 201) {
+        const errorMsg = data.message || data.msg || JSON.stringify(data);
+        throw new Error(errorMsg);
+      }
 
       const dateFormat = Intl.DateTimeFormat("es-VE", {
         day: "2-digit",
