@@ -16,8 +16,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const password = passwordInput.value;
 
     (async () => {
+      const validDomains = ["@gmail.com", "@outlook.com", "@hotmail.com", "@yahoo.com"];
+      const hasValidDomain = validDomains.some(domain => username.toLowerCase().endsWith(domain));
+
       // Iniciando sesión, obteniendo ID del usuario
       if (username.trim().length > 0 && password.trim().length > 0) {
+        if (!hasValidDomain) {
+          await customElements.whenDefined("notification-component");
+          const warningNotification = document.createElement("notification-component");
+          warningNotification.setAttribute("type", "warning");
+          warningNotification.setAttribute("text", "correo electronico invalido");
+          notificationContainer.appendChild(warningNotification);
+          return;
+        }
+
         await customElements.whenDefined("loader-spinner");
         const loader = document.createElement("loader-spinner");
         loader.title = "Iniciando sesión...";

@@ -68,9 +68,12 @@ const validations = () => {
   } else if (!identity) {
     identityField.focus();
     throw new Error("Debes especificar la cédula de identidad del docente");
-  } else if (!new RegExp(/\d{7}|\d{8}/).test(identity) || identity < 100000) {
+  } else if (!new RegExp(/\d{7}|\d{8}/).test(identity) || identity <= 3000000 || identity >= 29000000) {
     identityField.focus();
-    throw new Error("Formato de cédula de identidad inválido.");
+    throw new Error("La cédula de identidad debe ser mayor a 3.000.000 y menor a 29.000.000");
+  } else if (/^(\d)\1+$/.test(identity) || /^(01234567|12345678|23456789|98765432|87654321|76543210)$/.test(identity)) {
+    identityField.focus();
+    throw new Error("Formato de cédula de identidad inválido por secuencia repetitiva.");
   } else if (!phonePrefix) {
     phonePrefixField.focus();
     throw new Error("Debes indicar el prefijo telefónico del docente.");
@@ -84,6 +87,9 @@ const validations = () => {
   ) {
     phoneField.focus();
     throw new Error("El número de teléfono presenta un formato inválido");
+  } else if (phone === "0000000" || /^(\d)\1+$/.test(phone)) {
+    phoneField.focus();
+    throw new Error("Formato de teléfono inválido.");
   } else if (!occupation) {
     ocupationField.focus();
     throw new Error("Debes indicar la especialidad del docente");
@@ -107,9 +113,9 @@ const validations = () => {
   } else if (!email) {
     emailField.focus();
     throw new Error("Debes indicar el correo electrónico del docente.");
-  } else if (!new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)) {
+  } else if (!new RegExp(/^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|yahoo\.com|outlook\.com)$/i).test(email)) {
     emailField.focus();
-    throw new Error("Formato de correo electrónico inválido");
+    throw new Error("El correo electrónico debe ser @gmail.com, @hotmail.com, @yahoo.com o @outlook.com");
   } else if (!location) {
     locationField.focus();
     throw new Error("Debes indicar la dirección de habitación del docente");
@@ -396,14 +402,13 @@ const renderTeachers = (teachersData) => {
   }
 
   // Actualizamos contadores 
-  const activeCount = teachersData.filter((t) => t.Activo).length;
+  const activeCount = teachers.length;
   const activeTeachers = document.getElementById("active-teachers");
 
-  activeTeachers.textContent = (currentSearchQuery !== "" || currentSubjectFilter !== "")
-    ? `${activeCount} (Filtrados)`
-    : activeCount;
+  activeTeachers.textContent = activeCount;
 
-  document.getElementById("teachers-count").textContent = `(${activeCount})`;
+  const realActiveCount = teachers.filter((t) => t.Activo).length;
+  document.getElementById("teachers-count").textContent = `(${realActiveCount})`;
 
   if (teachersData.length > 0) exportBtn.removeAttribute("disabled");
   else exportBtn.setAttribute("disabled", true);

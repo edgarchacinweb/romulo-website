@@ -572,21 +572,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       const apellidoVal = lastNameField.value.trim();
 
       // Validaciones proactivas para evitar errores técnicos del servidor (ej. el de UUID y Not Null)
-      if (!nombreVal) throw new Error("Falta indicar el nombre del estudiante.");
+      if (!nombreVal) { alert("falta el campo Nombre"); return; }
       if (!nameRegex.test(nombreVal)) throw new Error("El nombre solo debe contener letras.");
 
-      if (!apellidoVal) throw new Error("Falta indicar el apellido del estudiante.");
+      if (!apellidoVal) { alert("falta el campo Apellido"); return; }
       if (!nameRegex.test(apellidoVal)) throw new Error("El apellido solo debe contener letras.");
 
+      if (!genderField.value || genderField.value === "Requerido" || genderField.value.trim() === "") { alert("falta el campo Género"); return; }
+
       if (!gradeField.value || gradeField.value === "Requerida" || gradeField.value.trim() === "") {
-        throw new Error("Debe seleccionar el Grado a cursar.");
+        alert("falta el campo Grado a cursar"); return;
       }
 
       if (!relationshipField.value || relationshipField.value === "Requerida" || relationshipField.value.trim() === "") {
-        throw new Error("Debe seleccionar su Parentesco con el estudiante.");
+        alert("falta el campo Parentesco"); return;
       }
 
-      if (!dateField.value) throw new Error("Falta la fecha de nacimiento.");
+      if (!dateField.value) { alert("falta el campo Fecha de Nacimiento"); return; }
+
+      if (!addressField.value || addressField.value.trim() === "") { alert("falta el campo Dirección"); return; }
 
       // Validación de Seguridad: Rango absoluto 11-18 años
       const fechaIngresada = dateField.value;
@@ -608,7 +612,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           throw new Error("La Cédula Escolar generada es inválida (longitud incorrecta).");
         }
       } else {
-        if (!cedulaValStr) throw new Error("Debe ingresar la Cédula de Identidad.");
+        if (!cedulaValStr) { alert("falta el campo Cédula de Identidad"); return; }
         const cedulaNum = parseInt(cedulaValStr, 10);
         const isExtranjero = nacionalidadSelect.value === "E";
 
@@ -653,11 +657,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
         } else if (!editId && !reinscribeId) {
-          if (key === "DocAutorizacion") throw new Error("Debe cargar el Documento de Autorización Legal / Motivo.");
-          else if (key === "DocDni") throw new Error("Debe cargar la Cédula de Identidad en formato PDF.");
-          else throw new Error(`Falta cargar el siguiente documento: ${key}.`);
+          if (key === "DocAutorizacion") { alert("falta el campo Documento de Autorización Legal"); return; }
+          else if (key === "DocDni") { alert("falta el campo Cédula de Identidad en formato PDF"); return; }
+          else if (key === "FotoCarnet") { alert("falta el campo Foto Carnet"); return; }
+          else if (key === "DocPartidaNacimiento") { alert("falta el campo Partida de Nacimiento"); return; }
+          else if (key === "DocNotasCertificadas") { alert("falta el campo Notas Certificadas"); return; }
+          else { alert(`falta el campo ${key}`); return; }
         } else if (reinscribeId) {
-          if (key === "DocNotasCertificadas") throw new Error("Para reinscribir, debe cargar obligatoriamente las Notas Certificadas del año que acaba de cursar.");
+          if (key === "DocNotasCertificadas") { alert("falta el campo Notas Certificadas"); return; }
         }
       }
 
