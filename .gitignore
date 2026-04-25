@@ -1,1 +1,3 @@
 .vscode/
+# Ignorar configuración local de la API
+config.js
