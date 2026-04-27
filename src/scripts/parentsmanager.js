@@ -310,6 +310,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       let finalIdentity = identityType === "E" ? `E${identityRaw}` : identityRaw;
       let defaultPassword = `${identityType}#${identityRaw}`;
 
+      if (!isEditing) {
+        const existe = parents.find(p => p.DatosPersona && p.DatosPersona.Cedula == finalIdentity);
+        if (existe) {
+          identityEntry.focus();
+          throw new Error("Ya hay un representante registrado con este número de cédula");
+        }
+      }
+
       console.log(currentPersonId)
       if (currentPersonId) {
         const userResponse = await fetch(
