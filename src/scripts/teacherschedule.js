@@ -15,6 +15,7 @@ let teachers = [];
 let schedule = [];
 let courses = [];
 let teacherId = undefined;
+let schoolTermName = "2025 - 2026"; // Valor por defecto; se actualiza dinámicamente
 scheduleCard.classList.add("card");
 
 const calcMinutesDifferences = (time1, time2) => {
@@ -127,6 +128,10 @@ const filter = async (courseId, section) => {
 
   document.querySelector(".print__grade").textContent =
     `${gradeNumber}° Año - Sección ${section}`;
+
+  // Actualizar año escolar en el PDF (capturado dinámicamente de la API)
+  const printPeriodEl = document.getElementById("print-period");
+  if (printPeriodEl) printPeriodEl.textContent = schoolTermName;
 
   const scheduleReport = document.querySelector(".print__schedule-data");
   scheduleReport.innerHTML = "";
@@ -400,6 +405,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const schoolTermResponse = await schoolTermPromise.json();
     if (!schoolTermPromise.ok) throw new Error(schoolTermResponse.message);
+
+    // Guardar nombre del período escolar para el PDF
+    if (schoolTermResponse.Nombre) {
+      schoolTermName = schoolTermResponse.Nombre;
+    } else if (schoolTermResponse.PeriodoEscolarNombre) {
+      schoolTermName = schoolTermResponse.PeriodoEscolarNombre;
+    }
 
     // Obteniendo ID del docente
     const teacherIdPromise = await fetch(
