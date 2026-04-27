@@ -58,7 +58,7 @@ const updateSections = (sectionData) => {
 
   for (let i = 1; i <= sectionData["Seccion"]; i++) {
     const newSectionOption = document.createElement("option");
-    newSectionOption.setAttribute("value", sectionData["Seccion"]);
+    newSectionOption.setAttribute("value", i);
     newSectionOption.textContent = numberToLetter(i);
     sectionField.appendChild(newSectionOption);
   }

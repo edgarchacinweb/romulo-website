@@ -338,6 +338,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const nombreVal = firstNameField.value.trim();
       const apellidoVal = lastNameField.value.trim();
       if (!nombreVal || !apellidoVal) throw new Error("Faltan nombres o apellidos.");
+      if (!genderField.value || genderField.value === "Requerido" || genderField.value.trim() === "") throw new Error("Falta el campo Género.");
       if (!gradeField.value) throw new Error("Debe seleccionar el Grado a cursar.");
       if (!relationshipField.value) throw new Error("Debe seleccionar el Parentesco.");
       if (!dateField.value) throw new Error("Falta la fecha de nacimiento.");

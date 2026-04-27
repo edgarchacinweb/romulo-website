@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manual de Usuario - Liceo Rómulo Gallegos</title>
+  <link rel="stylesheet" href="/src/styles/global.css" />
+  <link rel="stylesheet" href="/src/styles/dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/src/styles/layout.css" />
+  <script src="/src/components/notification.component.js" type="module"></script>
+  <script src="/src/scripts/config.js"></script>
+  <script src="/src/scripts/layout.js" defer></script>
+  <style>
+    .pdf-wrapper {
+      width: 100%;
+      height: calc(100vh - 120px);
+      margin-top: 1rem;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      background: white;
+    }
+
+    .pdf-container {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+  <section class="notifications" id="notificationContainer"></section>
+  <header id="navbar-container" class="navbar-wrapper"></header>
+  <div class="layout-main">
+    <aside id="sidebar-container" class="sidebar-wrapper"></aside>
+
+    <main class="content-wrapper main">
+      <header>
+        <h1>Manual de Usuario</h1>
+      </header>
+
+      <section class="pdf-wrapper">
+        <!-- Asignado de forma dinámica para prevenir errores en entornos de producción -->
+        <embed id="pdfEmbed" type="application/pdf" class="pdf-container" />
+      </section>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const pdfEmbed = document.getElementById('pdfEmbed');
+          const apiUrl = window.APP_CONFIG?.api_url || 'http://localhost:3000';
+          pdfEmbed.src = `${apiUrl}/static/Manual_Admin.pdf#pagemode=none&navpanes=0`;
+        });
+      </script>
+
+    </main>
+  </div>
+</body>
+
+</html>

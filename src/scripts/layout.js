@@ -52,6 +52,7 @@ function buildSidebarForRole(role) {
             <li><a href="/app/representante/boletas/index.html" class="nav-item">📊 Boletas</a></li>
             <li><a href="/app/representante/horarios/index.html" class="nav-item">📅 Horarios</a></li>
             <li><a href="/app/representante/editar-perfil/index.html" class="nav-item">⚙️ Editar Perfil</a></li>
+            <li><a href="/app/representante/manual/" class="nav-item">📖 Manual de Usuario</a></li>
         `;
     } else if (role.toLowerCase() === 'docente') {
         // Enlaces para Docente
@@ -60,6 +61,7 @@ function buildSidebarForRole(role) {
             <li><a href="/app/docente/horarios/index.html" class="nav-item">📅 Visualizar Horario</a></li>
             <li><a href="/app/docente/calificaciones/index.html" class="nav-item">📝 Calificaciones</a></li>
             <li><a href="/app/docente/asistencia/index.html" class="nav-item">✅ Asistencias</a></li>
+            <li><a href="/app/docente/manual/" class="nav-item">📖 Manual de Usuario</a></li>
         `;
     } else {
         navList.innerHTML = `
@@ -80,6 +82,7 @@ function buildSidebarForRole(role) {
           <li><a href="/app/admin/lapsos/index.html" class="nav-item">🗓️Lapsos</a></li>
           <li><a href="/app/admin/auditorias/" class="nav-item">🧾 Auditorías</a></li>
           <li><a href="/app/admin/respaldo/" class="nav-item">💾 Respaldos</a></li>
+          <li><a href="/app/admin/manual/" class="nav-item">📖 Manual de Usuario</a></li>
         `;
     }
 

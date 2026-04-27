@@ -700,10 +700,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         Direccion: location,
       };
 
+      const updateAttribute = e.target.getAttribute("data-update") !== null;
+
+      if (!updateAttribute) {
+        const existe = teachers.find(t => t.DatosPersona && t.DatosPersona.Cedula == identity);
+        if (existe) {
+          identityField.focus();
+          throw new Error("Ya hay un docente registrado con este número de cédula");
+        }
+      }
+
       if (currentPersonId) {
         peopleData.DatosPersonaId = currentPersonId;
       }
-      const updateAttribute = e.target.getAttribute("data-update") !== null;
 
       const registerTeacherResponse = await fetch(
         `${window.APP_CONFIG.api_url}/teacher/${updateAttribute ? "update/" + selectedTeacherId : "create"}`,
