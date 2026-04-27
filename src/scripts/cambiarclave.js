@@ -1,3 +1,5 @@
+
+
 let code = 123456;
 let emailVal = "";
 
@@ -51,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyCodeBtn = document.getElementById("VerifyCodeBtn");
   const emailField = document.getElementById("email");
 
-  // --- Referencias al DOM ---
+  // --- Referencias al DOM --- comentario 
   const steps = {
     email: document.getElementById("step-email"),
     code: document.getElementById("step-code"),
