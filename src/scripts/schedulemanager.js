@@ -693,6 +693,7 @@ const filter = async (grade, section) => {
 
             const currentSectionSchedule = updatedSchedule;
             const otherSectionsSchedule = schedule.filter(s => s["CursoId"] !== grade || s["Seccion"] !== parseInt(section));
+            console.log(subjects);
 
             updatedSchedule.forEach((us) => {
               if (us["MateriaId"] === "sin_asignar") return;
@@ -723,6 +724,8 @@ const filter = async (grade, section) => {
                 throw new Error(
                   `El docente ${teacher["DatosPersona"]["Nombre"]} ${teacher["DatosPersona"]["Apellido"]} ya imparte clases el ${repeatedElement["Dia"]} a las ${block["HoraInicio"]} en otro horario.`,
                 );
+
+                // Comprobar horas semanales de la materia
               }
 
               const academicHours = teachers.find(
