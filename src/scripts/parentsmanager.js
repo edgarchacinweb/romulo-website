@@ -362,7 +362,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         identityEntry.focus();
         throw new Error("La cédula debe tener entre 7 y 9 dígitos");
       }
-      if (parseInt(identityRaw) <= 1000000) { identityEntry.focus(); throw new Error("La cédula debe ser mayor a 1.000.000"); }
+      if (parseInt(identityRaw) < 3000000 || parseInt(identityRaw) > 29000000) { identityEntry.focus(); throw new Error("La cédula debe estar entre 3.000.000 y 29.000.000"); }
 
       // === VALIDACIÓN DE CORREO Y DOMINIO ===
       if (gender.length === 0) throw new Error("Indica el género");
