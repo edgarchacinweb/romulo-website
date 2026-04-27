@@ -834,7 +834,7 @@ const updateSections = (sectionData) => {
 
   for (let i = 1; i <= sectionData["Seccion"]; i++) {
     const newSectionOption = document.createElement("option");
-    newSectionOption.setAttribute("value", sectionData["Seccion"]);
+    newSectionOption.setAttribute("value", i);
     newSectionOption.textContent = numberToLetter(i);
     sectionField.appendChild(newSectionOption);
   }
@@ -868,9 +868,15 @@ const updateGrades = async (term) => {
     newGradeOption.setAttribute("value", s["CursoId"]);
     newGradeOption.textContent = s["Grado"];
     gradeField.appendChild(newGradeOption);
-
-    gradeField.addEventListener("change", () => updateSections(s));
   });
+
+  gradeField.onchange = () => {
+    const selectedCourseId = gradeField.value;
+    const selectedCourseData = sections.find(
+      (s) => s["CursoId"] === selectedCourseId,
+    );
+    if (selectedCourseData) updateSections(selectedCourseData);
+  };
 
   if (error && error.message) {
     const notification = document.createElement("notification-component");

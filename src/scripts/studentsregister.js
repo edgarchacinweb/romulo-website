@@ -572,31 +572,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       const apellidoVal = lastNameField.value.trim();
 
       // Validaciones proactivas para evitar errores técnicos del servidor (ej. el de UUID y Not Null)
-      if (!nombreVal) { alert("falta el campo Nombre"); return; }
+      if (!nombreVal) throw new Error("Falta el campo Nombre");
       if (!nameRegex.test(nombreVal)) throw new Error("El nombre solo debe contener letras.");
 
-      if (!apellidoVal) { alert("falta el campo Apellido"); return; }
+      if (!apellidoVal) throw new Error("Falta el campo Apellido");
       if (!nameRegex.test(apellidoVal)) throw new Error("El apellido solo debe contener letras.");
 
-      if (!genderField.value || genderField.value === "Requerido" || genderField.value.trim() === "") { alert("falta el campo Género"); return; }
+      if (!genderField.value || genderField.value === "Requerido" || genderField.value.trim() === "") throw new Error("Falta el campo Género");
 
-      if (!gradeField.value || gradeField.value === "Requerida" || gradeField.value.trim() === "") {
-        alert("falta el campo Grado a cursar"); return;
-      }
+      if (!gradeField.value || gradeField.value === "Requerida" || gradeField.value.trim() === "") throw new Error("Falta el campo Grado a cursar");
 
-      if (!relationshipField.value || relationshipField.value === "Requerida" || relationshipField.value.trim() === "") {
-        alert("falta el campo Parentesco"); return;
-      }
+      if (!relationshipField.value || relationshipField.value === "Requerida" || relationshipField.value.trim() === "") throw new Error("Falta el campo Parentesco");
 
-      if (!dateField.value) { alert("falta el campo Fecha de Nacimiento"); return; }
+      if (!dateField.value) throw new Error("Falta el campo Fecha de Nacimiento");
 
-      if (!addressField.value || addressField.value.trim() === "") { alert("falta el campo Dirección"); return; }
+      if (!addressField.value || addressField.value.trim() === "") throw new Error("Falta el campo Dirección");
 
       // Validación de Seguridad: Rango absoluto 11-18 años
       const fechaIngresada = dateField.value;
       if (fechaIngresada < minDateISO || fechaIngresada > maxDateISO) {
-        alert("El estudiante debe tener entre 11 y 18 años de edad para poder ser inscrito.");
-        return;
+        throw new Error("El estudiante debe tener entre 11 y 18 años de edad para poder ser inscrito.");
       }
 
       // La validación de edad ahora es dinámica por grado
@@ -612,7 +607,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           throw new Error("La Cédula Escolar generada es inválida (longitud incorrecta).");
         }
       } else {
-        if (!cedulaValStr) { alert("falta el campo Cédula de Identidad"); return; }
+        if (!cedulaValStr) throw new Error("Falta el campo Cédula de Identidad");
         const cedulaNum = parseInt(cedulaValStr, 10);
         const isExtranjero = nacionalidadSelect.value === "E";
 
@@ -657,14 +652,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (fileInput && fileInput.files[0]) {
           formData.append(key, fileInput.files[0]);
         } else if (!editId && !reinscribeId) {
-          if (key === "DocAutorizacion") { alert("falta el campo Documento de Autorización Legal"); return; }
-          else if (key === "DocDni") { alert("falta el campo Cédula de Identidad en formato PDF"); return; }
-          else if (key === "FotoCarnet") { alert("falta el campo Foto Carnet"); return; }
-          else if (key === "DocPartidaNacimiento") { alert("falta el campo Partida de Nacimiento"); return; }
-          else if (key === "DocNotasCertificadas") { alert("falta el campo Notas Certificadas"); return; }
-          else { alert(`falta el campo ${key}`); return; }
+          if (key === "DocAutorizacion") throw new Error("Falta el campo Documento de Autorización Legal");
+          else if (key === "DocDni") throw new Error("Falta el campo Cédula de Identidad en formato PDF");
+          else if (key === "FotoCarnet") throw new Error("Falta el campo Foto Carnet");
+          else if (key === "DocPartidaNacimiento") throw new Error("Falta el campo Partida de Nacimiento");
+          else if (key === "DocNotasCertificadas") throw new Error("Falta el campo Notas Certificadas");
+          else throw new Error(`Falta el campo ${key}`);
         } else if (reinscribeId) {
-          if (key === "DocNotasCertificadas") { alert("falta el campo Notas Certificadas"); return; }
+          if (key === "DocNotasCertificadas") throw new Error("Falta el campo Notas Certificadas");
         }
       }
 
