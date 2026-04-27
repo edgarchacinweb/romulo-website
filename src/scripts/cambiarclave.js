@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyCodeBtn = document.getElementById("VerifyCodeBtn");
   const emailField = document.getElementById("email");
 
-  // --- Referencias al DOM --- comentario 
+  // --- Referencias al DOM --- comentarios
   const steps = {
     email: document.getElementById("step-email"),
     code: document.getElementById("step-code"),
