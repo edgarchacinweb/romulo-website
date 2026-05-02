@@ -1,4 +1,4 @@
 window.APP_CONFIG = {
-  api_url: "http://localhost:3000",
+  api_url: "https://api.liceodonromulogallegos.org",
   min_students: 15,
 };
