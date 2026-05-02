@@ -708,8 +708,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const uniqueGrades = [];
     const seenGrades = new Set();
     sections.forEach(s => {
-      if (!seenGrades.has(s["CursoId"])) {
-        seenGrades.add(s["CursoId"]);
+      if (!seenGrades.has(s["Grado"])) {
+        seenGrades.add(s["Grado"]);
         uniqueGrades.push(s);
       }
     });
@@ -734,8 +734,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   gradesField.addEventListener("change", () => {
-    const selectedSections =
-      sections.find((element) => element["CursoId"] === gradesField.value)?.Seccion ?? maxSection;
+    let selectedSections = maxSection;
+    const selectedCourseData = sections.find((element) => element["CursoId"] === gradesField.value);
+    if (selectedCourseData) {
+      const gradoSections = sections.filter(s => s["Grado"] === selectedCourseData["Grado"]);
+      selectedSections = gradoSections.reduce((max, s) => Math.max(max, Number(s["Seccion"])), 0);
+    }
 
     sectionsField.innerHTML = '<option value="">Todas las secciones</option>';
     for (let i = 1; i <= selectedSections; i++) {

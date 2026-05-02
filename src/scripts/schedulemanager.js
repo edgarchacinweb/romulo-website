@@ -868,8 +868,8 @@ const updateGrades = async (term) => {
 
   const seenGrades = new Set();
   sections.forEach((s) => {
-    if (!seenGrades.has(s["CursoId"])) {
-      seenGrades.add(s["CursoId"]);
+    if (!seenGrades.has(s["Grado"])) {
+      seenGrades.add(s["Grado"]);
       const newGradeOption = document.createElement("option");
       newGradeOption.setAttribute("value", s["CursoId"]);
       newGradeOption.textContent = s["Grado"];
@@ -882,7 +882,11 @@ const updateGrades = async (term) => {
     const selectedCourseData = sections.find(
       (s) => s["CursoId"] === selectedCourseId,
     );
-    if (selectedCourseData) updateSections(selectedCourseData);
+    if (selectedCourseData) {
+      const gradoSections = sections.filter(s => s["Grado"] === selectedCourseData["Grado"]);
+      const maxSeccion = gradoSections.reduce((max, s) => Math.max(max, Number(s["Seccion"])), 0);
+      updateSections({ ...selectedCourseData, "Seccion": maxSeccion });
+    }
   };
 
   if (error && error.message) {

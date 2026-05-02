@@ -969,7 +969,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const course = courses.find(c => c.CursoId === courseId);
         sectionSelect.innerHTML = "";
         sectionSelect.disabled = false;
-        for (let i = 0; i < course.Seccion; i++) {
+        let maxSeccion = 0;
+        if (course) {
+            const gradoCourses = courses.filter(c => c.Grado === course.Grado);
+            maxSeccion = gradoCourses.reduce((max, c) => Math.max(max, Number(c.Seccion)), 0);
+        }
+        for (let i = 0; i < maxSeccion; i++) {
             const option = document.createElement("option");
             option.value = i;
             option.textContent = numberToLetter(i + 1);

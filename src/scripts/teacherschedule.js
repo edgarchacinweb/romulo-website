@@ -88,11 +88,15 @@ const updateGrades = async (term) => {
       "No hay estudiantes registrados en este período escolar.",
     );
 
+  const seenGrades = new Set();
   sections.forEach((s) => {
-    const newGradeOption = document.createElement("option");
-    newGradeOption.setAttribute("value", s["CursoId"]);
-    newGradeOption.textContent = s["Grado"];
-    gradeField.appendChild(newGradeOption);
+    if (!seenGrades.has(s["Grado"])) {
+      seenGrades.add(s["Grado"]);
+      const newGradeOption = document.createElement("option");
+      newGradeOption.setAttribute("value", s["CursoId"]);
+      newGradeOption.textContent = s["Grado"];
+      gradeField.appendChild(newGradeOption);
+    }
   });
 
   gradeField.onchange = () => {
@@ -100,7 +104,11 @@ const updateGrades = async (term) => {
     const selectedCourseData = sections.find(
       (s) => s["CursoId"] === selectedCourseId,
     );
-    if (selectedCourseData) updateSections(selectedCourseData);
+    if (selectedCourseData) {
+      const gradoSections = sections.filter(s => s["Grado"] === selectedCourseData["Grado"]);
+      const maxSeccion = gradoSections.reduce((max, s) => Math.max(max, Number(s["Seccion"])), 0);
+      updateSections({ ...selectedCourseData, "Seccion": maxSeccion });
+    }
   };
 
   if (error && error.message) {

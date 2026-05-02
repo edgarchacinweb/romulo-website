@@ -148,8 +148,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (cursosRes.ok) {
                 const cursos = await cursosRes.json();
                 cursoSelect.innerHTML = '<option value="">Seleccione un Curso</option>';
-                
+                const cursosMap = new Map();
                 cursos.forEach(c => {
+                    const currentMax = cursosMap.get(c.Grado)?.Seccion || 0;
+                    if (parseInt(c.Seccion) > currentMax) {
+                        cursosMap.set(c.Grado, c);
+                    }
+                });
+
+                Array.from(cursosMap.values()).forEach(c => {
                     const numSections = parseInt(c.Seccion) || 1;
                     
                     for (let i = 1; i <= numSections; i++) {
