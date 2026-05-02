@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // --- A. CARGA INICIAL DE DATOS ---
   document.body.appendChild(loader);
+  let parentUserData = null;
   try {
     // 1. Obtener Datos Personales
     const parentDataResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, {
@@ -52,7 +53,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!parentDataResponse.ok) throw Error("Error al cargar datos personales");
     const parentData = await parentDataResponse.json();
     
-    let parentUserData;
     // 2. Obtener Datos de Usuario
     const parentUserDataResponse = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
       method: "GET",
@@ -65,12 +65,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         const timestamp = new Date().getTime();
         const photoUrl = `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp?preview=1&t=${timestamp}`;
-        const profilePhotoResponse = await fetch(photoUrl, { method: "GET" });
+        const profilePhotoResponse = await fetch(photoUrl, { method: "HEAD" });
 
-        if (profilePhotoResponse.ok) {
-            const profilePhoto = await profilePhotoResponse.blob();
+        if (profilePhotoResponse.ok || profilePhotoResponse.status === 200) {
             if (photoPreview) {
-                photoPreview.style.backgroundImage = `url(${URL.createObjectURL(profilePhoto)})`;
+                photoPreview.style.backgroundImage = `url('${photoUrl}')`;
                 if (uploadIcon) uploadIcon.style.display = "none";
             }
         }
@@ -220,6 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               if (photoPreview) {
                   photoPreview.style.backgroundImage = `url('${newPhotoUrl}')`;
               }
+              if (uploadIcon) uploadIcon.style.display = "none";
               photoField.value = ""; // Limpiar input
           }
 
