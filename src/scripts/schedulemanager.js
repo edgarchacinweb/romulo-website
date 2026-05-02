@@ -866,11 +866,15 @@ const updateGrades = async (term) => {
       "No hay estudiantes registrados en este período escolar.",
     );
 
+  const seenGrades = new Set();
   sections.forEach((s) => {
-    const newGradeOption = document.createElement("option");
-    newGradeOption.setAttribute("value", s["CursoId"]);
-    newGradeOption.textContent = s["Grado"];
-    gradeField.appendChild(newGradeOption);
+    if (!seenGrades.has(s["CursoId"])) {
+      seenGrades.add(s["CursoId"]);
+      const newGradeOption = document.createElement("option");
+      newGradeOption.setAttribute("value", s["CursoId"]);
+      newGradeOption.textContent = s["Grado"];
+      gradeField.appendChild(newGradeOption);
+    }
   });
 
   gradeField.onchange = () => {
