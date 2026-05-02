@@ -48,7 +48,12 @@ document.addEventListener("DOMContentLoaded", function () {
           },
         );
 
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          data = { message: "Error interno del servidor (500). Verifica los logs de la API." };
+        }
 
         passwordInput.value = "";
         loader.remove();
