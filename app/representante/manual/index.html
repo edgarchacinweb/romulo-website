@@ -50,7 +50,7 @@
       <script>
         document.addEventListener('DOMContentLoaded', () => {
           const pdfEmbed = document.getElementById('pdfEmbed');
-          const apiUrl = window.APP_CONFIG?.api_url || 'http://localhost:3000';
+          const apiUrl = window.APP_CONFIG?.api_url || 'https://api.liceodonromulogallegos.org';
           pdfEmbed.src = `${apiUrl}/static/Manual_Representante.pdf#pagemode=none&navpanes=0`;
         });
       </script>
