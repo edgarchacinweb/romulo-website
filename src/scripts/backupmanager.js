@@ -64,7 +64,7 @@ const listBackups = async () => {
 
       backupTable.appendChild(card);
 
-      // Eliminar respaldo
+      // Eliminar respaldo :) 
       card.querySelector("button").addEventListener("click", () => {
         const loader = document.createElement("loader-spinner");
         loader.setAttribute("title", "Eliminando respaldo");
