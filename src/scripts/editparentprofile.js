@@ -52,19 +52,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!parentDataResponse.ok) throw Error("Error al cargar datos personales");
     const parentData = await parentDataResponse.json();
     
+    let parentUserData;
     // 2. Obtener Datos de Usuario
     const parentUserDataResponse = await fetch(`${window.APP_CONFIG.api_url}/user/get`, {
       method: "GET",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
     if (!parentUserDataResponse.ok) throw Error("Error al cargar usuario");
-    const parentUserData = await parentUserDataResponse.json();
+    parentUserData = await parentUserDataResponse.json();
 
     // 3. Cargar Foto de Perfil
     try {
-        const profilePhotoResponse = await fetch(
-        `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp`,
-        { method: "GET", headers: { "Content-Type": "image/webp" } });
+        const timestamp = new Date().getTime();
+        const photoUrl = `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp?preview=1&t=${timestamp}`;
+        const profilePhotoResponse = await fetch(photoUrl, { method: "GET" });
 
         if (profilePhotoResponse.ok) {
             const profilePhoto = await profilePhotoResponse.blob();
@@ -79,7 +80,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         // Construimos la URL probable del archivo (siguiendo el patrón de la foto)
         // Usamos dni-{UUID}.pdf
-        const dniUrl = `${window.APP_CONFIG.api_url}/docs/get/dni-${parentUserData.UsuarioId}.pdf`;
+        const timestamp = new Date().getTime();
+        const dniUrl = `${window.APP_CONFIG.api_url}/docs/get/dni-${parentUserData.UsuarioId}.pdf?preview=1&t=${timestamp}`;
         
         // Hacemos una petición ligera (HEAD) para ver si el archivo existe sin descargarlo todo
         // Si el servidor no soporta HEAD, caerá en el catch o dará error, pero intentamos.
@@ -210,7 +212,25 @@ document.addEventListener("DOMContentLoaded", async () => {
           notif.setAttribute("type", "success");
           notificationsContainer.appendChild(notif);
 
-          setTimeout(() => window.location.reload(), 1500);
+          // Actualizar UI sin recargar la página
+          const timestamp = new Date().getTime();
+          
+          if (photoField && photoField.files[0] && parentUserData) {
+              const newPhotoUrl = `${window.APP_CONFIG.api_url}/docs/get/carnet-${parentUserData.UsuarioId}.webp?preview=1&t=${timestamp}`;
+              if (photoPreview) {
+                  photoPreview.style.backgroundImage = `url('${newPhotoUrl}')`;
+              }
+              photoField.value = ""; // Limpiar input
+          }
+
+          if (identityUploadField && identityUploadField.files[0]) {
+              identityUploadField.value = ""; // Limpiar input
+              if (identityFileName) identityFileName.style.display = "none";
+          }
+
+          if (currentPasswordField) currentPasswordField.value = "";
+          if (newPasswordField) newPasswordField.value = "";
+          if (confirmPasswordField) confirmPasswordField.value = "";
 
         } catch (e) {
           console.error(e);
