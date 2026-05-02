@@ -583,6 +583,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         subjectField.appendChild(subjectOption);
       });
       selectedSubjects = [];
+      if (addSubjectBtn.classList.contains("disabled")) {
+        addSubjectBtn.classList.remove("disabled");
+      }
     });
   }
 
@@ -779,6 +782,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       notificationContainer.appendChild(notification);
     } finally {
       loader.remove();
+      if (addSubjectBtn.classList.contains("disabled")) {
+        addSubjectBtn.classList.remove("disabled");
+      }
     }
   });
 
