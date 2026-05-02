@@ -50,9 +50,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         let data;
         try {
-          data = await response.json();
+          const contentType = response.headers.get("content-type");
+          if (response.ok && contentType && contentType.includes("application/json")) {
+            data = await response.json();
+          } else if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Server Error:", errorText);
+            data = { message: "Error interno del servidor (500). Verifica los logs de la API." };
+          } else {
+            throw new TypeError("Expected JSON, but got " + contentType);
+          }
         } catch (e) {
-          data = { message: "Error interno del servidor (500). Verifica los logs de la API." };
+          console.error("Fetch error:", e);
+          data = { message: "Error interno del servidor. Verifica los logs de la API." };
         }
 
         passwordInput.value = "";
