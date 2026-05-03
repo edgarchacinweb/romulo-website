@@ -213,25 +213,10 @@
         <div class="filter-grid">
           
           <div class="form-group">
-            <label for="subjectSelect">Materia</label>
-            <div class="select-wrapper">
-              <select id="subjectSelect">
-                <option value="" disabled selected>Cargando materias...</option>
-              </select>
-              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </div>
-          </div>
-
-          <div class="form-group">
             <label for="yearSelect">Año (Grado)</label>
             <div class="select-wrapper">
               <select id="yearSelect">
-                <option value="" disabled selected>Elige año</option>
-                <option value="1er Año">1er Año</option>
-                <option value="2do Año">2do Año</option>
-                <option value="3er Año">3er Año</option>
-                <option value="4to Año">4to Año</option>
-                <option value="5to Año">5to Año</option>
+                <option value="" disabled selected>Cargando años...</option>
               </select>
               <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
@@ -240,11 +225,18 @@
           <div class="form-group">
             <label for="sectionSelect">Sección</label>
             <div class="select-wrapper">
-              <select id="sectionSelect">
-                <option value="" disabled selected>Elige sección</option>
-                <option value="A">Sección A</option>
-                <option value="B">Sección B</option>
-                <option value="C">Sección C</option>
+              <select id="sectionSelect" disabled>
+                <option value="" disabled selected>Seleccione año primero...</option>
+              </select>
+              <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="subjectSelect">Materia</label>
+            <div class="select-wrapper">
+              <select id="subjectSelect" disabled>
+                <option value="" disabled selected>Seleccione sección primero...</option>
               </select>
               <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>

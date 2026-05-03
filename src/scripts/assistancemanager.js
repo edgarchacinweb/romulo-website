@@ -1,4 +1,5 @@
 import authorize from "./auth.js";
+import number_to_letter from "./utils.js";
 
 authorize("docente");
 
@@ -40,6 +41,7 @@ let lapsosData = [];
 let allowedDays = []; // Días permitidos según horario
 let currentFilter = 'all';
 let isAttendanceSaved = false;
+let teacherAssignments = [];
 
 // === PREVENCIÓN DE PÉRDIDA DE DATOS ===
 window.addEventListener('beforeunload', (event) => {
@@ -49,7 +51,7 @@ window.addEventListener('beforeunload', (event) => {
   }
 });
 
-// === CARGAR MATERIAS DINÁMICAMENTE DESDE EL BACKEND ===
+// === CARGAR DATOS DINÁMICAMENTE DESDE EL BACKEND ===
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const token = localStorage.getItem("auth");
@@ -78,7 +80,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (termDisplay) termDisplay.value = "Error al cargar fechas";
     }
 
-    const response = await fetch(`${apiUrl}/subject/teacher`, {
+    // Cargar asignaciones del docente
+    const assignmentsResponse = await fetch(`${apiUrl}/teacher/assignments`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -86,34 +89,78 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    if (!response.ok) throw new Error("No se pudieron cargar las materias");
+    if (!assignmentsResponse.ok) throw new Error("No se pudieron cargar las asignaciones");
 
-    let subjects = await response.json();
+    teacherAssignments = await assignmentsResponse.json();
 
-    // Blindaje: Garantizar opciones únicas eliminando duplicados por MateriaId
-    const seenSubjectIds = new Set();
-    subjects = subjects.filter(subject => {
-      if (seenSubjectIds.has(subject.MateriaId)) {
-        return false;
+    yearSelect.innerHTML = '<option value="" disabled selected>Seleccionar año...</option>';
+
+    // Extraer grados académicos únicos
+    const uniqueGrades = [];
+    teacherAssignments.forEach(a => {
+      if (!uniqueGrades.some(ug => ug.Grado === a.Grado)) {
+        uniqueGrades.push(a);
       }
-      seenSubjectIds.add(subject.MateriaId);
-      return true;
     });
 
-    subjectSelect.innerHTML = '<option value="" disabled selected>Elige materia</option>';
-
-    subjects.forEach(subject => {
+    uniqueGrades.sort((a, b) => a.Grado - b.Grado).forEach((g) => {
       const option = document.createElement("option");
-      option.dataset.id = subject.MateriaId;
-      option.value = subject.Nombre;
-      option.textContent = subject.Nombre;
-      subjectSelect.appendChild(option);
+      option.setAttribute("value", g.Grado); // El backend recibe 1, 2, 3...
+      option.textContent = `${g.Grado}° Año`;
+      yearSelect.appendChild(option);
     });
 
   } catch (error) {
-    console.error("Error cargando materias:", error);
-    subjectSelect.innerHTML = '<option value="" disabled selected>Error al cargar materias</option>';
+    console.error("Error cargando datos iniciales:", error);
+    yearSelect.innerHTML = '<option value="" disabled selected>Error al cargar años</option>';
   }
+});
+
+// --- LOGICA DE CASCADA (AÑO -> SECCIÓN -> MATERIA) ---
+yearSelect.addEventListener("change", () => {
+  sectionSelect.disabled = false;
+  subjectSelect.disabled = true;
+  subjectSelect.innerHTML = '<option value="" disabled selected>Seleccione sección primero...</option>';
+  sectionSelect.innerHTML = '<option value="" disabled selected>Seleccionar sección...</option>';
+
+  const selectedGrade = yearSelect.value;
+  const secciones = [...new Set(teacherAssignments.filter(a => String(a.Grado) === String(selectedGrade)).map(a => a.Seccion))];
+
+  secciones.sort((a, b) => a - b).forEach(seccion => {
+    const option = document.createElement("option");
+    option.setAttribute("value", number_to_letter(seccion)); // "A", "B"...
+    option.textContent = `Sección ${number_to_letter(seccion)}`;
+    sectionSelect.appendChild(option);
+  });
+  
+  fetchAllowedDays();
+});
+
+sectionSelect.addEventListener("change", () => {
+  subjectSelect.disabled = false;
+  subjectSelect.innerHTML = '<option value="" disabled selected>Seleccionar materia...</option>';
+
+  const selectedGrade = yearSelect.value;
+  const selectedSectionLetter = sectionSelect.value;
+  
+  const materias = teacherAssignments.filter(a => String(a.Grado) === String(selectedGrade) && number_to_letter(a.Seccion) === selectedSectionLetter);
+
+  const uniqueMaterias = [];
+  materias.forEach(m => {
+    if (!uniqueMaterias.some(um => um.MateriaId === m.MateriaId)) {
+      uniqueMaterias.push(m);
+    }
+  });
+
+  uniqueMaterias.forEach(m => {
+    const option = document.createElement("option");
+    option.dataset.id = m.MateriaId;
+    option.value = m.MateriaNombre;
+    option.textContent = m.MateriaNombre;
+    subjectSelect.appendChild(option);
+  });
+  
+  fetchAllowedDays();
 });
 
 // --- FUNCIÓN PARA OBTENER DÍAS PERMITIDOS ---
@@ -255,6 +302,7 @@ btnLoad.addEventListener("click", async () => {
   const subjectName = subjectSelect.value;
 
   const year = yearSelect.value;
+  const yearText = yearSelect.options[yearSelect.selectedIndex].text;
   const section = sectionSelect.value;
   const term = termSelect.value;
   const termName = termDisplay.value;
@@ -357,7 +405,7 @@ btnLoad.addEventListener("click", async () => {
   }
 
   // Actualizar Títulos de la Interfaz
-  displayClassName.textContent = `${subjectName} - ${year} "${section}"`;
+  displayClassName.textContent = `${subjectName} - ${yearText} "${section}"`;
 
   const dateObj = new Date(dateInput.value);
   dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
