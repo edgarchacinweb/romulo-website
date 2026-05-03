@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (msg.includes("llave duplicada") || msg.includes("unique constraint") || msg.includes("ya existe la llave")) {
       return "El estudiante con esta cédula ya se encuentra registrado en el sistema.";
     }
+    if (msg.includes("failed to fetch")) {
+      return "Error de red o el tamaño total de los archivos es demasiado grande. Verifique el tamaño de los documentos e intente nuevamente.";
+    }
     if (msg.includes("tipo uuid") || msg.includes("invalid input syntax for type uuid")) {
       return "Falta información. Asegúrese de haber seleccionado una opción válida en el Grado a cursar.";
     }
@@ -643,6 +646,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         DocAutorizacion: "docAutorizacion"
       };
 
+      const compressImage = (file) => {
+          return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onload = event => {
+                  const img = new Image();
+                  img.src = event.target.result;
+                  img.onload = () => {
+                      const canvas = document.createElement("canvas");
+                      let width = img.width;
+                      let height = img.height;
+                      const MAX_WIDTH = 800;
+                      const MAX_HEIGHT = 800;
+                      if (width > height) {
+                          if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                      } else {
+                          if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                      }
+                      canvas.width = width; canvas.height = height;
+                      const ctx = canvas.getContext("2d");
+                      ctx.drawImage(img, 0, 0, width, height);
+                      canvas.toBlob(blob => {
+                          resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+                      }, "image/jpeg", 0.7);
+                  };
+                  img.onerror = error => reject(error);
+              };
+              reader.onerror = error => reject(error);
+          });
+      };
+
+      let totalSize = 0;
+
       for (const [key, id] of Object.entries(filesMap)) {
         const fileInput = document.getElementById(id);
 
@@ -650,7 +686,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (key === "DocAutorizacion" && (relationshipField.value === "Padre" || relationshipField.value === "Madre" || !relationshipField.value)) continue;
 
         if (fileInput && fileInput.files[0]) {
-          formData.append(key, fileInput.files[0]);
+          let fileToAppend = fileInput.files[0];
+
+          // Comprimir la imagen si es FotoCarnet
+          if (key === "FotoCarnet" && fileToAppend.type.startsWith("image/")) {
+              try {
+                  fileToAppend = await compressImage(fileToAppend);
+              } catch (e) {
+                  console.error("Error al comprimir la imagen", e);
+              }
+          }
+
+          totalSize += fileToAppend.size;
+          formData.append(key, fileToAppend);
         } else if (!editId && !reinscribeId) {
           if (key === "DocAutorizacion") throw new Error("Falta el campo Documento de Autorización Legal");
           else if (key === "DocDni") throw new Error("Falta el campo Cédula de Identidad en formato PDF");
@@ -661,6 +709,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else if (reinscribeId) {
           if (key === "DocNotasCertificadas") throw new Error("Falta el campo Notas Certificadas");
         }
+      }
+
+      // Validar tamaño total para evitar error 413 Payload Too Large del servidor (Límite típico 10MB)
+      if (totalSize > 10000 * 1024) {
+          throw new Error(`El peso total de los archivos a enviar (${(totalSize / 1024).toFixed(2)} KB) es demasiado grande. El límite del servidor es 10MB (10000 KB). Por favor, comprima sus documentos PDF (puede usar herramientas online como iLovePDF) e intente nuevamente.`);
       }
 
       let url = editId
