@@ -9,6 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (msg.includes("llave duplicada") || msg.includes("unique constraint")) {
       return "El estudiante con esta cédula ya se encuentra registrado en el sistema.";
     }
+    if (msg.includes("failed to fetch")) {
+      return "Error de red o el tamaño total de los archivos es demasiado grande. Verifique el tamaño de los documentos e intente nuevamente.";
+    }
     return techMsg;
   }
 
@@ -385,6 +388,37 @@ document.addEventListener("DOMContentLoaded", async () => {
         DocAutorizacion: "docAutorizacion"
       };
 
+      const compressImage = (file) => {
+          return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onload = event => {
+                  const img = new Image();
+                  img.src = event.target.result;
+                  img.onload = () => {
+                      const canvas = document.createElement("canvas");
+                      let width = img.width;
+                      let height = img.height;
+                      const MAX_WIDTH = 800;
+                      const MAX_HEIGHT = 800;
+                      if (width > height) {
+                          if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                      } else {
+                          if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                      }
+                      canvas.width = width; canvas.height = height;
+                      const ctx = canvas.getContext("2d");
+                      ctx.drawImage(img, 0, 0, width, height);
+                      canvas.toBlob(blob => {
+                          resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+                      }, "image/jpeg", 0.7);
+                  };
+                  img.onerror = error => reject(error);
+              };
+              reader.onerror = error => reject(error);
+          });
+      };
+
       for (const [key, id] of Object.entries(filesMap)) {
         const fileInput = document.getElementById(id);
         
@@ -399,7 +433,23 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         if (fileInput && fileInput.files[0]) {
-          formData.append(key, fileInput.files[0]);
+          let fileToAppend = fileInput.files[0];
+
+          // Validar tamaño de PDFs y otros documentos (límite 2MB)
+          if (fileToAppend.size > 2 * 1024 * 1024 && key !== "FotoCarnet") {
+              throw new Error(`El archivo correspondiente a ${key} excede el límite de 2MB. Por favor, comprímalo.`);
+          }
+
+          // Comprimir la imagen si es FotoCarnet
+          if (key === "FotoCarnet" && fileToAppend.type.startsWith("image/")) {
+              try {
+                  fileToAppend = await compressImage(fileToAppend);
+              } catch (e) {
+                  console.error("Error al comprimir la imagen", e);
+              }
+          }
+
+          formData.append(key, fileToAppend);
         }
       }
 
