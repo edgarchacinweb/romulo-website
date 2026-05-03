@@ -419,6 +419,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
       };
 
+      let totalSize = 0;
+
       for (const [key, id] of Object.entries(filesMap)) {
         const fileInput = document.getElementById(id);
         
@@ -435,11 +437,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (fileInput && fileInput.files[0]) {
           let fileToAppend = fileInput.files[0];
 
-          // Validar tamaño de PDFs y otros documentos (límite 2MB)
-          if (fileToAppend.size > 2 * 1024 * 1024 && key !== "FotoCarnet") {
-              throw new Error(`El archivo correspondiente a ${key} excede el límite de 2MB. Por favor, comprímalo.`);
-          }
-
           // Comprimir la imagen si es FotoCarnet
           if (key === "FotoCarnet" && fileToAppend.type.startsWith("image/")) {
               try {
@@ -449,8 +446,14 @@ document.addEventListener("DOMContentLoaded", async () => {
               }
           }
 
+          totalSize += fileToAppend.size;
           formData.append(key, fileToAppend);
         }
+      }
+
+      // Validar tamaño total para evitar error 413 Payload Too Large del servidor (Límite típico 1MB)
+      if (totalSize > 1000 * 1024) {
+          throw new Error(`El peso total de los archivos a enviar (${(totalSize / 1024).toFixed(2)} KB) es demasiado grande. El límite del servidor es 1MB (1000 KB). Por favor, comprima sus documentos PDF (puede usar herramientas online como iLovePDF) e intente nuevamente.`);
       }
 
       const response = await fetch(`${window.APP_CONFIG.api_url}/students/create`, {
