@@ -215,14 +215,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // --- 3. CARGA DE DATOS ---
-    //const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, { headers: { Authorization: `Bearer ${token}` } });
-    //if (!gradesResponse.ok) throw new Error("Error al consultar los grados escolares.");
-    // const grades = await gradesResponse.json();
-    // document.querySelectorAll(".grade-option").forEach((opt, index) => {
-    //if (grades[index]) opt.value = grades[index].CursoId;
-    // });
+    const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!gradesResponse.ok) throw new Error("Error al consultar los grados escolares.");
+    const grades = await gradesResponse.json();
 
+    // Nuevo mapeo inteligente
+    document.querySelectorAll(".grade-option").forEach((opt) => {
+      // Extraemos el número (1, 2, 3, 4 o 5) del texto del HTML (ej. "1er Año" -> "1")
+      const numGradoTexto = opt.textContent.charAt(0);
+
+      // Buscamos el curso correcto en la respuesta de la base de datos que coincida con ese número
+      const cursoMatch = grades.find(g =>
+        String(g.Grado) === numGradoTexto ||
+        String(g.grado) === numGradoTexto ||
+        String(g.Nombre).includes(numGradoTexto)
+      );
+
+      if (cursoMatch) {
+        opt.value = cursoMatch.CursoId; // Asignamos el UUID correcto que espera PostgreSQL
+      }
+    });
     const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, { headers: { Authorization: `Bearer ${token}` } });
     if (!parentResponse.ok) throw new Error("Error al obtener los datos del representante.");
     parentData = await parentResponse.json();
