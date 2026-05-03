@@ -216,12 +216,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // --- 3. CARGA DE DATOS ---
-    const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!gradesResponse.ok) throw new Error("Error al consultar los grados escolares.");
-    const grades = await gradesResponse.json();
-    document.querySelectorAll(".grade-option").forEach((opt, index) => {
-      if (grades[index]) opt.value = grades[index].CursoId;
-    });
+    //const gradesResponse = await fetch(`${window.APP_CONFIG.api_url}/course/get_all`, { headers: { Authorization: `Bearer ${token}` } });
+    //if (!gradesResponse.ok) throw new Error("Error al consultar los grados escolares.");
+    // const grades = await gradesResponse.json();
+    // document.querySelectorAll(".grade-option").forEach((opt, index) => {
+    //if (grades[index]) opt.value = grades[index].CursoId;
+    // });
 
     const parentResponse = await fetch(`${window.APP_CONFIG.api_url}/people/get`, { headers: { Authorization: `Bearer ${token}` } });
     if (!parentResponse.ok) throw new Error("Error al obtener los datos del representante.");
@@ -647,34 +647,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
 
       const compressImage = (file) => {
-          return new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.readAsDataURL(file);
-              reader.onload = event => {
-                  const img = new Image();
-                  img.src = event.target.result;
-                  img.onload = () => {
-                      const canvas = document.createElement("canvas");
-                      let width = img.width;
-                      let height = img.height;
-                      const MAX_WIDTH = 800;
-                      const MAX_HEIGHT = 800;
-                      if (width > height) {
-                          if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                      } else {
-                          if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                      }
-                      canvas.width = width; canvas.height = height;
-                      const ctx = canvas.getContext("2d");
-                      ctx.drawImage(img, 0, 0, width, height);
-                      canvas.toBlob(blob => {
-                          resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
-                      }, "image/jpeg", 0.7);
-                  };
-                  img.onerror = error => reject(error);
-              };
-              reader.onerror = error => reject(error);
-          });
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+              const canvas = document.createElement("canvas");
+              let width = img.width;
+              let height = img.height;
+              const MAX_WIDTH = 800;
+              const MAX_HEIGHT = 800;
+              if (width > height) {
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+              } else {
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+              }
+              canvas.width = width; canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              canvas.toBlob(blob => {
+                resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+              }, "image/jpeg", 0.7);
+            };
+            img.onerror = error => reject(error);
+          };
+          reader.onerror = error => reject(error);
+        });
       };
 
       let totalSize = 0;
@@ -690,11 +690,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           // Comprimir la imagen si es FotoCarnet
           if (key === "FotoCarnet" && fileToAppend.type.startsWith("image/")) {
-              try {
-                  fileToAppend = await compressImage(fileToAppend);
-              } catch (e) {
-                  console.error("Error al comprimir la imagen", e);
-              }
+            try {
+              fileToAppend = await compressImage(fileToAppend);
+            } catch (e) {
+              console.error("Error al comprimir la imagen", e);
+            }
           }
 
           totalSize += fileToAppend.size;
@@ -713,7 +713,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Validar tamaño total para evitar error 413 Payload Too Large del servidor (Límite típico 10MB)
       if (totalSize > 10000 * 1024) {
-          throw new Error(`El peso total de los archivos a enviar (${(totalSize / 1024).toFixed(2)} KB) es demasiado grande. El límite del servidor es 10MB (10000 KB). Por favor, comprima sus documentos PDF (puede usar herramientas online como iLovePDF) e intente nuevamente.`);
+        throw new Error(`El peso total de los archivos a enviar (${(totalSize / 1024).toFixed(2)} KB) es demasiado grande. El límite del servidor es 10MB (10000 KB). Por favor, comprima sus documentos PDF (puede usar herramientas online como iLovePDF) e intente nuevamente.`);
       }
 
       let url = editId
