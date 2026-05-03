@@ -51,8 +51,11 @@ document.addEventListener("DOMContentLoaded", function () {
         let data;
         try {
           const contentType = response.headers.get("content-type");
-          if (response.ok && contentType && contentType.includes("application/json")) {
+          if (contentType && contentType.includes("application/json")) {
             data = await response.json();
+            if (!response.ok) {
+              console.error("Server Error:", data);
+            }
           } else if (!response.ok) {
             const errorText = await response.text();
             console.error("Server Error:", errorText);
