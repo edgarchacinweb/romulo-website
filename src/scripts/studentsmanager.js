@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           },
           body: JSON.stringify({
             Busqueda: searchValue.trim(),
-            CursoId: gradesValue,
+            Grado: gradesValue,
             Seccion: `${sectionsValue}`,
             Estado: stateValue,
           }),
@@ -716,7 +716,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     uniqueGrades.forEach((section) => {
       const option = document.createElement("option");
-      option.setAttribute("value", section["CursoId"]);
+      option.setAttribute("value", section["Grado"]);
       option.textContent = `${section["Grado"]}° Año`;
       gradesField.appendChild(option);
     });
@@ -735,9 +735,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   gradesField.addEventListener("change", () => {
     let selectedSections = maxSection;
-    const selectedCourseData = sections.find((element) => element["CursoId"] === gradesField.value);
+    const selectedCourseData = sections.find((element) => String(element["Grado"]) === String(gradesField.value));
     if (selectedCourseData) {
-      const gradoSections = sections.filter(s => s["Grado"] === selectedCourseData["Grado"]);
+      const gradoSections = sections.filter(s => String(s["Grado"]) === String(gradesField.value));
       selectedSections = gradoSections.reduce((max, s) => Math.max(max, Number(s["Seccion"])), 0);
     }
 
