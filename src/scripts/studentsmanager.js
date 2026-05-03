@@ -752,9 +752,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     filterRequests();
   });
 
-  document.getElementById("BtnBack").addEventListener("click", () => {
-    document.body.style.overflow = "hidden";
-    document.body.style.animation = "goodByePage 0.8s forwards";
-    setTimeout(() => (window.location.href = "/app/admin/dashboard/"), 1000);
-  });
+  const btnBack = document.getElementById("BtnBack");
+  if (btnBack) {
+    btnBack.addEventListener("click", () => {
+      document.body.style.overflow = "hidden";
+      document.body.style.animation = "goodByePage 0.8s forwards";
+      setTimeout(() => (window.location.href = "/app/admin/dashboard/"), 1000);
+    });
+  }
 });

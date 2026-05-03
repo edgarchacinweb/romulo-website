@@ -636,7 +636,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       formData.append("IdCurso", gradeField.value);
       formData.append("Direccion", addressField.value.trim());
 
-      if (!editId && !reinscribeId) formData.append("IdRepresentante", parentData["DatosPersonaId"]);
+      if (!editId && !reinscribeId) formData.append("IdRepresentante", parentData["DatosPersonaId"] || parentData["id"]);
 
       const filesMap = {
         FotoCarnet: "studentPhoto",
